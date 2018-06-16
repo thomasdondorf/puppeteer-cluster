@@ -9,8 +9,7 @@ const Cluster = require('../lib/Cluster');
     await cluster.setTask(async ({ url, page, cluster, context }) => {
         console.log('going to: ' + url);
 
-        await page.goto(url);
-        await page.screenshot({path: 'test123.png'});
+        await page.screenshot({path: 'data/test123.png'});
     });
 
     cluster.queue('https://www.google.com/');
