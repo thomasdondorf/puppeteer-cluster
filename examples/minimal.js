@@ -16,4 +16,9 @@ const Cluster = require('../lib/Cluster');
     cluster.queue('https://example.com');
     cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
     cluster.queue('https://wikipedia.org');
+
+    await cluster.idle();
+    console.log('YUP');
+    await cluster.close();
+
 })();
