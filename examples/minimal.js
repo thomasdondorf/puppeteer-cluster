@@ -3,6 +3,7 @@ const Cluster = require('../lib/Cluster');
 (async () => {
     const cluster = await Cluster.launch({
         maxWorker: 2,
+        concurrency: Cluster.CONCURRENCY_CONTEXT,
     });
 
     await cluster.setTask(async ({ url, page, cluster, context }) => {
