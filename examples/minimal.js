@@ -18,7 +18,6 @@ const Cluster = require('../lib/Cluster');
     cluster.queue('https://wikipedia.org');
 
     await cluster.idle();
-    console.log('YUP');
     await cluster.close();
 
 })();
