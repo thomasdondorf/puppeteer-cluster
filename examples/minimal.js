@@ -1,12 +1,19 @@
 const Cluster = require('../lib/Cluster');
 
 (async () => {
-    const cluster = await Cluster.launch();
-
-    await cluster.task(async ({ page, cluster, context }) => {
-        await page.goto('https://example.com');
-        await page.screenshot({path: 'example.png'});
+    const cluster = await Cluster.launch({
+        maxWorker: 2,
     });
 
-    // cluster.queue(['http://www.google.com/', 'http://www.example.com/']);
+    await cluster.setTask(async ({ url, page, cluster, context }) => {
+        console.log('going to: ' + url);
+
+        await page.goto(url);
+        await page.screenshot({path: 'test123.png'});
+    });
+
+    cluster.queue('https://www.google.com/');
+    cluster.queue('https://example.com');
+    cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
+    cluster.queue('https://wikipedia.org');
 })();
