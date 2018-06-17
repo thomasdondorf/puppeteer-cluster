@@ -7,14 +7,14 @@ function sleep(ms) {
 (async () => {
     const cluster = await Cluster.launch({
         maxWorker: 2,
-        concurrency: Cluster.CONCURRENCY_BROWSER,
+        concurrency: Cluster.CONCURRENCY_PAGE,
         // monitor: true,
     });
 
     await cluster.setTask(async ({ url, page, cluster, worker, context }) => {
         console.log('going to: ' + url);
         await page.goto(url);
-        await sleep(500);
+        // await sleep(3000);
         await page.screenshot({path: 'data/test123.png'});
         console.log('DONE');
     });
