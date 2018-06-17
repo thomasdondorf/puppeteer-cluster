@@ -11,6 +11,7 @@ function sleep(ms) {
 
 (async () => {
     const cluster = await Cluster.launch({
+        monitor: true,
         maxWorker: 2,
         concurrency: Cluster.CONCURRENCY_BROWSER,
     });

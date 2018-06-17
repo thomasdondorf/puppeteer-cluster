@@ -3,12 +3,16 @@ const Cluster = require('../lib/Cluster');
 (async () => {
     const cluster = await Cluster.launch({
         maxWorker: 2,
-        concurrency: Cluster.CONCURRENCY_CONTEXT,
+        concurrency: Cluster.CONCURRENCY_BROWSER,
+        monitor: true,
     });
 
     await cluster.setTask(async ({ url, page, cluster, context }) => {
-        console.log('going to: ' + url);
+        // console.log('going to: ' + url);
 
+        /*await page.goto(url, {
+            timeout: 100,
+        });*/
         await page.screenshot({path: 'data/test123.png'});
     });
 
