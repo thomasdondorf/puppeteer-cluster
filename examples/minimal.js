@@ -7,7 +7,7 @@ function sleep(ms) {
 (async () => {
     const cluster = await Cluster.launch({
         maxWorker: 2,
-        concurrency: Cluster.CONCURRENCY_CONTEXT,
+        concurrency: Cluster.CONCURRENCY_BROWSER,
         // monitor: true,
     });
 
@@ -25,7 +25,6 @@ function sleep(ms) {
     cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
 
     await cluster.idle();
-    console.log('closing');
     await cluster.close();
 
 })();
