@@ -8,21 +8,24 @@ function sleep(ms) {
     const cluster = await Cluster.launch({
         maxWorker: 2,
         concurrency: Cluster.CONCURRENCY_CONTEXT,
-        monitor: true,
+        // monitor: true,
     });
 
     await cluster.setTask(async ({ url, page, cluster, worker, context }) => {
+        console.log('going to: ' + url);
         await page.goto(url);
-        await sleep(5000);
+        await sleep(500);
         await page.screenshot({path: 'data/test123.png'});
+        console.log('DONE');
     });
 
-    cluster.queue('http://asfdasfdla.casfdawerasdf.com');
+    cluster.queue('http://www.google.com');
     cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
     cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
     cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
 
     await cluster.idle();
+    console.log('closing');
     await cluster.close();
 
 })();
