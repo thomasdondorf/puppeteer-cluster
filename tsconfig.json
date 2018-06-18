@@ -1,20 +1,23 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "es2017",
         "lib": [ "es2017" ],
-        "rootDir": "lib",
-        "outDir": "./dist",
         "module": "commonjs",
         "moduleResolution": "node",
-        "strict": true,
         "types": ["node"],
+
+        "rootDir": "./src",
+        "outDir": "./build",
+
+        "strict": true,
         "inlineSourceMap": true,
-        "inlineSources": true,
-        "allowJs": true,
         "noImplicitReturns": true,
-        "skipLibCheck": true
+
+        "declaration": true,
+        "skipLibCheck": true,
     },
+
     "include": [
-        "lib/**/*"
+        "./src/**/*"
     ]
 }
