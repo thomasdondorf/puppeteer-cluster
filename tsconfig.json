@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "lib": [ "es2017" ],
+        "rootDir": "lib",
+        "outDir": "./dist",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "strict": true,
+        "types": ["node"],
+        "inlineSourceMap": true,
+        "inlineSources": true,
+        "allowJs": true,
+        "noImplicitReturns": true,
+        "skipLibCheck": true
+    },
+    "include": [
+        "lib/**/*"
+    ]
+}

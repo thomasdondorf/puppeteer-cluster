@@ -1,26 +1,25 @@
 
+import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
+
+// TODO get these two working together
 const puppeteer = require('puppeteer');
+import { Page, Browser } from 'puppeteer';
 
-class ConcurrencyContext {
+export default class ConcurrencyPage extends AbstractBrowser {
 
-    static async launch(options) {
-        const browser = new ConcurrencyContext(options);
-        await browser.init();
+    private chrome: Browser | null = null;
 
-        return browser;
-    }
-
-    constructor(options) {
-        this.options = options;
-
-        this.repairRequested = false;
-        this.repairing = false;
-        this.waitingForRepairResolvers = [];
-        this.openInstances = 0;
-    }
+    private repairRequested: boolean = false;
+    private repairing: boolean = false;
+    private openInstances: number = 0;
+    private waitingForRepairResolvers: (() => void)[] = [];
 
     async init() {
         this.chrome = await puppeteer.launch(this.options);
+    }
+
+    async close() {
+        await (<Browser>this.chrome).close();
     }
 
     async _startRepair() {
@@ -34,7 +33,7 @@ class ConcurrencyContext {
 
         try {
             // will probably fail, but just in case the repair was not necessary
-            await this.chrome.close();
+            await (<Browser>this.chrome).close();
         } catch (e) {}
 
         try {
@@ -49,7 +48,7 @@ class ConcurrencyContext {
     }
 
     async workerInstance() {
-        let page, context;
+        let page: Page;
 
         return {
             instance: async () => {
@@ -60,16 +59,14 @@ class ConcurrencyContext {
                 }
 
                 this.openInstances++;
-                context = await this.chrome.createIncognitoBrowserContext();
-                page = await context.newPage();
+                page = await (<Browser>this.chrome).newPage();
 
                 return {
                     page,
 
                     close: async () => {
-                        this.openInstances--;
+                        this.openInstances--; // decrement first in case of error
                         await page.close();
-                        await context.close();
 
                         if (this.repairRequested) {
                             await this._startRepair();
@@ -89,9 +86,4 @@ class ConcurrencyContext {
         };
     }
 
-    async close() {
-        await this.chrome.close();
-    }
 }
-
-module.exports = ConcurrencyContext;

@@ -1,91 +1,110 @@
 
-const Worker = require('./Worker');
-const Target = require('./Target');
-const Display = require('./Display');
-const constants = require('./constants');
-const util = require('./util');
+import Target from './Target';
+import Display from './Display';
+import * as util from './util';
+import Worker, { TaskArguments } from './Worker';
 
-const ConcurrencyPage = require('./browser/ConcurrencyPage');
-const ConcurrencyBrowser = require('./browser/ConcurrencyBrowser');
-const ConcurrencyContext = require('./browser/ConcurrencyContext');
+import ConcurrencyBrowser from './browser/ConcurrencyBrowser';
+import ConcurrencyPage from './browser/ConcurrencyPage';
+import ConcurrencyContext from './browser/ConcurrencyContext';
 
-const DEFAULT_OPTIONS = {
+interface ClusterOptions {
+    minWorker: number,
+    maxWorker: number,
+    maxCPU: number,
+    maxMemory: number,
+    concurrency: number,
+    args: string[],
+    monitor: boolean,
+};
+
+const DEFAULT_OPTIONS: ClusterOptions = {
     minWorker: 0,
     maxWorker: 4,
     maxCPU: 1,
     maxMemory: 1,
-    concurrency: constants.CLUSTER_CONCURRENCY_PAGE,
+    concurrency: 2, // PAGE
     args: [],
     monitor: false,
 };
 
-class Cluster {
+type TaskFunction = (args: TaskArguments) => Promise<void>;
 
-    static async launch(options) {
+const MONITORING_INTERVAL = 500;
+
+export default class Cluster {
+
+    static CONCURRENCY_PAGE = 1; // shares cookies, etc.
+    static CONCURRENCY_CONTEXT = 2; // no cookie sharing
+    static CONCURRENCY_BROWSER = 3; // no cookie sharing and individual processes (also uses contexts)
+
+    private options: ClusterOptions;
+    private _workers: Worker[] = [];
+    private _workersAvail: Worker[] = [];
+    private _workersBusy: Worker[] = [];
+    private _workersStarting = 0;
+
+    private _allTargetCount = 0;
+    private _queue: Target[] = [];
+
+    private _task: TaskFunction | null = null;
+    private _idleResolvers: (() => void)[] = []; // TODO
+    private browser: any = null; // TODO
+
+    private _isClosed = false;
+    private _startTime = Date.now();
+    private _nextWorkerId = -1;
+
+    private monitoringInterval: NodeJS.Timer | null = null;
+    private _display: Display | null = null;
+
+    static async launch(options: ClusterOptions) { // TODO launch options
         const cluster = new Cluster(options);
         await cluster.init();
 
         return cluster;
-    }
+    };
 
-    constructor(options) {
+    constructor(options: ClusterOptions) { // TODO types
         this.options = {
             ...DEFAULT_OPTIONS,
             ...options
         };
 
-        this._workers = [];
-        this._workersAvail = [];
-        this._workersBusy = [];
-        this._workersStarting = 0;
-
-        this._allTargetCount = 0;
-        this._queue = [];
-        this._task = null;
-
-        this._idleResolvers = [];
-
-        this.browser = null;
-        this._isClosed = false;
-
-        this._startTime = Date.now();
-
-        this._nextWorkerId = -1;
-
-        this.monitoringInterval = null;
         if (this.options.monitor) {
             this.monitoringInterval = setInterval(
                 () => this.monitor(),
-                constants.CLUSTER_MONITORING_INTERVAL
+                MONITORING_INTERVAL
             );
         }
     }
 
     async init() {
-        let Concurrency;
-        if (this.options.concurrency === constants.CLUSTER_CONCURRENCY_PAGE) {
-            Concurrency = ConcurrencyPage;
-        } else if (this.options.concurrency === constants.CLUSTER_CONCURRENCY_BROWSER) {
-            Concurrency = ConcurrencyBrowser;
-        } else if (this.options.concurrency === constants.CLUSTER_CONCURRENCY_CONTEXT) {
-            Concurrency = ConcurrencyContext;
+        const browserOptions = {
+            headless: false, // TODO just for testing
+            //args: this.options.args.concat([/*'--no-sandbox',*/ '--disable-dev-shm-usage']),
+        };
+        
+        if (this.options.concurrency === Cluster.CONCURRENCY_PAGE) {
+            this.browser = new ConcurrencyPage(browserOptions);
+        } else if (this.options.concurrency === Cluster.CONCURRENCY_BROWSER) {
+            this.browser = new ConcurrencyBrowser(browserOptions);
+        } else if (this.options.concurrency === Cluster.CONCURRENCY_CONTEXT) {
+            this.browser = new ConcurrencyContext(browserOptions);
         } else {
             throw new Error('Unknown concurrency option: ' + this.options.concurrency);
         }
 
         try {
-            this.browser = await Concurrency.launch({
-                headless: false, // TODO just for testing
-                args: this.options.args.concat([/*'--no-sandbox',*/ '--disable-dev-shm-usage']),
-            });
+            await this.browser.init();
         } catch (err) {
             throw new Error(`Unable to launch browser, error message: ${err.message}`);
         }
 
         // launch minimal number of workers
-        for (let i = 0; i < this.options.minWorker; i++) {
+        /*for (let i = 0; i < this.options.minWorker; i++) {
             await this._launchWorker();
-        }
+        }*/
     }
 
     async _launchWorker() {
@@ -102,7 +121,7 @@ class Cluster {
 
         const worker = await Worker.launch({
             cluster: this,
-            args: this.options.args,
+            args: [''], // this.options.args,
             browser: workerBrowserInstance,
             id: this._nextWorkerId,
         });
@@ -116,7 +135,7 @@ class Cluster {
         }
     }
 
-    async setTask(taskHandler, name) {
+    async setTask(taskHandler: ((args: TaskArguments) => Promise<void>)) {
         this._task = taskHandler;
         // TODO handle different names for tasks
     }
@@ -131,11 +150,15 @@ class Cluster {
         } else {
             if (this._workersAvail.length !== 0) {
                 // worker is available, lets go
-                const worker = this._workersAvail.shift();
+                const worker = <Worker>this._workersAvail.shift();
                 this._workersBusy.push(worker);
 
-                const target = this._queue.shift();
-                await worker.handle(this._task, target);
+                const target = <Target>this._queue.shift();
+                if (this._task !== null) {
+                    await worker.handle(this._task, target);
+                } else {
+                    // TODO handle error no task defined yet
+                }
 
                 // add worker to available workers again
                 const workerIndex = this._workersBusy.indexOf(worker);
@@ -159,7 +182,7 @@ class Cluster {
         return (workerCount < this.options.maxWorker);
     }
 
-    async queue(url, context) {
+    async queue(url: string, context: object) {
         this._allTargetCount++;
         this._queue.push(new Target(url, context));
         this._work();
@@ -227,7 +250,7 @@ class Cluster {
                 workOrIdle = 'IDLE';
             } else {
                 workOrIdle = 'WORK';
-                workerUrl = worker.activeTarget.url;
+                workerUrl = worker.activeTarget ? worker.activeTarget.url : 'UNKNOWN TARGET';
             }
 
             display.log(`   #${i} ${workOrIdle} ${workerUrl}`);
@@ -240,9 +263,3 @@ class Cluster {
     }
 
 }
-
-Cluster.CONCURRENCY_PAGE = constants.CLUSTER_CONCURRENCY_PAGE;
-Cluster.CONCURRENCY_CONTEXT = constants.CLUSTER_CONCURRENCY_CONTEXT;
-Cluster.CONCURRENCY_BROWSER = constants.CLUSTER_CONCURRENCY_BROWSER;
-
-module.exports = Cluster;

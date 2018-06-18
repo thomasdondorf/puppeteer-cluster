@@ -1,26 +1,25 @@
 
+import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
+
+// TODO get these two working together
 const puppeteer = require('puppeteer');
+import { Page, Browser } from 'puppeteer';
 
-class ConcurrencyPage {
+export default class ConcurrencyPage extends AbstractBrowser {
 
-    static async launch(options) {
-        const browser = new ConcurrencyPage(options);
-        await browser.init();
+    private chrome: Browser | null = null;
 
-        return browser;
-    }
-
-    constructor(options) {
-        this.options = options;
-
-        this.repairRequested = false;
-        this.repairing = false;
-        this.waitingForRepairResolvers = [];
-        this.openInstances = 0;
-    }
+    private repairRequested: boolean = false;
+    private repairing: boolean = false;
+    private openInstances: number = 0;
+    private waitingForRepairResolvers: (() => void)[] = [];
 
     async init() {
         this.chrome = await puppeteer.launch(this.options);
+    }
+
+    async close() {
+        await (<Browser>this.chrome).close();
     }
 
     async _startRepair() {
@@ -34,7 +33,7 @@ class ConcurrencyPage {
 
         try {
             // will probably fail, but just in case the repair was not necessary
-            await this.chrome.close();
+            await (<Browser>this.chrome).close();
         } catch (e) {}
 
         try {
@@ -49,7 +48,8 @@ class ConcurrencyPage {
     }
 
     async workerInstance() {
-        let page;
+        let page: Page;
+        let context: any; // puppeteer typings are strange..
 
         return {
             instance: async () => {
@@ -60,7 +60,10 @@ class ConcurrencyPage {
                 }
 
                 this.openInstances++;
-                page = await this.chrome.newPage();
+                // @ts-ignore Typings are not up-to-date, ignore for now...
+                context = await this.chrome.createIncognitoBrowserContext();
+                page = await context.newPage();
+
 
                 return {
                     page,
@@ -68,6 +71,7 @@ class ConcurrencyPage {
                     close: async () => {
                         this.openInstances--; // decrement first in case of error
                         await page.close();
+                        await context.close();
 
                         if (this.repairRequested) {
                             await this._startRepair();
@@ -87,9 +91,4 @@ class ConcurrencyPage {
         };
     }
 
-    async close() {
-        await this.chrome.close();
-    }
 }
-
-module.exports = ConcurrencyPage;

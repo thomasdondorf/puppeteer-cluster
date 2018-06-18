@@ -1,4 +1,4 @@
-const Cluster = require('../lib/Cluster');
+const { Cluster } = require('../dist');
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -7,7 +7,8 @@ function sleep(ms) {
 (async () => {
     const cluster = await Cluster.launch({
         maxWorker: 2,
-        concurrency: Cluster.CONCURRENCY_BROWSER,
+        concurrency: Cluster.CONCURRENCY_CONTEXT,
+        timeout: 5000,
         // monitor: true,
     });
 

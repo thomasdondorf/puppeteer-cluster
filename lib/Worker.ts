@@ -1,35 +1,61 @@
 
-const Target = require('./Target');
+import Target from './Target';
+import Cluster from './Cluster';
+import { WorkerBrowserInstance, ContextInstance } from './browser/AbstractBrowser';
+import { Page } from 'puppeteer';
 
 const DEFAULT_OPTIONS = {
     args: [],
 };
 
-class Worker {
+interface WorkerOptions {
+    cluster: Cluster,
+    args: string[],
+    id: number,
+    browser: WorkerBrowserInstance,
+};
 
-    static async launch(options) {
+export interface TaskArguments {
+    url: string,
+    page: Page,
+    cluster: Cluster,
+    worker: {
+        id: number,
+    },
+    context: object,
+};
+
+export default class Worker implements WorkerOptions {
+
+    cluster: Cluster;
+    args: string[];
+    id: number;
+    browser: WorkerBrowserInstance;
+
+    activeTarget: Target | null = null;
+
+    static async launch(options: WorkerOptions): Promise<Worker> {
         const worker = new Worker(options);
         await worker.init();
 
         return worker;
     }
 
-    constructor({ cluster, args, id, browser = null }) {
+    constructor({ cluster, args, id, browser }: WorkerOptions) {
         this.cluster = cluster;
         this.args = args;
-        this.activeTarget = null;
         this.id = id;
 
         this.browser = browser;
     }
 
-    async init() {
-    }
+    async init(): Promise<void> {}
 
-    async handle(task, target) {
+    async handle(task: ((_:TaskArguments) => Promise<void>), target: Target): Promise<void> {
         this.activeTarget = target;
 
-        let browserInstance, page;
+        let browserInstance: ContextInstance;
+        let page: Page;
 
         try {
             browserInstance = await this.browser.instance();
@@ -66,7 +92,7 @@ class Worker {
         this.activeTarget = null;
     }
 
-    async close() {
+    async close(): Promise<void> {
         try {
             await this.browser.close();
         } catch (err) {
@@ -75,5 +101,3 @@ class Worker {
     }
 
 }
-
-module.exports = Worker;

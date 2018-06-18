@@ -1,19 +1,22 @@
 
+import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
+
+
+// TODO get these two working together
 const puppeteer = require('puppeteer');
+import { Page } from 'puppeteer';
 
-class ConcurrencyBrowser {
+export default class ConcurrencyBrowser extends AbstractBrowser {
 
-    static async launch(options) {
-        return new ConcurrencyBrowser(options);
-    }
 
-    constructor(options) {
-        this.options = options;
-    }
+    async init() {}
 
-    async workerInstance() {
+    async close() {}
+
+    async workerInstance(): Promise<WorkerBrowserInstance> {
         let chrome = await puppeteer.launch(this.options);
-        let page, context;
+        let page: Page;
+        let context: any; // puppeteer typings are old...
 
         return {
             instance: async () => {
@@ -47,8 +50,4 @@ class ConcurrencyBrowser {
         }
     }
 
-    async close() {
-    }
 }
-
-module.exports = ConcurrencyBrowser;
