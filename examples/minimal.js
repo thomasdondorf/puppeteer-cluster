@@ -8,7 +8,8 @@ function sleep(ms) {
     const cluster = await Cluster.launch({
         maxWorker: 2,
         concurrency: Cluster.CONCURRENCY_CONTEXT,
-        timeout: 3000,
+        timeout: 5000,
+        retryLimit: 1,
         // monitor: true,
     });
 

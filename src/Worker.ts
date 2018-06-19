@@ -26,12 +26,6 @@ export interface TaskArguments {
     context: object;
 }
 
-export enum Status {
-    PENDING,
-    TIMEOUT,
-    SUCCESS,
-}
-
 export default class Worker implements WorkerOptions {
 
     cluster: Cluster;
@@ -62,7 +56,7 @@ export default class Worker implements WorkerOptions {
             task: ((_:TaskArguments) => Promise<void>),
             target: Target,
             timeout: number,
-        ): Promise<void> {
+        ): Promise<Error | null> {
         this.activeTarget = target;
 
         let browserInstance: ContextInstance;
@@ -75,19 +69,16 @@ export default class Worker implements WorkerOptions {
             console.log('Error getting browser page: ' + err.message);
             await this.browser.repair();
             // TODO retry? await this.handle(task, target);
-            return;
+            return err;
         }
 
-        let status: Status = Status.PENDING;
+        let errorState: Error | null = null;
 
         try {
             await Promise.race([
                 (async () => { // timeout promise
                     await timeoutResolve(timeout);
-                    if (status === Status.PENDING) {
-                        status = Status.TIMEOUT;
-                        throw new Error('Timeout hit: ' + timeout);
-                    }
+                    throw new Error('Timeout hit: ' + timeout);
                 })(),
                 (async () => { // actual task promise
                     await task({
@@ -99,17 +90,13 @@ export default class Worker implements WorkerOptions {
                         },
                         context: {},
                     });
-                    if (status === Status.PENDING) {
-                        status = Status.SUCCESS;
-                    }
                 })(),
             ]);
-
         } catch (err) {
             // TODO special error message for status === Status.TIMEOUT as this might lead to errors
             //      inside the task handler (as the page gets closed) => point this out in the docs
+            errorState = err;
             console.log('Error crawling ' + target.url + ' // ' + err.code + ': ' + err.message);
-            target.setError(err);
         }
 
         try {
@@ -120,6 +107,8 @@ export default class Worker implements WorkerOptions {
         }
 
         this.activeTarget = null;
+
+        return errorState;
     }
 
     public async close(): Promise<void> {

@@ -18,6 +18,8 @@ interface ClusterOptions {
     puppeteerOptions: LaunchOptions;
     monitor: boolean;
     timeout: number;
+    retryLimit: number;
+    retryDelay: number; // TODO implement
 }
 
 const DEFAULT_OPTIONS: ClusterOptions = {
@@ -30,6 +32,8 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     },
     monitor: false,
     timeout: 30 * 1000,
+    retryLimit: 0,
+    retryDelay: 5000,
 };
 
 type TaskFunction = (args: TaskArguments) => Promise<void>;
@@ -140,6 +144,10 @@ export default class Cluster {
     private async work() {
         // find empty instance
 
+        if (this.task === null) {
+            throw new Error('No task defined!');
+        }
+
         if (this.targetQueue.length === 0) {
             if (this.workersBusy.length === 0) {
                 this.idleResolvers.forEach(resolve => resolve());
@@ -151,10 +159,19 @@ export default class Cluster {
                 this.workersBusy.push(worker);
 
                 const target = <Target>this.targetQueue.shift();
-                if (this.task !== null) {
-                    await worker.handle(this.task, target, this.options.timeout);
-                } else {
-                    throw new Error('No task defined!');
+                const resultError: Error | null = await worker.handle(
+                    this.task,
+                    target,
+                    this.options.timeout,
+                );
+
+                if (resultError !== null) {
+                    // error during execution
+                    target.addError(resultError);
+                    if (target.tries <= this.options.retryLimit) {
+                        console.log('PUTTING in ' + target.tries + ' // ' + target.url);
+                        this.targetQueue.push(target);
+                    }
                 }
 
                 // add worker to available workers again
