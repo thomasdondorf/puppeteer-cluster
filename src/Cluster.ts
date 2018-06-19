@@ -17,6 +17,7 @@ interface ClusterOptions {
     concurrency: number;
     puppeteerOptions: LaunchOptions;
     monitor: boolean;
+    timeout: number;
 }
 
 const DEFAULT_OPTIONS: ClusterOptions = {
@@ -28,6 +29,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
         headless: false, // just for testing...
     },
     monitor: false,
+    timeout: 30 * 1000,
 };
 
 type TaskFunction = (args: TaskArguments) => Promise<void>;
@@ -150,7 +152,7 @@ export default class Cluster {
 
                 const target = <Target>this.targetQueue.shift();
                 if (this.task !== null) {
-                    await worker.handle(this.task, target);
+                    await worker.handle(this.task, target, this.options.timeout);
                 } else {
                     throw new Error('No task defined!');
                 }

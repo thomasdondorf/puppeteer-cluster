@@ -3,6 +3,7 @@ import Target from './Target';
 import Cluster from './Cluster';
 import { WorkerBrowserInstance, ContextInstance } from './browser/AbstractBrowser';
 import { Page } from 'puppeteer';
+import { timeoutResolve } from './util';
 
 const DEFAULT_OPTIONS = {
     args: [],
@@ -23,6 +24,12 @@ export interface TaskArguments {
         id: number;
     };
     context: object;
+}
+
+export enum Status {
+    PENDING,
+    TIMEOUT,
+    SUCCESS,
 }
 
 export default class Worker implements WorkerOptions {
@@ -51,7 +58,11 @@ export default class Worker implements WorkerOptions {
 
     private async init(): Promise<void> {}
 
-    public async handle(task: ((_:TaskArguments) => Promise<void>), target: Target): Promise<void> {
+    public async handle(
+            task: ((_:TaskArguments) => Promise<void>),
+            target: Target,
+            timeout: number,
+        ): Promise<void> {
         this.activeTarget = target;
 
         let browserInstance: ContextInstance;
@@ -67,17 +78,36 @@ export default class Worker implements WorkerOptions {
             return;
         }
 
+        let status: Status = Status.PENDING;
+
         try {
-            await task({
-                page,
-                url: target.url,
-                cluster: this.cluster,
-                worker: {
-                    id: this.id,
-                },
-                context: {},
-            });
+            await Promise.race([
+                (async () => { // timeout promise
+                    await timeoutResolve(timeout);
+                    if (status === Status.PENDING) {
+                        status = Status.TIMEOUT;
+                        throw new Error('Timeout hit: ' + timeout);
+                    }
+                })(),
+                (async () => { // actual task promise
+                    await task({
+                        page,
+                        url: target.url,
+                        cluster: this.cluster,
+                        worker: {
+                            id: this.id,
+                        },
+                        context: {},
+                    });
+                    if (status === Status.PENDING) {
+                        status = Status.SUCCESS;
+                    }
+                })(),
+            ]);
+
         } catch (err) {
+            // TODO special error message for status === Status.TIMEOUT as this might lead to errors
+            //      inside the task handler (as the page gets closed) => point this out in the docs
             console.log('Error crawling ' + target.url + ' // ' + err.code + ': ' + err.message);
             target.setError(err);
         }

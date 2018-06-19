@@ -49,3 +49,7 @@ export function formatDuration(millis: number): string {
 
     return `${remaining.toFixed(1)} ${TIME_UNITS[nextUnitIndex - 1].name}`;
 }
+
+export function timeoutResolve(millis: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, millis));
+}

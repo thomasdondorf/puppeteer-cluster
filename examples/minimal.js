@@ -8,8 +8,8 @@ function sleep(ms) {
     const cluster = await Cluster.launch({
         maxWorker: 2,
         concurrency: Cluster.CONCURRENCY_CONTEXT,
-        timeout: 5000,
-        monitor: true,
+        timeout: 3000,
+        // monitor: true,
     });
 
     await cluster.setTask(async ({ url, page, cluster, worker, context }) => {
