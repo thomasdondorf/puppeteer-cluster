@@ -9,21 +9,21 @@ const DEFAULT_OPTIONS = {
 };
 
 interface WorkerOptions {
-    cluster: Cluster,
-    args: string[],
-    id: number,
-    browser: WorkerBrowserInstance,
-};
+    cluster: Cluster;
+    args: string[];
+    id: number;
+    browser: WorkerBrowserInstance;
+}
 
 export interface TaskArguments {
-    url: string,
-    page: Page,
-    cluster: Cluster,
+    url: string;
+    page: Page;
+    cluster: Cluster;
     worker: {
-        id: number,
-    },
-    context: object,
-};
+        id: number;
+    };
+    context: object;
+}
 
 export default class Worker implements WorkerOptions {
 
@@ -34,14 +34,14 @@ export default class Worker implements WorkerOptions {
 
     activeTarget: Target | null = null;
 
-    static async launch(options: WorkerOptions): Promise<Worker> {
+    public static async launch(options: WorkerOptions): Promise<Worker> {
         const worker = new Worker(options);
         await worker.init();
 
         return worker;
     }
 
-    constructor({ cluster, args, id, browser }: WorkerOptions) {
+    private constructor({ cluster, args, id, browser }: WorkerOptions) {
         this.cluster = cluster;
         this.args = args;
         this.id = id;
@@ -49,9 +49,9 @@ export default class Worker implements WorkerOptions {
         this.browser = browser;
     }
 
-    async init(): Promise<void> {}
+    private async init(): Promise<void> {}
 
-    async handle(task: ((_:TaskArguments) => Promise<void>), target: Target): Promise<void> {
+    public async handle(task: ((_:TaskArguments) => Promise<void>), target: Target): Promise<void> {
         this.activeTarget = target;
 
         let browserInstance: ContextInstance;
@@ -69,8 +69,8 @@ export default class Worker implements WorkerOptions {
 
         try {
             await task({
-                url: target.url,
                 page,
+                url: target.url,
                 cluster: this.cluster,
                 worker: {
                     id: this.id,
@@ -92,11 +92,11 @@ export default class Worker implements WorkerOptions {
         this.activeTarget = null;
     }
 
-    async close(): Promise<void> {
+    public async close(): Promise<void> {
         try {
             await this.browser.close();
         } catch (err) {
-            console.log('Unable to close worker browser, most likely already closed. Error message: ' + err.message);
+            console.log(`Unable to close worker browser. Error message: ${err.message}`);
         }
     }
 

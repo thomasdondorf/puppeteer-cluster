@@ -11,13 +11,13 @@ import ConcurrencyContext from './browser/ConcurrencyContext';
 import { LaunchOptions } from 'puppeteer';
 
 interface ClusterOptions {
-    maxConcurrency: number,
-    maxCPU: number,
-    maxMemory: number,
-    concurrency: number,
-    puppeteerOptions: LaunchOptions,
-    monitor: boolean,
-};
+    maxConcurrency: number;
+    maxCPU: number;
+    maxMemory: number;
+    concurrency: number;
+    puppeteerOptions: LaunchOptions;
+    monitor: boolean;
+}
 
 const DEFAULT_OPTIONS: ClusterOptions = {
     maxConcurrency: 4,
@@ -25,7 +25,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     maxMemory: 1,
     concurrency: 2, // PAGE
     puppeteerOptions: {
-        headless: false // just for testing...
+        headless: false, // just for testing...
     },
     monitor: false,
 };
@@ -38,52 +38,52 @@ export default class Cluster {
 
     static CONCURRENCY_PAGE = 1; // shares cookies, etc.
     static CONCURRENCY_CONTEXT = 2; // no cookie sharing (uses contexts)
-    static CONCURRENCY_BROWSER = 3; // no cookie sharing and individual processes (also uses contexts)
+    static CONCURRENCY_BROWSER = 3; // no cookie sharing and individual processes (uses contexts)
 
     private options: ClusterOptions;
-    private _workers: Worker[] = [];
-    private _workersAvail: Worker[] = [];
-    private _workersBusy: Worker[] = [];
-    private _workersStarting = 0;
+    private workers: Worker[] = [];
+    private workersAvail: Worker[] = [];
+    private workersBusy: Worker[] = [];
+    private workersStarting = 0;
 
-    private _allTargetCount = 0;
-    private _queue: Target[] = [];
+    private allTargetCount = 0;
+    private targetQueue: Target[] = [];
 
-    private _task: TaskFunction | null = null;
-    private _idleResolvers: (() => void)[] = []; // TODO
+    private task: TaskFunction | null = null;
+    private idleResolvers: (() => void)[] = []; // TODO
     private browser: any = null; // TODO
 
-    private _isClosed = false;
-    private _startTime = Date.now();
-    private _nextWorkerId = -1;
+    private isClosed = false;
+    private startTime = Date.now();
+    private nextWorkerId = -1;
 
     private monitoringInterval: NodeJS.Timer | null = null;
-    private _display: Display | null = null;
+    private display: Display | null = null;
 
-    static async launch(options: ClusterOptions) { // TODO launch options
+    public static async launch(options: ClusterOptions) { // TODO launch options
         const cluster = new Cluster(options);
         await cluster.init();
 
         return cluster;
-    };
+    }
 
-    constructor(options: ClusterOptions) { // TODO types
+    private constructor(options: ClusterOptions) { // TODO types
         this.options = {
             ...DEFAULT_OPTIONS,
-            ...options
+            ...options,
         };
 
         if (this.options.monitor) {
             this.monitoringInterval = setInterval(
                 () => this.monitor(),
-                MONITORING_INTERVAL
+                MONITORING_INTERVAL,
             );
         }
     }
 
-    async init() {
+    private async init() {
         const browserOptions = this.options.puppeteerOptions;
-        
+
         if (this.options.concurrency === Cluster.CONCURRENCY_PAGE) {
             this.browser = new ConcurrencyPage(browserOptions);
         } else if (this.options.concurrency === Cluster.CONCURRENCY_BROWSER) {
@@ -101,10 +101,10 @@ export default class Cluster {
         }
     }
 
-    async _launchWorker() {
+    private async launchWorker() {
         // signal, that we are starting a worker
-        this._workersStarting++;
-        this._nextWorkerId++;
+        this.workersStarting += 1;
+        this.nextWorkerId += 1;
 
         let workerBrowserInstance;
         try {
@@ -117,87 +117,86 @@ export default class Cluster {
             cluster: this,
             args: [''], // this.options.args,
             browser: workerBrowserInstance,
-            id: this._nextWorkerId,
+            id: this.nextWorkerId,
         });
-        this._workersStarting--;
-        if (this._isClosed) {
+        this.workersStarting -= 1;
+
+        if (this.isClosed) {
             // cluster was closed while we created a new worker (should rarely happen)
             worker.close();
         } else {
-            this._workersAvail.push(worker);
-            this._workers.push(worker);
+            this.workersAvail.push(worker);
+            this.workers.push(worker);
         }
     }
 
-    async setTask(taskHandler: ((args: TaskArguments) => Promise<void>)) {
-        this._task = taskHandler;
+    public async setTask(taskHandler: ((args: TaskArguments) => Promise<void>)) {
+        this.task = taskHandler;
         // TODO handle different names for tasks
     }
 
-    async _work() {
+    private async work() {
         // find empty instance
 
-        if (this._queue.length === 0) {
-            if (this._workersBusy.length === 0) {
-                this._idleResolvers.forEach(resolve => resolve());
+        if (this.targetQueue.length === 0) {
+            if (this.workersBusy.length === 0) {
+                this.idleResolvers.forEach(resolve => resolve());
             }
         } else {
-            if (this._workersAvail.length !== 0) {
+            if (this.workersAvail.length !== 0) {
                 // worker is available, lets go
-                const worker = <Worker>this._workersAvail.shift();
-                this._workersBusy.push(worker);
+                const worker = <Worker>this.workersAvail.shift();
+                this.workersBusy.push(worker);
 
-                const target = <Target>this._queue.shift();
-                if (this._task !== null) {
-                    await worker.handle(this._task, target);
+                const target = <Target>this.targetQueue.shift();
+                if (this.task !== null) {
+                    await worker.handle(this.task, target);
                 } else {
                     throw new Error('No task defined!');
                 }
 
                 // add worker to available workers again
-                const workerIndex = this._workersBusy.indexOf(worker);
-                this._workersBusy.splice(workerIndex, 1);
+                const workerIndex = this.workersBusy.indexOf(worker);
+                this.workersBusy.splice(workerIndex, 1);
 
-                this._workersAvail.push(worker);
+                this.workersAvail.push(worker);
 
-                setImmediate(() => this._work());
-            } else if(this._allowedToStartWorker()) {
-                await this._launchWorker();
-                await this._work(); // call again to process queue
+                setImmediate(() => this.work());
+            } else if (this.allowedToStartWorker()) {
+                await this.launchWorker();
+                await this.work(); // call again to process queue
             } else {
                 // currently no workers available!
             }
         }
     }
 
-    _allowedToStartWorker() {
-        const workerCount = this._workersBusy.length + this._workersAvail.length
-            + this._workersStarting;
+    private allowedToStartWorker() {
+        const workerCount = this.workersBusy.length + this.workersAvail.length
+            + this.workersStarting;
         return (workerCount < this.options.maxConcurrency);
     }
 
-    async queue(url: string, context: object) {
-        this._allTargetCount++;
-        this._queue.push(new Target(url, context));
-        this._work();
+    public async queue(url: string, context: object) {
+        this.allTargetCount += 1;
+        this.targetQueue.push(new Target(url, context));
+        this.work();
     }
 
-    idle() {
-        return new Promise(resolve => {
-            this._idleResolvers.push(resolve);
-        })
+    public idle(): Promise<void> {
+        return new Promise(resolve => this.idleResolvers.push(resolve));
     }
 
-    async close() {
-        this._isClosed = true;
+    public async close(): Promise<void> {
+        this.isClosed = true;
 
         // close workers
-        await Promise.all(this._workers.map(worker => worker.close()));
+        await Promise.all(this.workers.map(worker => worker.close()));
 
         try {
             await this.browser.close();
         } catch (err) {
-            console.log('Unable to close browser, most likely already closed. Error message: ' + err.message);
+            console.log(`Unable to close browser. Error message: ${err.message}`);
         }
 
         if (this.monitoringInterval) {
@@ -205,22 +204,23 @@ export default class Cluster {
             clearInterval(this.monitoringInterval);
         }
 
-        if (this._display) {
-            this._display.close();
+        if (this.display) {
+            this.display.close();
         }
     }
 
-    monitor() {
-        if (!this._display) {
-            this._display = new Display();
+    private monitor(): void {
+        if (!this.display) {
+            this.display = new Display();
         }
-        const display = this._display;
+        const display = this.display;
 
         const now = Date.now();
-        const timeDiff = now - this._startTime;
+        const timeDiff = now - this.startTime;
 
-        const doneTargets = this._allTargetCount - this._queue.length - this._workersBusy.length;
-        const donePercentage = (doneTargets / this._allTargetCount);
+        const doneTargets = this.allTargetCount - this.targetQueue.length - this.workersBusy.length;
+        const donePercentage = (doneTargets / this.allTargetCount);
+        const donePercStr = (100 * donePercentage).toFixed(2);
 
         const timeRunning = util.formatDuration(timeDiff);
 
@@ -230,14 +230,14 @@ export default class Cluster {
         }
         const timeRemining = util.formatDuration(timeRemainingMillis);
 
-        display.log(`== Start:     ${util.formatDateTime(this._startTime)}`);
+        display.log(`== Start:     ${util.formatDateTime(this.startTime)}`);
         display.log(`== Now:       ${util.formatDateTime(now)} (running for ${timeRunning})`);
-        display.log(`== Progress:  ${doneTargets} / ${this._allTargetCount} (${(100 * donePercentage).toFixed(2)}%)`);
+        display.log(`== Progress:  ${doneTargets} / ${this.allTargetCount} (${donePercStr}%)`);
         display.log(`== Remaining: ${timeRemining} (rough estimation)`);
-        display.log(`== Workers:   ${this._workers.length + this._workersStarting}`);
+        display.log(`== Workers:   ${this.workers.length + this.workersStarting}`);
 
-        this._workers.forEach((worker, i) => {
-            const isIdle = this._workersAvail.indexOf(worker) !== -1;
+        this.workers.forEach((worker, i) => {
+            const isIdle = this.workersAvail.indexOf(worker) !== -1;
             let workOrIdle;
             let workerUrl = '';
             if (isIdle) {
@@ -249,8 +249,8 @@ export default class Cluster {
 
             display.log(`   #${i} ${workOrIdle} ${workerUrl}`);
         });
-        for (let i = 0; i < this._workersStarting; i++) {
-            display.log(`   #${this._workers.length + i} STARTING...`)
+        for (let i = 0; i < this.workersStarting; i += 1) {
+            display.log(`   #${this.workers.length + i} STARTING...`);
         }
 
         display.resetCursor();

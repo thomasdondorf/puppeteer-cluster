@@ -1,19 +1,15 @@
 
 import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
 
-
 // TODO get these two working together
 const puppeteer = require('puppeteer');
 import { Page } from 'puppeteer';
 
 export default class ConcurrencyBrowser extends AbstractBrowser {
+    public async init() {}
+    public async close() {}
 
-
-    async init() {}
-
-    async close() {}
-
-    async workerInstance(): Promise<WorkerBrowserInstance> {
+    public async workerInstance(): Promise<WorkerBrowserInstance> {
         let chrome = await puppeteer.launch(this.options);
         let page: Page;
         let context: any; // puppeteer typings are old...
@@ -29,8 +25,8 @@ export default class ConcurrencyBrowser extends AbstractBrowser {
                     close: async () => {
                         await page.close();
                         await context.close();
-                    }
-                }
+                    },
+                };
             },
 
             close: async () => {
@@ -44,10 +40,10 @@ export default class ConcurrencyBrowser extends AbstractBrowser {
                     await chrome.close();
                 } catch (e) {}
 
-                // just relaunch as there is only one page per browser, we can be sure that there is only one page open
+                // just relaunch as there is only one page per browser
                 chrome = await puppeteer.launch(this.options);
             },
-        }
+        };
     }
 
 }

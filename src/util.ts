@@ -15,14 +15,13 @@ const TIME_UNITS: TimeUnit[] = [
     timeUnit(60, 'hours'),
     timeUnit(24, 'days'),
     timeUnit(31, 'months'),
-    timeUnit((365 / 31), 'years')
+    timeUnit((365 / 31), 'years'),
 ];
 
 const TIME_UNIT_THRESHOLD = 0.95;
 
 export function formatDateTime(datetime: Date | number): string {
     const date = (typeof datetime === 'number') ? new Date(datetime) : datetime;
-    
 
     const dateStr = `${date.getFullYear()}`
         + `-${(date.getMonth() + 1).toString().padStart(2, '0')}`
@@ -42,11 +41,11 @@ export function formatDuration(millis: number): string {
 
     let remaining = millis;
     let nextUnitIndex = 1;
-    while(nextUnitIndex < TIME_UNITS.length &&
+    while (nextUnitIndex < TIME_UNITS.length &&
             remaining / TIME_UNITS[nextUnitIndex].step >= TIME_UNIT_THRESHOLD) {
         remaining = remaining / TIME_UNITS[nextUnitIndex].step;
-        nextUnitIndex++;
+        nextUnitIndex += 1;
     }
 
-    return `${remaining.toFixed(1)} ${TIME_UNITS[nextUnitIndex - 1].name}`
+    return `${remaining.toFixed(1)} ${TIME_UNITS[nextUnitIndex - 1].name}`;
 }

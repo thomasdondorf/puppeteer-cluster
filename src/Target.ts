@@ -1,4 +1,3 @@
-import { DH_NOT_SUITABLE_GENERATOR } from "constants";
 
 export default class Target {
 
@@ -7,16 +6,13 @@ export default class Target {
 
     private error: Error | null = null;
 
-    constructor(url: string, context: object = {}) {
+    public constructor(url: string, context: object = {}) {
         this.url = url;
         this.context = context;
     }
 
-    setError(error: Error) {
+    public setError(error: Error): void {
         this.error = error;
     }
 
 }
-
-
-

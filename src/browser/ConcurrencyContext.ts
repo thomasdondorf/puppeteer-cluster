@@ -14,15 +14,15 @@ export default class ConcurrencyPage extends AbstractBrowser {
     private openInstances: number = 0;
     private waitingForRepairResolvers: (() => void)[] = [];
 
-    async init() {
+    public async init() {
         this.chrome = await puppeteer.launch(this.options);
     }
 
-    async close() {
+    public async close() {
         await (<Browser>this.chrome).close();
     }
 
-    async _startRepair() {
+    private async startRepair() {
         if (this.repairing || this.openInstances !== 0) {
             // already repairing or there are still pages open? -> cancel
             return;
@@ -47,36 +47,33 @@ export default class ConcurrencyPage extends AbstractBrowser {
         this.waitingForRepairResolvers = [];
     }
 
-    async workerInstance() {
+    public async workerInstance() {
         let page: Page;
         let context: any; // puppeteer typings are strange..
 
         return {
             instance: async () => {
                 if (this.repairRequested) {
-                    await new Promise(resolve => {
-                        this.waitingForRepairResolvers.push(resolve);
-                    });
+                    await new Promise(resolve => this.waitingForRepairResolvers.push(resolve));
                 }
 
-                this.openInstances++;
+                this.openInstances += 1;
                 // @ts-ignore Typings are not up-to-date, ignore for now...
                 context = await this.chrome.createIncognitoBrowserContext();
                 page = await context.newPage();
-
 
                 return {
                     page,
 
                     close: async () => {
-                        this.openInstances--; // decrement first in case of error
+                        this.openInstances -= 1; // decrement first in case of error
                         await page.close();
                         await context.close();
 
                         if (this.repairRequested) {
-                            await this._startRepair();
+                            await this.startRepair();
                         }
-                    }
+                    },
                 };
             },
 
@@ -86,7 +83,7 @@ export default class ConcurrencyPage extends AbstractBrowser {
 
             repair: async () => {
                 this.repairRequested = true;
-                await this._startRepair();
+                await this.startRepair();
             },
         };
     }
