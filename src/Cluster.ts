@@ -119,7 +119,7 @@ export default class Cluster {
             throw new Error(`Unable to launch browser for worker, error message: ${err.message}`);
         }
 
-        const worker = await Worker.launch({
+        const worker = new Worker({
             cluster: this,
             args: [''], // this.options.args,
             browser: workerBrowserInstance,

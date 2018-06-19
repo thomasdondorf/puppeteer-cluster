@@ -35,22 +35,12 @@ export default class Worker implements WorkerOptions {
 
     activeTarget: Target | null = null;
 
-    public static async launch(options: WorkerOptions): Promise<Worker> {
-        const worker = new Worker(options);
-        await worker.init();
-
-        return worker;
-    }
-
-    private constructor({ cluster, args, id, browser }: WorkerOptions) {
+    public constructor({ cluster, args, id, browser }: WorkerOptions) {
         this.cluster = cluster;
         this.args = args;
         this.id = id;
-
         this.browser = browser;
     }
-
-    private async init(): Promise<void> {}
 
     public async handle(
             task: ((_:TaskArguments) => Promise<void>),
