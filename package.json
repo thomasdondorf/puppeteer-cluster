@@ -4,7 +4,7 @@
   "description": "Cluster for puppeteer",
   "main": "lib/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "./node_modules/.bin/jest",
     "dev": "./node_modules/.bin/tsc --watch",
     "lint": "./node_modules/.bin/tslint -c tslint.json --project tsconfig.json 'src/**/*.ts'"
   },
@@ -13,10 +13,25 @@
     "puppeteer": "^1.5.0"
   },
   "devDependencies": {
+    "@types/jest": "^23.1.1",
     "@types/node": "^10.3.3",
     "@types/puppeteer": "^1.3.4",
+    "jest": "^23.1.0",
+    "ts-jest": "^22.4.6",
     "tslint": "^5.10.0",
     "tslint-config-airbnb": "^5.9.2",
     "typescript": "^2.9.2"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.{ts}"
+    ],
+    "coverageReporters": ["text", "text-summary"],
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/test/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [ "ts", "js", "json" ]
   }
 }
