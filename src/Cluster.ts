@@ -8,23 +8,25 @@ import ConcurrencyBrowser from './browser/ConcurrencyBrowser';
 import ConcurrencyPage from './browser/ConcurrencyPage';
 import ConcurrencyContext from './browser/ConcurrencyContext';
 
+import { LaunchOptions } from 'puppeteer';
+
 interface ClusterOptions {
-    minWorker: number,
-    maxWorker: number,
+    maxConcurrency: number,
     maxCPU: number,
     maxMemory: number,
     concurrency: number,
-    args: string[],
+    puppeteerOptions: LaunchOptions,
     monitor: boolean,
 };
 
 const DEFAULT_OPTIONS: ClusterOptions = {
-    minWorker: 0,
-    maxWorker: 4,
+    maxConcurrency: 4,
     maxCPU: 1,
     maxMemory: 1,
     concurrency: 2, // PAGE
-    args: [],
+    puppeteerOptions: {
+        headless: false // just for testing...
+    },
     monitor: false,
 };
 
@@ -35,7 +37,7 @@ const MONITORING_INTERVAL = 500;
 export default class Cluster {
 
     static CONCURRENCY_PAGE = 1; // shares cookies, etc.
-    static CONCURRENCY_CONTEXT = 2; // no cookie sharing
+    static CONCURRENCY_CONTEXT = 2; // no cookie sharing (uses contexts)
     static CONCURRENCY_BROWSER = 3; // no cookie sharing and individual processes (also uses contexts)
 
     private options: ClusterOptions;
@@ -80,10 +82,7 @@ export default class Cluster {
     }
 
     async init() {
-        const browserOptions = {
-            headless: false, // TODO just for testing
-            //args: this.options.args.concat([/*'--no-sandbox',*/ '--disable-dev-shm-usage']),
-        };
+        const browserOptions = this.options.puppeteerOptions;
         
         if (this.options.concurrency === Cluster.CONCURRENCY_PAGE) {
             this.browser = new ConcurrencyPage(browserOptions);
@@ -100,11 +99,6 @@ export default class Cluster {
         } catch (err) {
             throw new Error(`Unable to launch browser, error message: ${err.message}`);
         }
-
-        // launch minimal number of workers
-        /*for (let i = 0; i < this.options.minWorker; i++) {
-            await this._launchWorker();
-        }*/
     }
 
     async _launchWorker() {
@@ -157,7 +151,7 @@ export default class Cluster {
                 if (this._task !== null) {
                     await worker.handle(this._task, target);
                 } else {
-                    // TODO handle error no task defined yet
+                    throw new Error('No task defined!');
                 }
 
                 // add worker to available workers again
@@ -166,7 +160,7 @@ export default class Cluster {
 
                 this._workersAvail.push(worker);
 
-                this._work();
+                setImmediate(() => this._work());
             } else if(this._allowedToStartWorker()) {
                 await this._launchWorker();
                 await this._work(); // call again to process queue
@@ -179,7 +173,7 @@ export default class Cluster {
     _allowedToStartWorker() {
         const workerCount = this._workersBusy.length + this._workersAvail.length
             + this._workersStarting;
-        return (workerCount < this.options.maxWorker);
+        return (workerCount < this.options.maxConcurrency);
     }
 
     async queue(url: string, context: object) {

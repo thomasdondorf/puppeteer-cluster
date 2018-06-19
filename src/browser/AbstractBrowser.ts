@@ -1,5 +1,5 @@
 
-import { Page } from 'puppeteer';
+import { Page, LaunchOptions } from 'puppeteer';
 
 export interface ContextInstance {
     page: Page,
@@ -14,9 +14,9 @@ export interface WorkerBrowserInstance {
 
 export default abstract class AbstractBrowser {
 
-    protected options: object;
+    protected options: LaunchOptions;
 
-    constructor(options: object) { // TODO specify object
+    constructor(options: LaunchOptions) { // TODO specify object
         this.options = options;
     }
 
