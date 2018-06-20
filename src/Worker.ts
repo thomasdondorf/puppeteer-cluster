@@ -72,17 +72,15 @@ export default class Worker implements WorkerOptions {
                     await taskTimeout.promise;
                     throw new Error('Timeout hit: ' + timeout);
                 })(),
-                (async () => {
-                    await task({
-                        page,
-                        url: job.url,
-                        cluster: this.cluster,
-                        worker: {
-                            id: this.id,
-                        },
-                        context: {},
-                    });
-                })(),
+                task({
+                    page,
+                    url: job.url,
+                    cluster: this.cluster,
+                    worker: {
+                        id: this.id,
+                    },
+                    context: {},
+                }),
             ]);
         } catch (err) {
             // TODO special error message for status === Status.TIMEOUT as this might lead to errors
