@@ -3,7 +3,7 @@ import Target from './Target';
 import Cluster from './Cluster';
 import { WorkerBrowserInstance, ContextInstance } from './browser/AbstractBrowser';
 import { Page } from 'puppeteer';
-import { cancellableTimeout } from './util';
+import { cancellableTimeout, CancellableTimeout } from './util';
 
 const DEFAULT_OPTIONS = {
     args: [],
@@ -63,31 +63,35 @@ export default class Worker implements WorkerOptions {
         }
 
         let errorState: Error | null = null;
+        let taskTimeout: CancellableTimeout | null = null;
 
         try {
-            const taskTimeout = cancellableTimeout(timeout);
+            taskTimeout = cancellableTimeout(timeout);
             await Promise.race([
                 (async () => { // timeout promise
                     await taskTimeout.promise;
                     throw new Error('Timeout hit: ' + timeout);
                 })(),
-                task({
-                    page,
-                    url: target.url,
-                    cluster: this.cluster,
-                    worker: {
-                        id: this.id,
-                    },
-                    context: {},
-                }),
+                (async () => {
+                    await task({
+                        page,
+                        url: target.url,
+                        cluster: this.cluster,
+                        worker: {
+                            id: this.id,
+                        },
+                        context: {},
+                    });
+                    console.log('DONE!!!');
+                })(),
             ]);
-            taskTimeout.cancel();
         } catch (err) {
             // TODO special error message for status === Status.TIMEOUT as this might lead to errors
             //      inside the task handler (as the page gets closed) => point this out in the docs
             errorState = err;
             console.log('Error crawling ' + target.url + ' // ' + err.code + ': ' + err.message);
         }
+        (<CancellableTimeout>taskTimeout).cancel();
 
         try {
             await browserInstance.close();
