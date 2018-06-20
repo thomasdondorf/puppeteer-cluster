@@ -28,15 +28,9 @@ There are different concurrency models, which define how isolated each job is ru
 
 | Concurrency | Description | Shared data |
 | --- | --- | --- |
-| `Cluster.CONCURRENCY_PAGE` | One [Page] for each URL | Shares everything (cookies, localStorage, etc.) between jobs. |
-| `Cluster.CONCURRENCY_CONTEXT` | Incognito page (see [IncognitoBrowserContext](https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#browsercreateincognitobrowsercontext)) for each URL  | No shared data. |
-| `Cluster.CONCURRENCY_BROWSER` | One browser (using an incognito page) per URL. If one browser instance crashes for any reason, this will not affect other jobs. | No shared data.  |
-
-| Concurrency | Are           | Cool  |
-| ------------- |:-------------:| -----:|
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
+| `CONCURRENCY_PAGE` | One [Page] for each URL | Shares everything (cookies, localStorage, etc.) between jobs. |
+| `CONCURRENCY_CONTEXT` | Incognito page (see [IncognitoBrowserContext](https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#browsercreateincognitobrowsercontext)) for each URL  | No shared data. |
+| `CONCURRENCY_BROWSER` | One browser (using an incognito page) per URL. If one browser instance crashes for any reason, this will not affect other jobs. | No shared data.  |
 
 Describe pages, context, browsers TODO
 
@@ -99,7 +93,7 @@ const Cluster = require('puppeteer-cluster');
 
 #### Cluster.launch(options)
 - `options` <[Object]> Set of configurable options for the cluster. Can have the following fields:
-  - `concurrency` <Cluster.CONCURRENCY_PAGE|Cluster.CONCURRENCY_CONTEXT|Cluster.CONCURRENCY_BROWSER> The choosen concurrency model. See TODO -> define constants
+  - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*> The choosen concurrency model. See [Concurreny models](#concurrenymodels) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`.
   - `maxConcurrency` <[number]> Maximal number of parallel workers. Set to `0` to deactivate (in case you want to rely only on maxCPU and/or maxMemory). Defaults to `1`.
   - `maxCPU` <[number]> Maximal usage of CPU (`1` means 100% workload) to allow spawning of more workers. Set to `0` to deactivate. Defaults to `0`.
   - `maxMemory` <[number]> Maximal usage of memory (`1` means use all availabe memory) to allow spawning of more workers. Set to `0` to deactivate. Defaults to `0`.
