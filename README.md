@@ -38,6 +38,7 @@ Describe pages, context, browsers TODO
 * Minimal example
 * Crawling the Alexa Top 1 Million
 * Multiple tasks: Crawl google results and extract page title from pages
+* Using options.data.device when crawling
 
 ## TODO
 
@@ -120,7 +121,7 @@ The method launches a cluster instance.
   - `timeout` <[number]> Optional parameter to specify a timeout for task executions. Overrides the cluster options.
 - returns: <[Promise]>
 
-Specifies a task for the cluster.
+Specifies a task for the cluster. A task is called for each job you queue via [Cluster.queue](#Clusterqueueurl-options). You can specify multiple tasks by naming them via `options.name`. Check out the example TODO for more information about multiple tasks.
 
 #### Cluster.queue(url[, options])
 - `url` <[string]> URL to be called
@@ -133,7 +134,7 @@ Specifies a task for the cluster.
     - `data` <[Object]> Provide a data object containing any kind of information which should be passed on to the task execution.
 - returns: void TODO
 
-Puts a URL into the job queue. TODO: Example to put device height or type into context and use this in the task.
+Puts a URL (a job) into the queue. You can provide data specific to the job by using `options.data`. Check out the example TODO for more information related to that.
 
 #### Cluster.idle()
 - returns: <[Promise]>
