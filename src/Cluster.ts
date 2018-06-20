@@ -1,5 +1,5 @@
 
-import Target from './Target';
+import Target, { TargetOptions } from './Target';
 import Display from './Display';
 import * as util from './util';
 import Worker, { TaskArguments } from './Worker';
@@ -19,7 +19,7 @@ interface ClusterOptions {
     monitor: boolean;
     timeout: number;
     retryLimit: number;
-    retryDelay: number; // TODO implement
+    retryDelay: number;
 }
 
 const DEFAULT_OPTIONS: ClusterOptions = {
@@ -33,7 +33,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     monitor: false,
     timeout: 30 * 1000,
     retryLimit: 0,
-    retryDelay: 5000,
+    retryDelay: 0,
 };
 
 type TaskFunction = (args: TaskArguments) => Promise<void>;
@@ -154,31 +154,40 @@ export default class Cluster {
             }
         } else {
             if (this.workersAvail.length !== 0) {
-                // worker is available, lets go
-                const worker = <Worker>this.workersAvail.shift();
-                this.workersBusy.push(worker);
-
                 const target = <Target>this.targetQueue.shift();
-                const resultError: Error | null = await worker.handle(
-                    this.task,
-                    target,
-                    this.options.timeout,
-                );
+                if (target.options.delayUntil && target.options.delayUntil > Date.now()) {
+                    // there is a delayUntil which is not reached yet, put it back into the queue
+                    this.targetQueue.push(target);
+                    // TODO should we solve this via setTimeout maybe?
+                    //      would work better together with priority queue
+                } else {
+                    // worker is available, lets go
+                    const worker = <Worker>this.workersAvail.shift();
+                    this.workersBusy.push(worker);
 
-                if (resultError !== null) {
-                    // error during execution
-                    target.addError(resultError);
-                    if (target.tries <= this.options.retryLimit) {
-                        console.log('PUTTING in ' + target.tries + ' // ' + target.url);
-                        this.targetQueue.push(target);
+                    const resultError: Error | null = await worker.handle(
+                        this.task,
+                        target,
+                        this.options.timeout,
+                    );
+
+                    if (resultError !== null) {
+                        // error during execution
+                        target.addError(resultError);
+                        if (target.tries <= this.options.retryLimit) {
+                            if (this.options.retryDelay) {
+                                target.options.delayUntil = Date.now() + this.options.retryDelay;
+                            }
+                            this.targetQueue.push(target);
+                        }
                     }
+
+                    // add worker to available workers again
+                    const workerIndex = this.workersBusy.indexOf(worker);
+                    this.workersBusy.splice(workerIndex, 1);
+
+                    this.workersAvail.push(worker);
                 }
-
-                // add worker to available workers again
-                const workerIndex = this.workersBusy.indexOf(worker);
-                this.workersBusy.splice(workerIndex, 1);
-
-                this.workersAvail.push(worker);
 
                 setImmediate(() => this.work());
             } else if (this.allowedToStartWorker()) {
@@ -196,9 +205,9 @@ export default class Cluster {
         return (workerCount < this.options.maxConcurrency);
     }
 
-    public async queue(url: string, context: object) {
+    public async queue(url: string, options: TargetOptions) {
         this.allTargetCount += 1;
-        this.targetQueue.push(new Target(url, context));
+        this.targetQueue.push(new Target(url, options));
         this.work();
     }
 

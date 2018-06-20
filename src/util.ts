@@ -50,6 +50,23 @@ export function formatDuration(millis: number): string {
     return `${remaining.toFixed(1)} ${TIME_UNITS[nextUnitIndex - 1].name}`;
 }
 
-export function timeoutResolve(millis: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, millis));
+export interface CancellableTimeout {
+    cancel: () => void;
+    promise: Promise<void>;
+}
+
+export function cancellableTimeout(millis: number): CancellableTimeout {
+    let timeout: NodeJS.Timer;
+    let resolveCb: () => void;
+
+    return {
+        cancel: () => {
+            resolveCb();
+            clearTimeout(timeout);
+        },
+        promise: new Promise((resolve) => {
+            resolveCb = resolve;
+            timeout = setTimeout(resolve, millis);
+        }),
+    };
 }

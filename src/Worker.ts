@@ -3,7 +3,7 @@ import Target from './Target';
 import Cluster from './Cluster';
 import { WorkerBrowserInstance, ContextInstance } from './browser/AbstractBrowser';
 import { Page } from 'puppeteer';
-import { timeoutResolve } from './util';
+import { cancellableTimeout } from './util';
 
 const DEFAULT_OPTIONS = {
     args: [],
@@ -65,23 +65,23 @@ export default class Worker implements WorkerOptions {
         let errorState: Error | null = null;
 
         try {
+            const taskTimeout = cancellableTimeout(timeout);
             await Promise.race([
                 (async () => { // timeout promise
-                    await timeoutResolve(timeout);
+                    await taskTimeout.promise;
                     throw new Error('Timeout hit: ' + timeout);
                 })(),
-                (async () => { // actual task promise
-                    await task({
-                        page,
-                        url: target.url,
-                        cluster: this.cluster,
-                        worker: {
-                            id: this.id,
-                        },
-                        context: {},
-                    });
-                })(),
+                task({
+                    page,
+                    url: target.url,
+                    cluster: this.cluster,
+                    worker: {
+                        id: this.id,
+                    },
+                    context: {},
+                }),
             ]);
+            taskTimeout.cancel();
         } catch (err) {
             // TODO special error message for status === Status.TIMEOUT as this might lead to errors
             //      inside the task handler (as the page gets closed) => point this out in the docs
