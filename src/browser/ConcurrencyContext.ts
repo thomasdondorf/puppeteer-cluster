@@ -1,13 +1,11 @@
 
 import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
 
-// TODO get these two working together
-const puppeteer = require('puppeteer');
-import { Page, Browser } from 'puppeteer';
+import * as puppeteer from 'puppeteer';
 
 export default class ConcurrencyPage extends AbstractBrowser {
 
-    private chrome: Browser | null = null;
+    private chrome: puppeteer.Browser | null = null;
 
     private repairRequested: boolean = false;
     private repairing: boolean = false;
@@ -19,7 +17,7 @@ export default class ConcurrencyPage extends AbstractBrowser {
     }
 
     public async close() {
-        await (<Browser>this.chrome).close();
+        await (<puppeteer.Browser>this.chrome).close();
     }
 
     private async startRepair() {
@@ -33,7 +31,7 @@ export default class ConcurrencyPage extends AbstractBrowser {
 
         try {
             // will probably fail, but just in case the repair was not necessary
-            await (<Browser>this.chrome).close();
+            await (<puppeteer.Browser>this.chrome).close();
         } catch (e) {}
 
         try {
@@ -48,7 +46,7 @@ export default class ConcurrencyPage extends AbstractBrowser {
     }
 
     public async workerInstance() {
-        let page: Page;
+        let page: puppeteer.Page;
         let context: any; // puppeteer typings are strange..
 
         return {

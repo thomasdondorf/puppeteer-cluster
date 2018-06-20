@@ -1,9 +1,7 @@
 
 import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
 
-// TODO get these two working together
-const puppeteer = require('puppeteer');
-import { Page } from 'puppeteer';
+import * as puppeteer from 'puppeteer';
 
 export default class ConcurrencyBrowser extends AbstractBrowser {
     public async init() {}
@@ -11,11 +9,12 @@ export default class ConcurrencyBrowser extends AbstractBrowser {
 
     public async workerInstance(): Promise<WorkerBrowserInstance> {
         let chrome = await puppeteer.launch(this.options);
-        let page: Page;
+        let page: puppeteer.Page;
         let context: any; // puppeteer typings are old...
 
         return {
             instance: async () => {
+                // @ts-ignore: Old definition file of puppeteer
                 context = await chrome.createIncognitoBrowserContext();
                 page = await context.newPage();
 
