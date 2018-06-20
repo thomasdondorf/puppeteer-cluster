@@ -23,6 +23,21 @@ TODO
 * When timeout is hit, page might run longer, but never clears -> timeout of page.goto might be respected here
 
 ### Concurreny models
+
+There are different concurrency models, which define how isolated each job is run. You can set it in the `options` when calling [Cluster.launch](#Clusterlaunchoptions). The default option is `Cluster.CONCURRENCY_CONTEXT`, but it is recommended to always specify what model you want to use.
+
+| Concurrency | Description | Shared data |
+| --- | --- | --- |
+| `Cluster.CONCURRENCY_PAGE` | One [Page] for each URL | Shares everything (cookies, localStorage, etc.) between jobs. |
+| `Cluster.CONCURRENCY_CONTEXT` | Incognito page (see [IncognitoBrowserContext](https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#browsercreateincognitobrowsercontext)) for each URL  | No shared data. |
+| `Cluster.CONCURRENCY_BROWSER` | One browser (using an incognito page) per URL. If one browser instance crashes for any reason, this will not affect other jobs. | No shared data.  |
+
+| Concurrency | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+
 Describe pages, context, browsers TODO
 
 ### Examples
@@ -115,13 +130,13 @@ Specifies a task for the cluster.
 
 #### Cluster.queue(url[, options])
 - `url` <[string]> URL to be called
-- `options`<[Object]> Will be provided for each task execution. Any parameters can be set by the user, but the following contain a special meaning.
-    - `priority` <?[number]> Optional argument specifying the priority of the URL.
-    - `retry` <?[number]> Given if the URL is being retried due to erros executing it the first time. TODO remove?
-    - `delayUntil` <?[number]> If provided, will delay the crawling of the URL until the timestamp is reached. Example usage: Date.now() + 1000 (at least wait 1 second before crawling). TODO remove?
-    - `timeout` <?[number]> Maximal timeout for execution, overrides the task and cluster timeout.
-    - `task` <?[string]> If you have multiple tasks defined, you can specify the name of the task, which should handle the URL.
-    - `data` <?[Object]> Provide a data object containing any kind of information which should be passed on to the task execution.
+- `options`<[Object]> Optional parameter which allows to specify details about the task and set data for custom task execution.
+    - `priority` <[number]> Optional argument specifying the priority of the URL.
+    - `retry` <[number]> Given if the URL is being retried due to erros executing it the first time. TODO remove?
+    - `delayUntil` <[number]> If provided, will delay the crawling of the URL until the timestamp is reached. Example usage: Date.now() + 1000 (at least wait 1 second before crawling). TODO remove?
+    - `timeout` <[number]> Maximal timeout for execution, overrides the task and cluster timeout.
+    - `task` <[string]> If you have multiple tasks defined, you can specify the name of the task, which should handle the URL.
+    - `data` <[Object]> Provide a data object containing any kind of information which should be passed on to the task execution.
 - returns: void TODO
 
 Puts a URL into the job queue. TODO: Example to put device height or type into context and use this in the task.
@@ -147,3 +162,4 @@ Closes the cluster and all opened Chromium instances including all open pages (i
 [boolean]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type "Boolean"
 [Cluster]: #class-cluster "Cluster"
 [puppeteer.launch]: https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#puppeteerlaunchoptions "puppeteer.launch"
+[Object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object "Object"
