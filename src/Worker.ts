@@ -1,5 +1,5 @@
 
-import Target from './Target';
+import Job from './Job';
 import Cluster from './Cluster';
 import { WorkerBrowserInstance, ContextInstance } from './browser/AbstractBrowser';
 import { Page } from 'puppeteer';
@@ -33,7 +33,7 @@ export default class Worker implements WorkerOptions {
     id: number;
     browser: WorkerBrowserInstance;
 
-    activeTarget: Target | null = null;
+    activeTarget: Job | null = null;
 
     public constructor({ cluster, args, id, browser }: WorkerOptions) {
         this.cluster = cluster;
@@ -44,10 +44,10 @@ export default class Worker implements WorkerOptions {
 
     public async handle(
             task: ((_:TaskArguments) => Promise<void>),
-            target: Target,
+            job: Job,
             timeout: number,
         ): Promise<Error | null> {
-        this.activeTarget = target;
+        this.activeTarget = job;
 
         let browserInstance: ContextInstance;
         let page: Page;
@@ -58,7 +58,7 @@ export default class Worker implements WorkerOptions {
         } catch (err) {
             console.log('Error getting browser page: ' + err.message);
             await this.browser.repair();
-            // TODO retry? await this.handle(task, target);
+            // TODO retry? await this.handle(task, job);
             return err;
         }
 
@@ -75,28 +75,27 @@ export default class Worker implements WorkerOptions {
                 (async () => {
                     await task({
                         page,
-                        url: target.url,
+                        url: job.url,
                         cluster: this.cluster,
                         worker: {
                             id: this.id,
                         },
                         context: {},
                     });
-                    console.log('DONE!!!');
                 })(),
             ]);
         } catch (err) {
             // TODO special error message for status === Status.TIMEOUT as this might lead to errors
             //      inside the task handler (as the page gets closed) => point this out in the docs
             errorState = err;
-            console.log('Error crawling ' + target.url + ' // ' + err.code + ': ' + err.message);
+            console.log('Error crawling ' + job.url + ' // ' + err.code + ': ' + err.message);
         }
         (<CancellableTimeout>taskTimeout).cancel();
 
         try {
             await browserInstance.close();
         } catch (e) {
-            console.log('Error closing browser instance ' + target.url + ': ' + e.message);
+            console.log('Error closing browser instance ' + job.url + ': ' + e.message);
             await this.browser.repair();
         }
 

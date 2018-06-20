@@ -1,5 +1,5 @@
 
-import Target, { TargetOptions } from './Target';
+import Job, { JobOptions } from './Job';
 import Display from './Display';
 import * as util from './util';
 import Worker, { TaskArguments } from './Worker';
@@ -53,7 +53,7 @@ export default class Cluster {
     private workersStarting = 0;
 
     private allTargetCount = 0;
-    private targetQueue: Target[] = [];
+    private jobQueue: Job[] = [];
 
     private task: TaskFunction | null = null;
     private idleResolvers: (() => void)[] = []; // TODO
@@ -148,16 +148,16 @@ export default class Cluster {
             throw new Error('No task defined!');
         }
 
-        if (this.targetQueue.length === 0) {
+        if (this.jobQueue.length === 0) {
             if (this.workersBusy.length === 0) {
                 this.idleResolvers.forEach(resolve => resolve());
             }
         } else {
             if (this.workersAvail.length !== 0) {
-                const target = <Target>this.targetQueue.shift();
-                if (target.options.delayUntil && target.options.delayUntil > Date.now()) {
+                const job = <Job>this.jobQueue.shift();
+                if (job.options.delayUntil && job.options.delayUntil > Date.now()) {
                     // there is a delayUntil which is not reached yet, put it back into the queue
-                    this.targetQueue.push(target);
+                    this.jobQueue.push(job);
                     // TODO should we solve this via setTimeout maybe?
                     //      would work better together with priority queue
                 } else {
@@ -167,18 +167,18 @@ export default class Cluster {
 
                     const resultError: Error | null = await worker.handle(
                         this.task,
-                        target,
+                        job,
                         this.options.timeout,
                     );
 
                     if (resultError !== null) {
                         // error during execution
-                        target.addError(resultError);
-                        if (target.tries <= this.options.retryLimit) {
+                        job.addError(resultError);
+                        if (job.tries <= this.options.retryLimit) {
                             if (this.options.retryDelay) {
-                                target.options.delayUntil = Date.now() + this.options.retryDelay;
+                                job.options.delayUntil = Date.now() + this.options.retryDelay;
                             }
-                            this.targetQueue.push(target);
+                            this.jobQueue.push(job);
                         }
                     }
 
@@ -205,9 +205,9 @@ export default class Cluster {
         return (workerCount < this.options.maxConcurrency);
     }
 
-    public async queue(url: string, options: TargetOptions) {
+    public async queue(url: string, options: JobOptions) {
         this.allTargetCount += 1;
-        this.targetQueue.push(new Target(url, options));
+        this.jobQueue.push(new Job(url, options));
         this.work();
     }
 
@@ -246,7 +246,7 @@ export default class Cluster {
         const now = Date.now();
         const timeDiff = now - this.startTime;
 
-        const doneTargets = this.allTargetCount - this.targetQueue.length - this.workersBusy.length;
+        const doneTargets = this.allTargetCount - this.jobQueue.length - this.workersBusy.length;
         const donePercentage = (doneTargets / this.allTargetCount);
         const donePercStr = (100 * donePercentage).toFixed(2);
 

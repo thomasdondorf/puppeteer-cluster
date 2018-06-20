@@ -1,5 +1,5 @@
 
-export interface TargetOptions {
+export interface JobOptions {
     priority?: number;
     retry?: number;
     delayUntil?: number;
@@ -7,15 +7,15 @@ export interface TargetOptions {
     data?: object;
 }
 
-export default class Target {
+export default class Job {
 
     public url: string;
-    public options: TargetOptions;
+    public options: JobOptions;
 
     private lastError: Error | null = null;
     public tries: number = 0;
 
-    public constructor(url: string, options: TargetOptions = {}) {
+    public constructor(url: string, options: JobOptions = {}) {
         this.url = url;
         this.options = options;
     }
