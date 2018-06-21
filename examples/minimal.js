@@ -6,11 +6,12 @@ function sleep(ms) {
 
 (async () => {
     const cluster = await Cluster.launch({
-        maxWorker: 2,
+        maxConcurrency: 1,
         concurrency: Cluster.CONCURRENCY_CONTEXT,
-        timeout: 5000,
-        retryLimit: 1,
-        retryDelay: 10000,
+        timeout: 10000,
+        skipDuplicateUrls: true,
+        //retryLimit: 1,
+        //retryDelay: 0,
         // monitor: true,
     });
 
@@ -25,8 +26,8 @@ function sleep(ms) {
     });
 
     cluster.queue('http://www.google.com');
-    // cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md?1');
-    //cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md?22');
+    cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md?1');
+    cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md?1');
     //cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md?333');
 
     await cluster.idle();

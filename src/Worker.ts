@@ -3,7 +3,9 @@ import Job from './Job';
 import Cluster from './Cluster';
 import { WorkerBrowserInstance, ContextInstance } from './browser/AbstractBrowser';
 import { Page } from 'puppeteer';
-import { cancellableTimeout, CancellableTimeout } from './util';
+import { cancellableTimeout, CancellableTimeout, debugGenerator, log } from './util';
+
+const debug = debugGenerator('Worker');
 
 const DEFAULT_OPTIONS = {
     args: [],
@@ -40,6 +42,8 @@ export default class Worker implements WorkerOptions {
         this.args = args;
         this.id = id;
         this.browser = browser;
+
+        debug(`Starting #${this.id}`);
     }
 
     public async handle(
@@ -56,9 +60,9 @@ export default class Worker implements WorkerOptions {
             browserInstance = await this.browser.instance();
             page = browserInstance.page;
         } catch (err) {
-            console.log('Error getting browser page: ' + err.message);
+            debug('Error getting browser page: ' + err.message);
             await this.browser.repair();
-            // TODO retry? await this.handle(task, job);
+            // TODO log how often this does not work to escalte when it happens to often?
             return err;
         }
 
@@ -86,14 +90,14 @@ export default class Worker implements WorkerOptions {
             // TODO special error message for status === Status.TIMEOUT as this might lead to errors
             //      inside the task handler (as the page gets closed) => point this out in the docs
             errorState = err;
-            console.log('Error crawling ' + job.url + ' // ' + err.code + ': ' + err.message);
+            log('Error crawling ' + job.url + ' // ' + err.code + ': ' + err.message);
         }
         (<CancellableTimeout>taskTimeout).cancel();
 
         try {
             await browserInstance.close();
         } catch (e) {
-            console.log('Error closing browser instance ' + job.url + ': ' + e.message);
+            debug('Error closing browser instance for ' + job.url + ': ' + e.message);
             await this.browser.repair();
         }
 
@@ -106,8 +110,9 @@ export default class Worker implements WorkerOptions {
         try {
             await this.browser.close();
         } catch (err) {
-            console.log(`Unable to close worker browser. Error message: ${err.message}`);
+            debug(`Unable to close worker browser. Error message: ${err.message}`);
         }
+        debug(`Closed #${this.id}`);
     }
 
 }

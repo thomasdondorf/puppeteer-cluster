@@ -1,7 +1,9 @@
 
 import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
-
 import * as puppeteer from 'puppeteer';
+
+import { debugGenerator } from '../util';
+const debug = debugGenerator('Browser');
 
 export default class ConcurrencyBrowser extends AbstractBrowser {
     public async init() {}
@@ -33,7 +35,7 @@ export default class ConcurrencyBrowser extends AbstractBrowser {
             },
 
             repair: async () => {
-                console.log('Starting repair');
+                debug('Starting repair');
                 try {
                     // will probably fail, but just in case the repair was not necessary
                     await chrome.close();

@@ -1,4 +1,6 @@
 
+import * as Debug from 'debug';
+
 interface TimeUnit {
     step: number;
     name: string;
@@ -69,4 +71,17 @@ export function cancellableTimeout(millis: number): CancellableTimeout {
             timeout = setTimeout(resolve, millis);
         }),
     };
+}
+
+export function debugGenerator(namespace: string): Debug.IDebugger {
+    const debug = Debug('puppeteer-cluster:' + namespace);
+    return debug;
+}
+
+const logToConsole = Debug('puppeteer-cluster:log');
+logToConsole.log = console.log.bind(console);
+Debug.enable('puppeteer-cluster:log');
+
+export function log(msg: string): void {
+    logToConsole(msg);
 }

@@ -10,6 +10,8 @@ import ConcurrencyContext from './browser/ConcurrencyContext';
 
 import { LaunchOptions } from 'puppeteer';
 
+const debug = util.debugGenerator('Cluster');
+
 interface ClusterOptions {
     maxConcurrency: number;
     maxCPU: number;
@@ -20,6 +22,7 @@ interface ClusterOptions {
     timeout: number;
     retryLimit: number;
     retryDelay: number;
+    skipDuplicateUrls: boolean;
 }
 
 const DEFAULT_OPTIONS: ClusterOptions = {
@@ -34,6 +37,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     timeout: 30 * 1000,
     retryLimit: 0,
     retryDelay: 0,
+    skipDuplicateUrls: false,
 };
 
 type TaskFunction = (args: TaskArguments) => Promise<void>;
@@ -66,7 +70,10 @@ export default class Cluster {
     private monitoringInterval: NodeJS.Timer | null = null;
     private display: Display | null = null;
 
+    private duplicateCheckUrls: Set<string> = new Set();
+
     public static async launch(options: ClusterOptions) { // TODO launch options
+        debug('Launching');
         const cluster = new Cluster(options);
         await cluster.init();
 
@@ -92,10 +99,10 @@ export default class Cluster {
 
         if (this.options.concurrency === Cluster.CONCURRENCY_PAGE) {
             this.browser = new ConcurrencyPage(browserOptions);
-        } else if (this.options.concurrency === Cluster.CONCURRENCY_BROWSER) {
-            this.browser = new ConcurrencyBrowser(browserOptions);
         } else if (this.options.concurrency === Cluster.CONCURRENCY_CONTEXT) {
             this.browser = new ConcurrencyContext(browserOptions);
+        } else if (this.options.concurrency === Cluster.CONCURRENCY_BROWSER) {
+            this.browser = new ConcurrencyBrowser(browserOptions);
         } else {
             throw new Error('Unknown concurrency option: ' + this.options.concurrency);
         }
@@ -112,6 +119,8 @@ export default class Cluster {
         this.workersStarting += 1;
         this.nextWorkerId += 1;
 
+        const workerId = this.nextWorkerId;
+
         let workerBrowserInstance;
         try {
             workerBrowserInstance = await this.browser.workerInstance();
@@ -123,7 +132,7 @@ export default class Cluster {
             cluster: this,
             args: [''], // this.options.args,
             browser: workerBrowserInstance,
-            id: this.nextWorkerId,
+            id: workerId,
         });
         this.workersStarting -= 1;
 
@@ -160,6 +169,9 @@ export default class Cluster {
                     this.jobQueue.push(job);
                     // TODO should we solve this via setTimeout maybe?
                     //      would work better together with priority queue
+                } else if (this.options.skipDuplicateUrls && this.duplicateCheckUrls.has(job.url)) {
+                    // already crawled, just ignore
+                    debug('Skipping duplicate URL: ' + job.url);
                 } else {
                     // worker is available, lets go
                     const worker = <Worker>this.workersAvail.shift();
@@ -180,6 +192,8 @@ export default class Cluster {
                             }
                             this.jobQueue.push(job);
                         }
+                    } else if (this.options.skipDuplicateUrls) {
+                        this.duplicateCheckUrls.add(job.url);
                     }
 
                     // add worker to available workers again
@@ -199,9 +213,8 @@ export default class Cluster {
         }
     }
 
-    private allowedToStartWorker() {
-        const workerCount = this.workersBusy.length + this.workersAvail.length
-            + this.workersStarting;
+    private allowedToStartWorker(): boolean {
+        const workerCount = this.workers.length + this.workersStarting;
         return (workerCount < this.options.maxConcurrency);
     }
 
@@ -224,7 +237,7 @@ export default class Cluster {
         try {
             await this.browser.close();
         } catch (err) {
-            console.log(`Unable to close browser. Error message: ${err.message}`);
+            debug(`Error: Unable to close browser, message: ${err.message}`);
         }
 
         if (this.monitoringInterval) {
@@ -235,6 +248,7 @@ export default class Cluster {
         if (this.display) {
             this.display.close();
         }
+        debug('Closed');
     }
 
     private monitor(): void {

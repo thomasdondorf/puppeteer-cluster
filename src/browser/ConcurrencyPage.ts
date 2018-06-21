@@ -1,7 +1,9 @@
 
 import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
-
 import * as puppeteer from 'puppeteer';
+
+import { debugGenerator } from '../util';
+const debug = debugGenerator('Browser');
 
 export default class ConcurrencyPage extends AbstractBrowser {
 
@@ -27,7 +29,7 @@ export default class ConcurrencyPage extends AbstractBrowser {
         }
 
         this.repairing = true;
-        console.log('Starting repair');
+        debug('Starting repair');
 
         try {
             // will probably fail, but just in case the repair was not necessary

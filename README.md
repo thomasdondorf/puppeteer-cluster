@@ -37,18 +37,23 @@ Describe pages, context, browsers TODO
 ### Examples
 * Minimal example
 * Crawling the Alexa Top 1 Million
-* Multiple tasks: Crawl google results and extract page title from pages
 * Using options.data.device when crawling
+* Multiple tasks, each URL is run by one task (example: crawl google results and extract page title from pages)
+* Multiple tasks, each URL is run by multiple tasks (example: multiple tests, that need to be executed)
+* Cancel after some depth of crawling a page, crawl each page only once
+
+## DONE (TODO remove)
+* skipDuplicateUrls -> true|false
 
 ## TODO
 
 * sameDomainDelay -> 1000 (Mindestwert)
-* skipDuplicateUrls -> true|false
 
 * priority for jobs
 
 * Continue a previously started cluster process
 * add debugging options
+* Run multiple tasks per job
 
 * Make a peerDependency
 
