@@ -16,7 +16,7 @@ export default abstract class AbstractBrowser {
 
     protected options: LaunchOptions;
 
-    public constructor(options: LaunchOptions) { // TODO specify object
+    public constructor(options: LaunchOptions) {
         this.options = options;
     }
 

@@ -9,6 +9,7 @@ import ConcurrencyPage from './browser/ConcurrencyPage';
 import ConcurrencyContext from './browser/ConcurrencyContext';
 
 import { LaunchOptions } from 'puppeteer';
+import AbstractBrowser from './browser/AbstractBrowser';
 
 const debug = util.debugGenerator('Cluster');
 
@@ -60,8 +61,8 @@ export default class Cluster {
     private jobQueue: Job[] = [];
 
     private task: TaskFunction | null = null;
-    private idleResolvers: (() => void)[] = []; // TODO
-    private browser: any = null; // TODO
+    private idleResolvers: (() => void)[] = [];
+    private browser: AbstractBrowser | null = null;
 
     private isClosed = false;
     private startTime = Date.now();
@@ -72,7 +73,7 @@ export default class Cluster {
 
     private duplicateCheckUrls: Set<string> = new Set();
 
-    public static async launch(options: ClusterOptions) { // TODO launch options
+    public static async launch(options: ClusterOptions) {
         debug('Launching');
         const cluster = new Cluster(options);
         await cluster.init();
@@ -80,7 +81,7 @@ export default class Cluster {
         return cluster;
     }
 
-    private constructor(options: ClusterOptions) { // TODO types
+    private constructor(options: ClusterOptions) {
         this.options = {
             ...DEFAULT_OPTIONS,
             ...options,
@@ -123,7 +124,7 @@ export default class Cluster {
 
         let workerBrowserInstance;
         try {
-            workerBrowserInstance = await this.browser.workerInstance();
+            workerBrowserInstance = await (this.browser as AbstractBrowser).workerInstance();
         } catch (err) {
             throw new Error(`Unable to launch browser for worker, error message: ${err.message}`);
         }
@@ -235,7 +236,7 @@ export default class Cluster {
         await Promise.all(this.workers.map(worker => worker.close()));
 
         try {
-            await this.browser.close();
+            await (this.browser as AbstractBrowser).close();
         } catch (err) {
             debug(`Error: Unable to close browser, message: ${err.message}`);
         }

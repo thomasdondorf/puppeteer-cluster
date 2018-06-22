@@ -87,8 +87,6 @@ export default class Worker implements WorkerOptions {
                 }),
             ]);
         } catch (err) {
-            // TODO special error message for status === Status.TIMEOUT as this might lead to errors
-            //      inside the task handler (as the page gets closed) => point this out in the docs
             errorState = err;
             log('Error crawling ' + job.url + ' // ' + err.code + ': ' + err.message);
         }
