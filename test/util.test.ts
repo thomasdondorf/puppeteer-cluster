@@ -1,5 +1,5 @@
 
-import { formatDateTime, formatDuration, timeoutResolve } from '../src/util';
+import { formatDateTime, formatDuration, cancellableTimeout } from '../src/util';
 
 describe('formatDateTime', () => {
 
@@ -73,16 +73,29 @@ describe('formatDuration', () => {
 
 jest.useFakeTimers();
 
-describe('timeoutResolve', () => {
+describe('cancellableTimeout', () => {
 
     test('resolve after some time', async () => {
         expect.assertions(1);
 
-        const promise = timeoutResolve(1000000);
+        const promiseWrapper = cancellableTimeout(100000);
 
         jest.runAllTimers();
 
-        expect(promise).resolves.toBe(undefined);
+        expect(promiseWrapper.promise).resolves.toBe(undefined);
+    });
+
+    test('is cancellable', async () => {
+        expect.assertions(1);
+
+        let promiseWrapper;
+
+        (async () => {
+            promiseWrapper = cancellableTimeout(100000);
+            const result = await promiseWrapper.promise;
+            expect(result).toBe(undefined);
+        })();
+        promiseWrapper.cancel();
     });
 
 });
