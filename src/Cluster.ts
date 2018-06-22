@@ -10,6 +10,7 @@ import ConcurrencyContext from './browser/ConcurrencyContext';
 
 import { LaunchOptions } from 'puppeteer';
 import AbstractBrowser from './browser/AbstractBrowser';
+import Queue from './Queue';
 
 const debug = util.debugGenerator('Cluster');
 
@@ -58,7 +59,7 @@ export default class Cluster {
     private workersStarting = 0;
 
     private allTargetCount = 0;
-    private jobQueue: Job[] = [];
+    private jobQueue: Queue<Job> = new Queue<Job>();
 
     private task: TaskFunction | null = null;
     private idleResolvers: (() => void)[] = [];
@@ -158,16 +159,22 @@ export default class Cluster {
             throw new Error('No task defined!');
         }
 
-        if (this.jobQueue.length === 0) {
+        if (this.jobQueue.size() === 0) {
             if (this.workersBusy.length === 0) {
                 this.idleResolvers.forEach(resolve => resolve());
             }
         } else {
             if (this.workersAvail.length !== 0) {
-                const job = <Job>this.jobQueue.shift();
-                if (job.options.delayUntil && job.options.delayUntil > Date.now()) {
+                const job = this.jobQueue.shift();
+
+                // TODO clean up this if, else if mess
+                if (job === undefined) {
+                    // skip, there are items but they are all delayed
+                } else if (job.options.delayUntil && job.options.delayUntil > Date.now()) {
                     // there is a delayUntil which is not reached yet, put it back into the queue
-                    this.jobQueue.push(job);
+                    this.jobQueue.push(job, {
+                        delayUntil: job.options.delayUntil,
+                    });
                     // TODO should we solve this via setTimeout maybe?
                     //      would work better together with priority queue
                 } else if (this.options.skipDuplicateUrls && this.duplicateCheckUrls.has(job.url)) {
@@ -188,10 +195,13 @@ export default class Cluster {
                         // error during execution
                         job.addError(resultError);
                         if (job.tries <= this.options.retryLimit) {
+                            let delayUntil = undefined;
                             if (this.options.retryDelay) {
-                                job.options.delayUntil = Date.now() + this.options.retryDelay;
+                                delayUntil = Date.now() + this.options.retryDelay;
                             }
-                            this.jobQueue.push(job);
+                            this.jobQueue.push(job, {
+                                delayUntil,
+                            });
                         }
                     } else if (this.options.skipDuplicateUrls) {
                         this.duplicateCheckUrls.add(job.url);
@@ -261,7 +271,7 @@ export default class Cluster {
         const now = Date.now();
         const timeDiff = now - this.startTime;
 
-        const doneTargets = this.allTargetCount - this.jobQueue.length - this.workersBusy.length;
+        const doneTargets = this.allTargetCount - this.jobQueue.size() - this.workersBusy.length;
         const donePercentage = (doneTargets / this.allTargetCount);
         const donePercStr = (100 * donePercentage).toFixed(2);
 

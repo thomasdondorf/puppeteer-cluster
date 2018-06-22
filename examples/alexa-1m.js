@@ -1,4 +1,4 @@
-const Cluster = require('../lib/Cluster');
+const { Cluster } = require('../build');
 
 const fs = require('fs');
 const util = require('util');
@@ -12,8 +12,8 @@ function sleep(ms) {
 (async () => {
     const cluster = await Cluster.launch({
         monitor: true,
-        maxWorker: 2,
-        concurrency: Cluster.CONCURRENCY_BROWSER,
+        maxConcurrency: 2,
+        concurrency: Cluster.CONCURRENCY_CONTEXT,
     });
 
     await cluster.setTask(async ({ url, page, cluster, context }) => {

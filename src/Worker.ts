@@ -88,7 +88,7 @@ export default class Worker implements WorkerOptions {
             ]);
         } catch (err) {
             errorState = err;
-            log('Error crawling ' + job.url + ' // ' + err.code + ': ' + err.message);
+            log('Error crawling ' + job.url + ' // message: ' + err.message);
         }
         (<CancellableTimeout>taskTimeout).cancel();
 
