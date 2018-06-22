@@ -16,7 +16,7 @@ function sleep(ms) {
         concurrency: Cluster.CONCURRENCY_CONTEXT,
     });
 
-    await cluster.setTask(async ({ url, page, cluster, context }) => {
+    await cluster.task(async (url, page) => {
         await page.goto(url);
         // ...
     });

@@ -1,23 +1,29 @@
 
-export interface JobOptions {
-    priority?: number;
-    retry?: number;
-    delayUntil?: number;
-    timeout?: number;
-    data?: object;
+// needs an URL, but can have any other information in it
+export interface JobData {
+    url: string;
+    [x: string]: any;
 }
 
 export default class Job {
 
-    public url: string;
-    public options: JobOptions;
+    public url: string | JobData;
 
     private lastError: Error | null = null;
     public tries: number = 0;
 
-    public constructor(url: string, options: JobOptions = {}) {
+    public constructor(url: string | JobData) {
         this.url = url;
-        this.options = options;
+    }
+
+    public getUrl(): string | undefined {
+        if (typeof this.url === 'string') {
+            return this.url;
+        }
+        if ((typeof (this.url as JobData).url === 'string')) {
+            return this.url.url;
+        }
+        return undefined;
     }
 
     public addError(error: Error): void {

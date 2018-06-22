@@ -1,5 +1,5 @@
 
-import Job, { JobOptions } from './Job';
+import Job, { JobData } from './Job';
 import Display from './Display';
 import * as util from './util';
 import Worker, { TaskArguments } from './Worker';
@@ -8,7 +8,7 @@ import ConcurrencyBrowser from './browser/ConcurrencyBrowser';
 import ConcurrencyPage from './browser/ConcurrencyPage';
 import ConcurrencyContext from './browser/ConcurrencyContext';
 
-import { LaunchOptions } from 'puppeteer';
+import { LaunchOptions, Page } from 'puppeteer';
 import AbstractBrowser from './browser/AbstractBrowser';
 import Queue from './Queue';
 
@@ -42,7 +42,13 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     skipDuplicateUrls: false,
 };
 
-type TaskFunction = (args: TaskArguments) => Promise<void>;
+export interface QueueOptions {
+    priority: number;
+    task: string;
+}
+
+export type TaskFunction =
+    (url: string | JobData, page: Page, options: TaskArguments) => Promise<void>;
 
 const MONITORING_INTERVAL = 500;
 
@@ -61,7 +67,7 @@ export default class Cluster {
     private allTargetCount = 0;
     private jobQueue: Queue<Job> = new Queue<Job>();
 
-    private task: TaskFunction | null = null;
+    private taskFunction: TaskFunction | null = null;
     private idleResolvers: (() => void)[] = [];
     private browser: AbstractBrowser | null = null;
 
@@ -147,15 +153,15 @@ export default class Cluster {
         }
     }
 
-    public async setTask(taskHandler: ((args: TaskArguments) => Promise<void>)) {
-        this.task = taskHandler;
+    public async task(taskFunction: TaskFunction) {
+        this.taskFunction = taskFunction;
         // TODO handle different names for tasks
     }
 
     private async work() {
         // find empty instance
 
-        if (this.task === null) {
+        if (this.taskFunction === null) {
             throw new Error('No task defined!');
         }
 
@@ -170,14 +176,10 @@ export default class Cluster {
                 // TODO clean up this if, else if mess
                 if (job === undefined) {
                     // skip, there are items but they are all delayed
-                } else if (job.options.delayUntil && job.options.delayUntil > Date.now()) {
-                    // there is a delayUntil which is not reached yet, put it back into the queue
-                    this.jobQueue.push(job, {
-                        delayUntil: job.options.delayUntil,
-                    });
-                    // TODO should we solve this via setTimeout maybe?
-                    //      would work better together with priority queue
-                } else if (this.options.skipDuplicateUrls && this.duplicateCheckUrls.has(job.url)) {
+                } else if (
+                    this.options.skipDuplicateUrls
+                    && this.duplicateCheckUrls.has(job.getUrl() as string)
+                ) {
                     // already crawled, just ignore
                     debug('Skipping duplicate URL: ' + job.url);
                 } else {
@@ -186,7 +188,7 @@ export default class Cluster {
                     this.workersBusy.push(worker);
 
                     const resultError: Error | null = await worker.handle(
-                        this.task,
+                        this.taskFunction,
                         job,
                         this.options.timeout,
                     );
@@ -204,7 +206,13 @@ export default class Cluster {
                             });
                         }
                     } else if (this.options.skipDuplicateUrls) {
-                        this.duplicateCheckUrls.add(job.url);
+                        const url = job.getUrl();
+                        if (url) {
+                            this.duplicateCheckUrls.add(url);
+                        } else {
+                            // this can only happen if the user made a mistake
+                            // but we give him a pass...
+                        }
                     }
 
                     // add worker to available workers again
@@ -229,9 +237,10 @@ export default class Cluster {
         return (workerCount < this.options.maxConcurrency);
     }
 
-    public async queue(url: string, options: JobOptions) {
+    // TODO implement all queue options
+    public async queue(url: string | JobData, options: QueueOptions) {
         this.allTargetCount += 1;
-        this.jobQueue.push(new Job(url, options));
+        this.jobQueue.push(new Job(url));
         this.work();
     }
 
@@ -297,7 +306,11 @@ export default class Cluster {
                 workOrIdle = 'IDLE';
             } else {
                 workOrIdle = 'WORK';
-                workerUrl = worker.activeTarget ? worker.activeTarget.url : 'UNKNOWN TARGET';
+                if (worker.activeTarget) {
+                    workerUrl = worker.activeTarget.getUrl() || 'UNKNOWN TARGET';
+                } else {
+                    workerUrl = 'NO TARGET (should not be happening)';
+                }
             }
 
             display.log(`   #${i} ${workOrIdle} ${workerUrl}`);

@@ -115,28 +115,26 @@ const Cluster = require('puppeteer-cluster');
 The method launches a cluster instance.
 
 #### Cluster.task(task[, options])
-- `task` <[function]([Object])> A function returning a [Promise] and will be called with an object, which has the following attributes:
+- `task` <[function]([string]|[Object], [Page], [Object])> Sets the function, which will be called for each job. The function will be called with three arguments (given below):
+  - `url` <[string]|[Object]> The data of the job you provided to [Cluster.queue]. This can either be a URL or an object containing additional data (including the URL). See example TODO for a more complex usage of the argument.
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
-  - `url` <[string]> The target URL.
-  - `data` <[Object]> Data provided for the job via the second parameter in (Cluster.queue)[#clusterqueue].
-  - `worker` <[Object]> The worker executing the current URL.
-    - `id` <[number]> ID of the worker. Worker IDs start at 0.
+  - `options` <[Object]> An object containing additional information about your taks.
+    - `worker` <[Object]> The worker executing the current URL.
+      - `id` <[number]> ID of the worker. Worker IDs start at 0.
 - `options` <[Object]> Optional information about the task
   - `name` <[string]> Specify the name when you have multiple differen tasks. Use `context.task` when calling the `queue` function to specify which task should execute the URL.
   - `timeout` <[number]> Optional parameter to specify a timeout for task executions. Overrides the cluster options.
 - returns: <[Promise]>
 
-Specifies a task for the cluster. A task is called for each job you queue via [Cluster.queue](#Clusterqueueurl-options). You can specify multiple tasks by naming them via `options.name`. Check out the example TODO for more information about multiple tasks.
+Specifies a task for the cluster. A task is called for each job you queue via [Cluster.queue]. You can specify multiple tasks by naming them via `options.name`. Check out the example TODO for more information about multiple tasks.
 
 #### Cluster.queue(url[, options])
-- `url` <[string]> URL to be called
+- `url` <[string]|[Object]> URL to be called or alternatively an object containing any information. The string or object will be provided to your task function(s). See example TODO for a more complex usage of this argument.
 - `options`<[Object]> Optional parameter which allows to specify details about the task and set data for custom task execution.
     - `priority` <[number]> Optional argument specifying the priority of the URL.
-    - `retry` <[number]> Given if the URL is being retried due to erros executing it the first time. TODO remove?
-    - `delayUntil` <[number]> If provided, will delay the crawling of the URL until the timestamp is reached. Example usage: Date.now() + 1000 (at least wait 1 second before crawling). TODO remove?
-    - `timeout` <[number]> Maximal timeout for execution, overrides the task and cluster timeout.
+    - TODO REMOVE `retry` <[number]> Given if the URL is being retried due to erros executing it the first time. TODO remove?
+    - TODO REMOVE `delayUntil` <[number]> If provided, will delay the crawling of the URL until the timestamp is reached. Example usage: Date.now() + 1000 (at least wait 1 second before crawling). TODO remove?
     - `task` <[string]> If you have multiple tasks defined, you can specify the name of the task, which should handle the URL.
-    - `data` <[Object]> Provide a data object containing any kind of information which should be passed on to the task execution.
 - returns: void TODO
 
 Puts a URL (a job) into the queue. You can provide data specific to the job by using `options.data`. Check out the example TODO for more information related to that.
@@ -163,3 +161,4 @@ Closes the cluster and all opened Chromium instances including all open pages (i
 [Cluster]: #class-cluster "Cluster"
 [puppeteer.launch]: https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#puppeteerlaunchoptions "puppeteer.launch"
 [Object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object "Object"
+[Cluster.queue]: #Clusterqueueurl-options "Cluster.queue"

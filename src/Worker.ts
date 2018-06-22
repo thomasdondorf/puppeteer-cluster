@@ -1,6 +1,6 @@
 
-import Job from './Job';
-import Cluster from './Cluster';
+import Job, { JobData } from './Job';
+import Cluster, { TaskFunction } from './Cluster';
 import { WorkerBrowserInstance, ContextInstance } from './browser/AbstractBrowser';
 import { Page } from 'puppeteer';
 import { cancellableTimeout, CancellableTimeout, debugGenerator, log } from './util';
@@ -19,13 +19,9 @@ interface WorkerOptions {
 }
 
 export interface TaskArguments {
-    url: string;
-    page: Page;
-    cluster: Cluster;
     worker: {
         id: number;
     };
-    context: object;
 }
 
 export default class Worker implements WorkerOptions {
@@ -47,7 +43,7 @@ export default class Worker implements WorkerOptions {
     }
 
     public async handle(
-            task: ((_:TaskArguments) => Promise<void>),
+            task: TaskFunction,
             job: Job,
             timeout: number,
         ): Promise<Error | null> {
@@ -76,14 +72,8 @@ export default class Worker implements WorkerOptions {
                     await taskTimeout.promise;
                     throw new Error('Timeout hit: ' + timeout);
                 })(),
-                task({
-                    page,
-                    url: job.url,
-                    cluster: this.cluster,
-                    worker: {
-                        id: this.id,
-                    },
-                    context: {},
+                task(job.url, page, {
+                    worker: { id: this.id },
                 }),
             ]);
         } catch (err) {
