@@ -4,7 +4,7 @@ Create a cluster of puppeteer workers.
 
 ## Install
 
-Install puppeteer (if you not already have it installed)
+Install puppeteer (if you not already have it installed), with at least version 1.5.
 
 `npm install --save puppeteer`
 
@@ -12,15 +12,15 @@ Install Puppeteer cluster
 
 `npm install --save puppeteer-cluster`
 
-Node version needs to be >= v8.10.0.
+Currently tested with node versions >= v8.10.0.
 
 ## Usage
 
 TODO
 
 ## Issues / Hints
-* does not cache asynchronous errors outside of await/async in the task (example: setTimeout produces error)
-* When timeout is hit, page might run longer, but never clears -> timeout of page.goto might be respected here
+* does not cache asynchronous errors outside of await/async in the task (example: setTimeout produces error) TODO give examples
+* When timeout is hit, page might run longer, but never clears -> timeout of page.goto might be respected here TODO document that?
 
 ### Concurreny models
 
@@ -47,10 +47,7 @@ Describe pages, context, browsers TODO
 
 ## TODO
 
-* sameDomainDelay -> 1000 (Mindestwert)
-
 * priority for jobs
-
 * Continue a previously started cluster process
 * add debugging options
 * Run multiple tasks per job
@@ -83,7 +80,7 @@ const Cluster = require('puppeteer-cluster');
 
 (async () => {
   const cluster = await Cluster.launch();
-  cluster.task(async ({ url, page }) => {
+  cluster.task(async (url, page) => {
     await page.goto(url);
     // TODO
   });
@@ -101,8 +98,8 @@ const Cluster = require('puppeteer-cluster');
 - `options` <[Object]> Set of configurable options for the cluster. Can have the following fields:
   - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*> The choosen concurrency model. See [Concurreny models](#concurreny-models) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`.
   - `maxConcurrency` <[number]> Maximal number of parallel workers. Set to `0` to deactivate (in case you want to rely only on maxCPU and/or maxMemory). Defaults to `1`.
-  - `maxCPU` <[number]> Maximal usage of CPU (`1` means 100% workload) to allow spawning of more workers. Set to `0` to deactivate. Defaults to `0`.
-  - `maxMemory` <[number]> Maximal usage of memory (`1` means use all availabe memory) to allow spawning of more workers. Set to `0` to deactivate. Defaults to `0`.
+  - TODO NOT WORKING YET `maxCPU` <[number]> Maximal usage of CPU (`1` means 100% workload) to allow spawning of more workers. Set to `0` to deactivate. Defaults to `0`.
+  - TODO NOT WORKING YET `maxMemory` <[number]> Maximal usage of memory (`1` means use all availabe memory) to allow spawning of more workers. Set to `0` to deactivate. Defaults to `0`.
   - `puppeteerOptions` <[Object]> Object passed to [puppeteer.launch]. See puppeteer documentation for more information. Defaults to `{}`.
   - `retryLimit` <[number]> How often do you want to retry a job before marking it as failed. Defaults to `0`.
   - `retryDelay` <[number]> How much time should pass at minimum between the job execution and its retry. Defaults to `0`.
@@ -121,20 +118,18 @@ The method launches a cluster instance.
   - `options` <[Object]> An object containing additional information about your taks.
     - `worker` <[Object]> The worker executing the current URL.
       - `id` <[number]> ID of the worker. Worker IDs start at 0.
-- `options` <[Object]> Optional information about the task
-  - `name` <[string]> Specify the name when you have multiple differen tasks. Use `context.task` when calling the `queue` function to specify which task should execute the URL.
-  - `timeout` <[number]> Optional parameter to specify a timeout for task executions. Overrides the cluster options.
+- TODO NOT WORKING YET `options` <[Object]> Optional information about the task
+  - TODO NOT WORKING YET `name` <[string]> Specify the name when you have multiple differen tasks. Use `context.task` when calling the `queue` function to specify which task should execute the URL.
+  - TODO NOT WORKING YET `timeout` <[number]> Optional parameter to specify a timeout for task executions. Overrides the cluster options.
 - returns: <[Promise]>
 
 Specifies a task for the cluster. A task is called for each job you queue via [Cluster.queue]. You can specify multiple tasks by naming them via `options.name`. Check out the example TODO for more information about multiple tasks.
 
 #### Cluster.queue(url[, options])
 - `url` <[string]|[Object]> URL to be called or alternatively an object containing any information. The string or object will be provided to your task function(s). See example TODO for a more complex usage of this argument.
-- `options`<[Object]> Optional parameter which allows to specify details about the task and set data for custom task execution.
-    - `priority` <[number]> Optional argument specifying the priority of the URL.
-    - TODO REMOVE `retry` <[number]> Given if the URL is being retried due to erros executing it the first time. TODO remove?
-    - TODO REMOVE `delayUntil` <[number]> If provided, will delay the crawling of the URL until the timestamp is reached. Example usage: Date.now() + 1000 (at least wait 1 second before crawling). TODO remove?
-    - `task` <[string]> If you have multiple tasks defined, you can specify the name of the task, which should handle the URL.
+- TODO NOT WORKING YET `options`<[Object]> Optional parameter which allows to specify details about the task and set data for custom task execution.
+    - TODO NOT WORKING YET `priority` <[number]> Optional argument specifying the priority of the URL.
+    - TODO NOT WORKING YET `task` <[string]> If you have multiple tasks defined, you can specify the name of the task, which should handle the URL.
 - returns: void TODO
 
 Puts a URL (a job) into the queue. You can provide data specific to the job by using `options.data`. Check out the example TODO for more information related to that.

@@ -1,3 +1,6 @@
+// You need to download the Alexa 1M from http://s3.amazonaws.com/alexa-static/top-1m.csv.zip
+// and unzip it into the data directory
+
 const { Cluster } = require('../dist');
 
 const fs = require('fs');
@@ -5,20 +8,17 @@ const util = require('util');
 
 const readFile = util.promisify(fs.readFile);
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 (async () => {
     const cluster = await Cluster.launch({
-        monitor: true,
-        maxConcurrency: 2,
         concurrency: Cluster.CONCURRENCY_CONTEXT,
+        maxConcurrency: 2,
+        monitor: true,
     });
 
     await cluster.task(async (url, page) => {
         await page.goto(url);
-        // ...
+        const pageTitle = await page.evaluate(() => document.title);
+        console.log(`Page title of ${url} is ${pageTitle}`);
     });
 
     const csvFile = await readFile(__dirname + '/../data/top-1m.csv', 'utf8');
@@ -34,5 +34,4 @@ function sleep(ms) {
 
     await cluster.idle();
     await cluster.close();
-
 })();

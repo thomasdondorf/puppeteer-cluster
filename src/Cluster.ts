@@ -16,10 +16,10 @@ const debug = util.debugGenerator('Cluster');
 
 // TODO find out how we can combine options and optionsargument
 interface ClusterOptionsArgument {
+    concurrency?: number;
     maxConcurrency?: number;
     maxCPU?: number;
     maxMemory?: number;
-    concurrency?: number;
     puppeteerOptions?: LaunchOptions;
     monitor?: boolean;
     timeout?: number;
@@ -30,10 +30,10 @@ interface ClusterOptionsArgument {
 }
 
 interface ClusterOptions extends ClusterOptionsArgument {
+    concurrency: number;
     maxConcurrency: number;
     maxCPU: number;
     maxMemory: number;
-    concurrency: number;
     puppeteerOptions: LaunchOptions;
     monitor: boolean;
     timeout: number;
@@ -44,10 +44,10 @@ interface ClusterOptions extends ClusterOptionsArgument {
 }
 
 const DEFAULT_OPTIONS: ClusterOptions = {
+    concurrency: 2, // CONTEXT
     maxConcurrency: 1,
     maxCPU: 1,
     maxMemory: 1,
-    concurrency: 2, // PAGE
     puppeteerOptions: {
         // headless: false, // just for testing...
     },
