@@ -119,6 +119,11 @@ export default class Cluster {
                 MONITORING_INTERVAL,
             );
         }
+
+        this.jobQueue.on('delayed-job-inserted-empty-before', () => {
+            // queue goes from empty to at least one element
+            this.work();
+        });
     }
 
     private async init() {
@@ -177,8 +182,19 @@ export default class Cluster {
         // TODO handle different names for tasks
     }
 
+    private calledForWork: boolean = false;
+
+    // check for new work soon (wait if there will be put more data into the queue, first)
     private async work() {
-        // find empty instance
+        // make sure, there is only one setImmediate call waiting
+        if (!this.calledForWork) {
+            this.calledForWork = true;
+            setImmediate(() => this.doWork());
+        }
+    }
+
+    private async doWork() {
+        this.calledForWork = false;
 
         if (this.taskFunction === null) {
             throw new Error('No task defined!');
@@ -196,7 +212,7 @@ export default class Cluster {
         if (this.workersAvail.length === 0) {
             if (this.allowedToStartWorker()) {
                 await this.launchWorker();
-                setImmediate(() => this.work());
+                this.work();
             }
             return;
         }
@@ -205,12 +221,21 @@ export default class Cluster {
 
         if (job === undefined) {
             // skip, there are items in the queue but they are all delayed
-            setImmediate(() => this.work());
+            this.work();
             return;
         }
 
         const url = job.getUrl();
         const domain = job.getDomain();
+
+        if (this.options.skipDuplicateUrls
+            && url !== undefined && this.duplicateCheckUrls.has(url)) {
+            // already crawled, just ignore
+            debug('Skipping duplicate URL: ' + job.getUrl());
+            this.work();
+            return;
+        }
+
         if (this.options.sameDomainDelay !== 0 && domain !== undefined) {
             const lastDomainAccess = this.lastDomainAccesses.get(domain);
             if (lastDomainAccess !== undefined
@@ -221,17 +246,14 @@ export default class Cluster {
             }
         }
 
-        if (this.options.skipDuplicateUrls
-            && url !== undefined && this.duplicateCheckUrls.has(url)) {
-            // already crawled, just ignore
-            debug('Skipping duplicate URL: ' + job.getUrl());
-            setImmediate(() => this.work());
-            return;
-        }
-
         // worker is available, lets go
         const worker = <Worker>this.workersAvail.shift();
         this.workersBusy.push(worker);
+
+        if (this.workersAvail.length !== 0) {
+            // we can execute more work in parallel
+            this.work();
+        }
 
         const resultError: Error | null = await worker.handle(
             this.taskFunction,
@@ -267,7 +289,7 @@ export default class Cluster {
 
         this.workersAvail.push(worker);
 
-        setImmediate(() => this.work());
+        this.work();
     }
 
     private allowedToStartWorker(): boolean {

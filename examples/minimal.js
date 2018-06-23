@@ -12,7 +12,7 @@ function sleep(ms) {
         // skipDuplicateUrls: true,
         retryLimit: 1,
         retryDelay: 10000,
-        // monitor: true,
+        monitor: true,
     });
 
     await cluster.task(async (data, page, { worker }) => {
