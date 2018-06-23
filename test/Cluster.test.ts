@@ -202,10 +202,46 @@ describe('options', () => {
                 await cluster.waitForOne();
                 expect(counter).toBe(2);
 
-                await cluster.idle();
                 await cluster.close();
 
                 jest.useRealTimers();
+            });
+
+            test('sameDomainDelay', async () => {
+                jest.useRealTimers();
+
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    maxConcurrency: 1,
+                    sameDomainDelay: 50,
+                });
+
+                let counter = 0;
+
+                const INCREMENT_URL = 'http://example.com/we-are-never-visited-the-page';
+                // increments URL increments the counter
+                // other urls will not
+
+                cluster.task(async (url) => {
+                    if (url === INCREMENT_URL) {
+                        counter += 1;
+                    }
+                });
+
+                cluster.queue(INCREMENT_URL);
+                cluster.queue(INCREMENT_URL); // will be delayed due to sameDomainDelay
+                cluster.queue(TEST_URL);
+
+                await cluster.waitForOne();
+                expect(counter).toBe(1);
+
+                await cluster.waitForOne();
+                expect(counter).toBe(1);
+
+                await cluster.waitForOne();
+                expect(counter).toBe(2);
+
+                await cluster.close();
             });
         });
     });

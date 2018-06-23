@@ -49,7 +49,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     maxMemory: 1,
     concurrency: 2, // PAGE
     puppeteerOptions: {
-        headless: false, // just for testing...
+        // headless: false, // just for testing...
     },
     monitor: false,
     timeout: 30 * 1000,
@@ -239,14 +239,16 @@ export default class Cluster {
         if (this.options.sameDomainDelay !== 0 && domain !== undefined) {
             const lastDomainAccess = this.lastDomainAccesses.get(domain);
             if (lastDomainAccess !== undefined
-                && lastDomainAccess + this.options.sameDomainDelay < Date.now()) {
+                && lastDomainAccess + this.options.sameDomainDelay > Date.now()) {
                 this.jobQueue.push(job, {
                     delayUntil: lastDomainAccess + this.options.sameDomainDelay,
                 });
+                this.work();
+                return;
             }
         }
 
-        // worker is available, lets go
+        // Check are all positive, let's actually run the job
         const worker = <Worker>this.workersAvail.shift();
         this.workersBusy.push(worker);
 
@@ -273,7 +275,7 @@ export default class Cluster {
             job.addError(resultError);
             if (job.tries <= this.options.retryLimit) {
                 let delayUntil = undefined;
-                if (this.options.retryDelay) {
+                if (this.options.retryDelay !== 0) {
                     delayUntil = Date.now() + this.options.retryDelay;
                 }
                 this.jobQueue.push(job, {

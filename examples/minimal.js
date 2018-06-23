@@ -6,17 +6,13 @@ function sleep(ms) {
 
 (async () => {
     const cluster = await Cluster.launch({
-        maxConcurrency: 2,
-        concurrency: Cluster.CONCURRENCY_CONTEXT,
+        maxConcurrency: 1,
         timeout: 10000,
-        // skipDuplicateUrls: true,
-        retryLimit: 1,
-        retryDelay: 10000,
-        monitor: true,
+        sameDomainDelay: 10000,
+        //monitor: true,
     });
 
-    await cluster.task(async (data, page, { worker }) => {
-        let url = data.url;
+    await cluster.task(async (url, page, { worker }) => {
         console.log('going to: ' + url);
         await page.goto(url);
 
@@ -26,10 +22,11 @@ function sleep(ms) {
         console.log('       DONE ' + url);
     });
 
-    cluster.queue({ url: 'http://www.google.com' });
-    cluster.queue({ url: 'https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md?1' });
-    cluster.queue({ url: 'https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md?2222'});
-    //cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md?333');
+    cluster.queue('http://www.google.com');
+    cluster.queue('http://www.google.com');
+    cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md?1');
+    cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md?222');
+    // cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md?333');
 
     await cluster.idle();
     await cluster.close();
