@@ -107,7 +107,7 @@ const Cluster = require('puppeteer-cluster');
   - `retryLimit` <[number]> How often do you want to retry a job before marking it as failed. Defaults to `0`.
   - `retryDelay` <[number]> How much time should pass at minimum between the job execution and its retry. Defaults to `0`.
   - `sameDomainDelay` <[number]> How much time should pass at minimum between two requests to the same domain.
-  - `skipDuplicateUrls` <[boolean]> If set to `true`, will skip URLs which were already crawled by the cluster. Defaults to `false`.
+  - `skipDuplicateUrls` <[boolean]> If set to `true`, will skip URLs which were already crawled by the cluster. Defaults to `false`. TODO Currently it is still possible that two of the same URLs are processed when they are processed in parallel (will be fixed in the future)
   - `timeout` <[number]> Specify a timeout for all tasks. Can be overridden by [Cluster.task] and [Cluster.queue] options. Defaults to `30000` (30 seconds).
   - `monitor` <[boolean]> If set to `true`, will provide a small command line output to provide information about the crawling process. See TODO screenshot. Defaults to `false`.
 - returns: <[Promise]<[Cluster]>>

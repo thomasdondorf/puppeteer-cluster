@@ -14,7 +14,22 @@ import Queue from './Queue';
 
 const debug = util.debugGenerator('Cluster');
 
-interface ClusterOptions {
+// TODO find out how we can combine options and optionsargument
+interface ClusterOptionsArgument {
+    maxConcurrency?: number;
+    maxCPU?: number;
+    maxMemory?: number;
+    concurrency?: number;
+    puppeteerOptions?: LaunchOptions;
+    monitor?: boolean;
+    timeout?: number;
+    retryLimit?: number;
+    retryDelay?: number;
+    skipDuplicateUrls?: boolean;
+    sameDomainDelay?: number;
+}
+
+interface ClusterOptions extends ClusterOptionsArgument {
     maxConcurrency: number;
     maxCPU: number;
     maxMemory: number;
@@ -29,7 +44,7 @@ interface ClusterOptions {
 }
 
 const DEFAULT_OPTIONS: ClusterOptions = {
-    maxConcurrency: 4,
+    maxConcurrency: 1,
     maxCPU: 1,
     maxMemory: 1,
     concurrency: 2, // PAGE
@@ -83,7 +98,7 @@ export default class Cluster {
     private duplicateCheckUrls: Set<string> = new Set();
     private lastDomainAccesses: Map<string, number> = new Map();
 
-    public static async launch(options: ClusterOptions) {
+    public static async launch(options: ClusterOptionsArgument) {
         debug('Launching');
         const cluster = new Cluster(options);
         await cluster.init();
@@ -91,7 +106,7 @@ export default class Cluster {
         return cluster;
     }
 
-    private constructor(options: ClusterOptions) {
+    private constructor(options: ClusterOptionsArgument) {
         this.options = {
             ...DEFAULT_OPTIONS,
             ...options,
@@ -194,7 +209,7 @@ export default class Cluster {
         }
 
         const url = job.getUrl();
-        const domain = job.getDomain(); // TODO
+        const domain = job.getDomain();
         if (this.options.sameDomainDelay !== 0 && domain !== undefined) {
             const lastDomainAccess = this.lastDomainAccesses.get(domain);
             if (lastDomainAccess !== undefined
@@ -259,7 +274,7 @@ export default class Cluster {
     }
 
     // TODO implement all queue options
-    public async queue(url: string | JobData, options: QueueOptions) {
+    public async queue(url: string | JobData, options: QueueOptions = {}) {
         this.allTargetCount += 1;
         this.jobQueue.push(new Job(url));
         this.work();
