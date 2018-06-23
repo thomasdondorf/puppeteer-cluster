@@ -3,7 +3,7 @@ import * as http from 'http';
 
 let testServer;
 
-const TEST_URL = 'http://127.0.0.1:3001/'
+const TEST_URL = 'http://127.0.0.1:3001/';
 
 beforeAll(async () => {
     // test server
@@ -149,37 +149,47 @@ describe('options', () => {
         await cluster.close();
     });
 
-    // TODO WIP
-    /*test('retryDelay', async () => {
+    test('retryDelay', async () => {
         jest.useFakeTimers();
 
         const cluster = await Cluster.launch({
             maxConcurrency: 1,
-            retryLimit: 3,
+            retryLimit: 1,
             retryDelay: 100000,
         });
 
         let counter = 0;
 
+        const INCREMENT_URL = 'http://example.com/we-are-never-visited-the-page';
+        // increments URL increments the counter
+        // other urls will not
+
         cluster.task(async (url) => {
-            counter += 1;
-            throw new Error('testing retryDelay');
+            if (url === INCREMENT_URL) {
+                counter += 1;
+                throw new Error('testing retryDelay');
+            }
         });
 
-        cluster.queue(TEST_URL);
+        cluster.queue(INCREMENT_URL);
 
         await cluster.waitForOne();
         expect(counter).toBe(1);
 
-        jest.advanceTimersByTime(1000);
+        // task should run after that time...
+        jest.advanceTimersByTime(10000);
+        cluster.queue(TEST_URL);
+        // TEST_URL should be executed as INCREMENT_URL is still being waited on
+        await cluster.waitForOne();
         expect(counter).toBe(1);
 
-        jest.runAllTimers();
+        jest.advanceTimersByTime(100000);
+        await cluster.waitForOne();
         expect(counter).toBe(2);
 
         await cluster.idle();
         await cluster.close();
 
         jest.useRealTimers();
-    });*/
+    });
 });
