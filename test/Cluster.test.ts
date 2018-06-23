@@ -1,6 +1,24 @@
 import Cluster from '../src/Cluster';
 import * as http from 'http';
 
+let testServer;
+
+const TEST_URL = 'http://127.0.0.1:3001/'
+
+beforeAll(async () => {
+    // test server
+    await new Promise((resolve) => {
+        testServer = http.createServer((req, res) => {
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.end('<html><body>puppeteer-cluster TEST</body></html>');
+        }).listen(3001, '127.0.0.1', resolve);
+    });
+});
+
+afterAll(() => {
+    testServer.close();
+});
+
 async function cookieTest(concurrencyType) {
     const cluster = await Cluster.launch({
         maxConcurrency: 1,
@@ -22,36 +40,19 @@ async function cookieTest(concurrencyType) {
         await page.setCookie({
             name: 'puppeteer-cluster-testcookie',
             value: randomValue,
-            url: 'http://127.0.0.1:3001',
+            url: TEST_URL,
         });
     });
 
     // one job sets the cookie, the other page reads the cookie
-    cluster.queue('http://127.0.0.1:3001/');
-    cluster.queue('http://127.0.0.1:3001/');
+    cluster.queue(TEST_URL);
+    cluster.queue(TEST_URL);
 
     await cluster.idle();
     await cluster.close();
 }
 
 describe('options', () => {
-
-    let testServer;
-
-    beforeAll(async () => {
-        // test server
-        await new Promise((resolve) => {
-            testServer = http.createServer((req, res) => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'text/html');
-                res.end('<html><body>puppeteer-cluster TEST</body></html>');
-            }).listen(3001, '127.0.0.1', resolve);
-        });
-    });
-
-    afterAll(() => {
-        testServer.close();
-    });
 
     test('cookie sharing in Cluster.CONCURRENCY_PAGE', async () => {
         expect.assertions(1);
@@ -71,19 +72,17 @@ describe('options', () => {
     test('skipDuplicateUrls', async () => {
         expect.assertions(1);
 
-        const sameUrl = 'http://127.0.0.1:3001/';
-
         const cluster = await Cluster.launch({
             maxConcurrency: 1,
             skipDuplicateUrls: true,
         });
 
         cluster.task(async (url) => {
-            expect(url).toBe(sameUrl);
+            expect(url).toBe(TEST_URL);
         });
 
-        cluster.queue(sameUrl);
-        cluster.queue(sameUrl);
+        cluster.queue(TEST_URL);
+        cluster.queue(TEST_URL);
 
         await cluster.idle();
         await cluster.close();
@@ -109,5 +108,78 @@ describe('options', () => {
 
         await cluster.idle();
         await cluster.close();
+    });*/
+
+    test('retryLimit', async () => {
+        expect.assertions(4); // 3 retries -> 4 times called
+
+        const cluster = await Cluster.launch({
+            maxConcurrency: 1,
+            retryLimit: 3,
+        });
+
+        cluster.task(async (url) => {
+            expect(true).toBe(true);
+            throw new Error('testing retryLimit');
+        });
+
+        cluster.queue(TEST_URL);
+
+        await cluster.idle();
+        await cluster.close();
+    });
+
+    test('waitForOne', async () => {
+        const cluster = await Cluster.launch({});
+        let counter = 0;
+
+        cluster.task(async (url) => {
+            counter += 1;
+        });
+        cluster.queue(TEST_URL);
+        cluster.queue(TEST_URL);
+
+        expect(counter).toBe(0);
+        await cluster.waitForOne();
+        expect(counter).toBe(1);
+        await cluster.waitForOne();
+        expect(counter).toBe(2);
+
+        await cluster.idle();
+        await cluster.close();
+    });
+
+    // TODO WIP
+    /*test('retryDelay', async () => {
+        jest.useFakeTimers();
+
+        const cluster = await Cluster.launch({
+            maxConcurrency: 1,
+            retryLimit: 3,
+            retryDelay: 100000,
+        });
+
+        let counter = 0;
+
+        cluster.task(async (url) => {
+            counter += 1;
+            throw new Error('testing retryDelay');
+        });
+
+        cluster.queue(TEST_URL);
+
+        await cluster.waitForOne();
+        expect(counter).toBe(1);
+
+        jest.advanceTimersByTime(1000);
+        expect(counter).toBe(1);
+
+        jest.runAllTimers();
+        expect(counter).toBe(2);
+
+        await cluster.idle();
+        await cluster.close();
+
+        jest.useRealTimers();
     });*/
 });
