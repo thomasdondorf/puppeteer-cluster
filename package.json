@@ -5,6 +5,7 @@
   "main": "lib/main.js",
   "scripts": {
     "test": "./node_modules/.bin/jest",
+    "coverage": "./node_modules/.bin/jest --coverage",
     "dev": "./node_modules/.bin/tsc --watch",
     "lint": "./node_modules/.bin/tslint -c tslint.json --project tsconfig.json 'src/**/*.ts'"
   },
@@ -25,6 +26,13 @@
     "typescript": "^2.9.2"
   },
   "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{ts}"
+    ],
+    "coverageReporters": [
+      "text",
+      "text-summary"
+    ],
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },

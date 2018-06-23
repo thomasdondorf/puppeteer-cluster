@@ -69,127 +69,144 @@ describe('options', () => {
         await cookieTest(Cluster.CONCURRENCY_BROWSER);
     });
 
-    test('skipDuplicateUrls', async () => {
-        expect.assertions(1);
+    // repeat remaining tests for all concurrency options
 
-        const cluster = await Cluster.launch({
-            maxConcurrency: 1,
-            skipDuplicateUrls: true,
+    [
+        Cluster.CONCURRENCY_PAGE,
+        Cluster.CONCURRENCY_CONTEXT,
+        Cluster.CONCURRENCY_BROWSER,
+    ].forEach((concurrency) => {
+        describe('concurrency: ' + concurrency, () => {
+
+            test('skipDuplicateUrls', async () => {
+                expect.assertions(1);
+
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    maxConcurrency: 1,
+                    skipDuplicateUrls: true,
+                });
+
+                cluster.task(async (url) => {
+                    expect(url).toBe(TEST_URL);
+                });
+
+                cluster.queue(TEST_URL);
+                cluster.queue(TEST_URL);
+
+                await cluster.idle();
+                await cluster.close();
+            });
+
+            // TODO currently fails as they are processed in parallel
+            /*test('skipDuplicateUrls (parallel)', async () => {
+                expect.assertions(1);
+
+                const sameUrl = 'http://www.google.com/';
+
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    maxConcurrency: 2, // REASONE FOR FAILING!!
+                    skipDuplicateUrls: true,
+                });
+
+                cluster.task(async (url) => {
+                    expect(url).toBe(sameUrl);
+                });
+
+                cluster.queue(sameUrl);
+                cluster.queue(sameUrl);
+
+                await cluster.idle();
+                await cluster.close();
+            });*/
+
+            test('retryLimit', async () => {
+                expect.assertions(4); // 3 retries -> 4 times called
+
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    maxConcurrency: 1,
+                    retryLimit: 3,
+                });
+
+                cluster.task(async (url) => {
+                    expect(true).toBe(true);
+                    throw new Error('testing retryLimit');
+                });
+
+                cluster.queue(TEST_URL);
+
+                await cluster.idle();
+                await cluster.close();
+            });
+
+            test('waitForOne', async () => {
+                const cluster = await Cluster.launch({
+                    concurrency,
+                });
+                let counter = 0;
+
+                cluster.task(async (url) => {
+                    counter += 1;
+                });
+                cluster.queue(TEST_URL);
+                cluster.queue(TEST_URL);
+
+                expect(counter).toBe(0);
+                await cluster.waitForOne();
+                expect(counter).toBe(1);
+                await cluster.waitForOne();
+                expect(counter).toBe(2);
+
+                await cluster.idle();
+                await cluster.close();
+            });
+
+            test('retryDelay', async () => {
+                jest.useFakeTimers();
+
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    maxConcurrency: 1,
+                    retryLimit: 1,
+                    retryDelay: 100000,
+                });
+
+                let counter = 0;
+
+                const INCREMENT_URL = 'http://example.com/we-are-never-visited-the-page';
+                // increments URL increments the counter
+                // other urls will not
+
+                cluster.task(async (url) => {
+                    if (url === INCREMENT_URL) {
+                        counter += 1;
+                        throw new Error('testing retryDelay');
+                    }
+                });
+
+                cluster.queue(INCREMENT_URL);
+
+                await cluster.waitForOne();
+                expect(counter).toBe(1);
+
+                // task should run after that time...
+                jest.advanceTimersByTime(10000);
+                cluster.queue(TEST_URL);
+                // TEST_URL should be executed as INCREMENT_URL is still being waited on
+                await cluster.waitForOne();
+                expect(counter).toBe(1);
+
+                jest.advanceTimersByTime(100000);
+                await cluster.waitForOne();
+                expect(counter).toBe(2);
+
+                await cluster.idle();
+                await cluster.close();
+
+                jest.useRealTimers();
+            });
         });
-
-        cluster.task(async (url) => {
-            expect(url).toBe(TEST_URL);
-        });
-
-        cluster.queue(TEST_URL);
-        cluster.queue(TEST_URL);
-
-        await cluster.idle();
-        await cluster.close();
-    });
-
-    // TODO currently fails as they are processed in parallel
-    /*test('skipDuplicateUrls (parallel)', async () => {
-        expect.assertions(1);
-
-        const sameUrl = 'http://www.google.com/';
-
-        const cluster = await Cluster.launch({
-            maxConcurrency: 2, // REASONE FOR FAILING!!
-            skipDuplicateUrls: true,
-        });
-
-        cluster.task(async (url) => {
-            expect(url).toBe(sameUrl);
-        });
-
-        cluster.queue(sameUrl);
-        cluster.queue(sameUrl);
-
-        await cluster.idle();
-        await cluster.close();
-    });*/
-
-    test('retryLimit', async () => {
-        expect.assertions(4); // 3 retries -> 4 times called
-
-        const cluster = await Cluster.launch({
-            maxConcurrency: 1,
-            retryLimit: 3,
-        });
-
-        cluster.task(async (url) => {
-            expect(true).toBe(true);
-            throw new Error('testing retryLimit');
-        });
-
-        cluster.queue(TEST_URL);
-
-        await cluster.idle();
-        await cluster.close();
-    });
-
-    test('waitForOne', async () => {
-        const cluster = await Cluster.launch({});
-        let counter = 0;
-
-        cluster.task(async (url) => {
-            counter += 1;
-        });
-        cluster.queue(TEST_URL);
-        cluster.queue(TEST_URL);
-
-        expect(counter).toBe(0);
-        await cluster.waitForOne();
-        expect(counter).toBe(1);
-        await cluster.waitForOne();
-        expect(counter).toBe(2);
-
-        await cluster.idle();
-        await cluster.close();
-    });
-
-    test('retryDelay', async () => {
-        jest.useFakeTimers();
-
-        const cluster = await Cluster.launch({
-            maxConcurrency: 1,
-            retryLimit: 1,
-            retryDelay: 100000,
-        });
-
-        let counter = 0;
-
-        const INCREMENT_URL = 'http://example.com/we-are-never-visited-the-page';
-        // increments URL increments the counter
-        // other urls will not
-
-        cluster.task(async (url) => {
-            if (url === INCREMENT_URL) {
-                counter += 1;
-                throw new Error('testing retryDelay');
-            }
-        });
-
-        cluster.queue(INCREMENT_URL);
-
-        await cluster.waitForOne();
-        expect(counter).toBe(1);
-
-        // task should run after that time...
-        jest.advanceTimersByTime(10000);
-        cluster.queue(TEST_URL);
-        // TEST_URL should be executed as INCREMENT_URL is still being waited on
-        await cluster.waitForOne();
-        expect(counter).toBe(1);
-
-        jest.advanceTimersByTime(100000);
-        await cluster.waitForOne();
-        expect(counter).toBe(2);
-
-        await cluster.idle();
-        await cluster.close();
-
-        jest.useRealTimers();
     });
 });
