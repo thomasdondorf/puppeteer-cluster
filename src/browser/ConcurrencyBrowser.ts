@@ -24,7 +24,6 @@ export default class ConcurrencyBrowser extends AbstractBrowser {
                     page,
 
                     close: async () => {
-                        await page.close();
                         await context.close();
                     },
                 };

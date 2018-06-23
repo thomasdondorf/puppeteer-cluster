@@ -67,7 +67,6 @@ export default class ConcurrencyPage extends AbstractBrowser {
 
                     close: async () => {
                         this.openInstances -= 1; // decrement first in case of error
-                        await page.close();
                         await context.close();
 
                         if (this.repairRequested) {
