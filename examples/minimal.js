@@ -1,4 +1,4 @@
-const { Cluster } = require('../build');
+const { Cluster } = require('../dist');
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

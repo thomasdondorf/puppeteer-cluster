@@ -1,4 +1,4 @@
-const { Cluster } = require('../build');
+const { Cluster } = require('../dist');
 
 const fs = require('fs');
 const util = require('util');

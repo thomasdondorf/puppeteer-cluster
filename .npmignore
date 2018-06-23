@@ -3,4 +3,6 @@ data/
 .idea/
 .vscode/
 
-dist/
+src/
+test/
+examples/

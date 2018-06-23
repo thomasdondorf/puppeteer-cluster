@@ -1,21 +1,32 @@
 {
   "name": "puppeteer-cluster",
   "version": "0.2.0",
-  "description": "Cluster for puppeteer",
-  "main": "lib/main.js",
+  "description": "Cluster management for puppeteer",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "./node_modules/.bin/jest",
     "coverage": "./node_modules/.bin/jest --coverage",
     "dev": "./node_modules/.bin/tsc --watch",
     "lint": "./node_modules/.bin/tslint -c tslint.json --project tsconfig.json 'src/**/*.ts'"
   },
-  "author": "",
+  "author": "Thomas Dondorf",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thomasdondorf/puppeteer-cluster.git"
+  },
+  "homepage": "https://github.com/thomasdondorf/puppeteer-cluster",
+  "keywords": [
+    "puppeteer",
+    "cluster",
+    "pool"
+  ],
   "dependencies": {
     "debug": "^3.1.0",
+    "@types/debug": "0.0.30",
     "puppeteer": "^1.5.0"
   },
   "devDependencies": {
-    "@types/debug": "0.0.30",
     "@types/jest": "^23.1.1",
     "@types/node": "^10.3.3",
     "@types/puppeteer": "^1.3.4",

@@ -7,7 +7,7 @@
         "types": ["node"],
 
         "rootDir": "./src",
-        "outDir": "./build",
+        "outDir": "./dist",
 
         "strict": true,
         "inlineSourceMap": true,

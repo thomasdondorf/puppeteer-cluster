@@ -1,4 +1,2 @@
-/* tslint:disable */
-import ClusterImport from './Cluster';
 
-export let Cluster = ClusterImport;
+export { default as Cluster } from './Cluster';
