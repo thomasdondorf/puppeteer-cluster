@@ -1,4 +1,6 @@
 
+import { URL } from 'url';
+
 // needs an URL, but can have any other information in it
 export interface JobData {
     url: string;
@@ -22,6 +24,16 @@ export default class Job {
         }
         if ((typeof (this.url as JobData).url === 'string')) {
             return this.url.url;
+        }
+        return undefined;
+    }
+
+    public getDomain(): string | undefined {
+        // TODO use tld.js to restrict to top-level domain?
+        const urlStr = this.getUrl();
+        if (urlStr) {
+            const url = new URL(urlStr);
+            return url.hostname || undefined;
         }
         return undefined;
     }

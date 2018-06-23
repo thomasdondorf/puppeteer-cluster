@@ -25,6 +25,7 @@ interface ClusterOptions {
     retryLimit: number;
     retryDelay: number;
     skipDuplicateUrls: boolean;
+    sameDomainDelay: number;
 }
 
 const DEFAULT_OPTIONS: ClusterOptions = {
@@ -40,11 +41,12 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     retryLimit: 0,
     retryDelay: 0,
     skipDuplicateUrls: false,
+    sameDomainDelay: 0,
 };
 
 export interface QueueOptions {
-    priority: number;
-    task: string;
+    priority?: number;
+    task?: string;
 }
 
 export type TaskFunction =
@@ -79,6 +81,7 @@ export default class Cluster {
     private display: Display | null = null;
 
     private duplicateCheckUrls: Set<string> = new Set();
+    private lastDomainAccesses: Map<string, number> = new Map();
 
     public static async launch(options: ClusterOptions) {
         debug('Launching');
@@ -165,71 +168,89 @@ export default class Cluster {
             throw new Error('No task defined!');
         }
 
+        // no jobs available
         if (this.jobQueue.size() === 0) {
             if (this.workersBusy.length === 0) {
                 this.idleResolvers.forEach(resolve => resolve());
             }
-        } else {
-            if (this.workersAvail.length !== 0) {
-                const job = this.jobQueue.shift();
+            return;
+        }
 
-                // TODO clean up this if, else if mess
-                if (job === undefined) {
-                    // skip, there are items but they are all delayed
-                } else if (
-                    this.options.skipDuplicateUrls
-                    && this.duplicateCheckUrls.has(job.getUrl() as string)
-                ) {
-                    // already crawled, just ignore
-                    debug('Skipping duplicate URL: ' + job.url);
-                } else {
-                    // worker is available, lets go
-                    const worker = <Worker>this.workersAvail.shift();
-                    this.workersBusy.push(worker);
-
-                    const resultError: Error | null = await worker.handle(
-                        this.taskFunction,
-                        job,
-                        this.options.timeout,
-                    );
-
-                    if (resultError !== null) {
-                        // error during execution
-                        job.addError(resultError);
-                        if (job.tries <= this.options.retryLimit) {
-                            let delayUntil = undefined;
-                            if (this.options.retryDelay) {
-                                delayUntil = Date.now() + this.options.retryDelay;
-                            }
-                            this.jobQueue.push(job, {
-                                delayUntil,
-                            });
-                        }
-                    } else if (this.options.skipDuplicateUrls) {
-                        const url = job.getUrl();
-                        if (url) {
-                            this.duplicateCheckUrls.add(url);
-                        } else {
-                            // this can only happen if the user made a mistake
-                            // but we give him a pass...
-                        }
-                    }
-
-                    // add worker to available workers again
-                    const workerIndex = this.workersBusy.indexOf(worker);
-                    this.workersBusy.splice(workerIndex, 1);
-
-                    this.workersAvail.push(worker);
-                }
-
-                setImmediate(() => this.work());
-            } else if (this.allowedToStartWorker()) {
+        // no workers available
+        if (this.workersAvail.length === 0) {
+            if (this.allowedToStartWorker()) {
                 await this.launchWorker();
-                await this.work(); // call again to process queue
-            } else {
-                // currently no workers available!
+                setImmediate(() => this.work());
+            }
+            return;
+        }
+
+        const job = this.jobQueue.shift();
+
+        if (job === undefined) {
+            // skip, there are items in the queue but they are all delayed
+            setImmediate(() => this.work());
+            return;
+        }
+
+        const url = job.getUrl();
+        const domain = job.getDomain(); // TODO
+        if (this.options.sameDomainDelay !== 0 && domain !== undefined) {
+            const lastDomainAccess = this.lastDomainAccesses.get(domain);
+            if (lastDomainAccess !== undefined
+                && lastDomainAccess + this.options.sameDomainDelay < Date.now()) {
+                this.jobQueue.push(job, {
+                    delayUntil: lastDomainAccess + this.options.sameDomainDelay,
+                });
             }
         }
+
+        if (this.options.skipDuplicateUrls
+            && url !== undefined && this.duplicateCheckUrls.has(url)) {
+            // already crawled, just ignore
+            debug('Skipping duplicate URL: ' + job.getUrl());
+            setImmediate(() => this.work());
+            return;
+        }
+
+        // worker is available, lets go
+        const worker = <Worker>this.workersAvail.shift();
+        this.workersBusy.push(worker);
+
+        const resultError: Error | null = await worker.handle(
+            this.taskFunction,
+            job,
+            this.options.timeout,
+        );
+
+        if (resultError === null) {
+            if (this.options.skipDuplicateUrls && url !== undefined) {
+                this.duplicateCheckUrls.add(url);
+            }
+            if (this.options.sameDomainDelay !== 0 && domain !== undefined) {
+                this.lastDomainAccesses.set(domain, Date.now());
+            }
+        } else { // error during execution
+            // error during execution
+            job.addError(resultError);
+            if (job.tries <= this.options.retryLimit) {
+                let delayUntil = undefined;
+                if (this.options.retryDelay) {
+                    delayUntil = Date.now() + this.options.retryDelay;
+                }
+                this.jobQueue.push(job, {
+                    delayUntil,
+                });
+            }
+        }
+
+        // add worker to available workers again
+        const workerIndex = this.workersBusy.indexOf(worker);
+        this.workersBusy.splice(workerIndex, 1);
+
+        this.workersAvail.push(worker);
+
+        setImmediate(() => this.work());
     }
 
     private allowedToStartWorker(): boolean {
