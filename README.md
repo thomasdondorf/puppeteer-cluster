@@ -47,6 +47,7 @@ Describe pages, context, browsers TODO
 * priority for jobs
 * Continue a previously started cluster process
 * Run multiple tasks per job
+* Check what happens if puppeteer is unable to run (not corretly installed, etc.)
 
 ## Features
 Use this library, if you need a relibable crawler based on puppeteer. This library takes care of:
@@ -87,6 +88,14 @@ const { Cluster } = require('puppeteer-cluster');
   await cluster.close();
 })();
 ```
+
+#### event: 'error'
+- <[Error]>
+- <[string]|[Object]>
+
+Emitted when the task ends in an error for some reason. Reasons might be a network error, your code throwing an error, timeout hit, etc. The first argument will the error itself. The second argument is the URL or data of the job (as given to [Cluster.queue]). If retryLimit is set to a value greater than `0`, the cluster will automatically requeue the job and retry it again later.
+
+TODO example
 
 #### Cluster.launch(options)
 - `options` <[Object]> Set of configurable options for the cluster. Can have the following fields:

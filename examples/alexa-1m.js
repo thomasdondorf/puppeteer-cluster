@@ -21,6 +21,10 @@ const readFile = util.promisify(fs.readFile);
         console.log(`Page title of ${url} is ${pageTitle}`);
     });
 
+    cluster.on('error', (err, url) => {
+        console.log(`  Error crawling ${url}: ${err.message}`);
+    });
+
     const csvFile = await readFile(__dirname + '/../data/top-1m.csv', 'utf8');
     const lines = csvFile.split('\n');
     for (let i = 0; i < lines.length; i++) {

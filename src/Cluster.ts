@@ -12,6 +12,7 @@ import { LaunchOptions, Page } from 'puppeteer';
 import AbstractBrowser from './browser/AbstractBrowser';
 import Queue from './Queue';
 import SystemMonitor from './SystemMonitor';
+import { EventEmitter } from 'events';
 
 const debug = util.debugGenerator('Cluster');
 
@@ -74,7 +75,7 @@ export type TaskFunction =
 const MONITORING_DISPLAY_INTERVAL = 500;
 const CHECK_FOR_WORK_INTERVAL = 100;
 
-export default class Cluster {
+export default class Cluster extends EventEmitter {
 
     static CONCURRENCY_PAGE = 1; // shares cookies, etc.
     static CONCURRENCY_CONTEXT = 2; // no cookie sharing (uses contexts)
@@ -118,6 +119,8 @@ export default class Cluster {
     }
 
     private constructor(options: ClusterOptionsArgument) {
+        super();
+
         this.options = {
             ...DEFAULT_OPTIONS,
             ...options,
@@ -291,6 +294,8 @@ export default class Cluster {
         } else { // error during execution
             // error during execution
             job.addError(resultError);
+            this.emit('error', resultError, job.url);
+
             if (job.tries <= this.options.retryLimit) {
                 let delayUntil = undefined;
                 if (this.options.retryDelay !== 0) {
