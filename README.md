@@ -37,22 +37,15 @@ Describe pages, context, browsers TODO
 ### Examples
 * Minimal example
 * Crawling the Alexa Top 1 Million
-* Using options.data.device when crawling
-* Multiple tasks, each URL is run by one task (example: crawl google results and extract page title from pages)
-* Multiple tasks, each URL is run by multiple tasks (example: multiple tests, that need to be executed)
-* Cancel after some depth of crawling a page, crawl each page only once
-
-## DONE (TODO remove)
-* skipDuplicateUrls -> true|false
+* TODO Using options.data.device when crawling
+* TODO Multiple tasks, each URL is run by one task (example: crawl google results and extract page title from pages)
+* TODO Multiple tasks, each URL is run by multiple tasks (example: multiple tests, that need to be executed)
+* TODO Cancel after some depth of crawling a page, crawl each page only once
 
 ## TODO
-
 * priority for jobs
 * Continue a previously started cluster process
-* add debugging options
 * Run multiple tasks per job
-
-* Make a peerDependency
 
 ## Features
 Use this library, if you need a relibable crawler based on puppeteer. This library takes care of:
@@ -82,7 +75,7 @@ const Cluster = require('puppeteer-cluster');
   const cluster = await Cluster.launch();
   cluster.task(async (url, page) => {
     await page.goto(url);
-    // TODO
+    // ...
   });
 
   cluster.queue('http://www.google.com/');
@@ -98,8 +91,8 @@ const Cluster = require('puppeteer-cluster');
 - `options` <[Object]> Set of configurable options for the cluster. Can have the following fields:
   - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*> The choosen concurrency model. See [Concurreny models](#concurreny-models) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`.
   - `maxConcurrency` <[number]> Maximal number of parallel workers. Set to `0` to deactivate (in case you want to rely only on maxCPU and/or maxMemory). Defaults to `1`.
-  - TODO NOT WORKING YET `maxCPU` <[number]> Maximal usage of CPU (`1` means 100% workload) to allow spawning of more workers. Set to `0` to deactivate. Defaults to `0`.
-  - TODO NOT WORKING YET `maxMemory` <[number]> Maximal usage of memory (`1` means use all availabe memory) to allow spawning of more workers. Set to `0` to deactivate. Defaults to `0`.
+  - TODO NOT WORKING YET `maxCPU` <[number]> Maximal usage of CPU in percentage (`100` means 100% workload) to allow spawning of more workers. Set to `0` to deactivate. Defaults to `0`.
+  - TODO NOT WORKING YET `maxMemory` <[number]> Maximal usage of memory in percentage (`100` means use all availabe memory) to allow spawning of more workers. Set to `0` to deactivate. Defaults to `0`.
   - `puppeteerOptions` <[Object]> Object passed to [puppeteer.launch]. See puppeteer documentation for more information. Defaults to `{}`.
   - `retryLimit` <[number]> How often do you want to retry a job before marking it as failed. Defaults to `0`.
   - `retryDelay` <[number]> How much time should pass at minimum between the job execution and its retry. Defaults to `0`.
