@@ -163,9 +163,44 @@ describe('options', () => {
                 await cluster.close();
             });
 
-            test('retryDelay', async () => {
-                jest.useFakeTimers();
+            test('retryDelay = 0', async () => {
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    maxConcurrency: 1,
+                    retryLimit: 1,
+                    retryDelay: 0,
+                });
 
+                const ERROR_URL = 'http://example.com/we-are-never-visited-the-page';
+
+                cluster.task(async (url) => {
+                    if (url === ERROR_URL) {
+                        throw new Error('testing retryDelay');
+                    }
+                });
+
+                jest.useFakeTimers();
+                cluster.queue(ERROR_URL);
+
+                const url1 = await cluster.waitForOne();
+                expect(url1).toBe(ERROR_URL);
+
+                jest.advanceTimersByTime(10000);
+                cluster.queue(TEST_URL);
+
+                const url2 = await cluster.waitForOne();
+                expect(url2).toBe(ERROR_URL);
+
+                jest.advanceTimersByTime(100000);
+                const url3 = await cluster.waitForOne();
+                expect(url3).toBe(TEST_URL);
+
+                await cluster.close();
+
+                jest.useRealTimers();
+            });
+
+            test('retryDelay > 0', async () => {
                 const cluster = await Cluster.launch({
                     concurrency,
                     maxConcurrency: 1,
@@ -173,34 +208,30 @@ describe('options', () => {
                     retryDelay: 100000,
                 });
 
-                let counter = 0;
-
-                const INCREMENT_URL = 'http://example.com/we-are-never-visited-the-page';
-                // increments URL increments the counter
-                // other urls will not
+                const ERROR_URL = 'http://example.com/we-are-never-visited-the-page';
 
                 cluster.task(async (url) => {
-                    if (url === INCREMENT_URL) {
-                        counter += 1;
+                    if (url === ERROR_URL) {
                         throw new Error('testing retryDelay');
                     }
                 });
 
-                cluster.queue(INCREMENT_URL);
+                jest.useFakeTimers();
+                cluster.queue(ERROR_URL);
 
-                await cluster.waitForOne();
-                expect(counter).toBe(1);
+                const url1 = await cluster.waitForOne();
+                expect(url1).toBe(ERROR_URL);
 
-                // task should run after that time...
+                // forward, but no jobs sould be executed
                 jest.advanceTimersByTime(10000);
                 cluster.queue(TEST_URL);
-                // TEST_URL should be executed as INCREMENT_URL is still being waited on
-                await cluster.waitForOne();
-                expect(counter).toBe(1);
+
+                const url2 = await cluster.waitForOne();
+                expect(url2).toBe(TEST_URL);
 
                 jest.advanceTimersByTime(100000);
-                await cluster.waitForOne();
-                expect(counter).toBe(2);
+                const url3 = await cluster.waitForOne();
+                expect(url3).toBe(ERROR_URL);
 
                 await cluster.close();
 

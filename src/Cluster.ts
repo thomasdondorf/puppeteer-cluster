@@ -91,7 +91,7 @@ export default class Cluster {
 
     private taskFunction: TaskFunction | null = null;
     private idleResolvers: (() => void)[] = [];
-    private waitForOneResolvers: (() => void)[] = [];
+    private waitForOneResolvers: ((url:string | JobData) => void)[] = [];
     private browser: AbstractBrowser | null = null;
 
     private isClosed = false;
@@ -299,7 +299,7 @@ export default class Cluster {
                 });
             }
         }
-        this.waitForOneResolvers.forEach(resolve => resolve());
+        this.waitForOneResolvers.forEach(resolve => resolve(job.url));
 
         // add worker to available workers again
         const workerIndex = this.workersBusy.indexOf(worker);
@@ -341,8 +341,8 @@ export default class Cluster {
         return new Promise(resolve => this.idleResolvers.push(resolve));
     }
 
-    public waitForOne(): Promise<void> {
-        return new Promise(resolve => this.waitForOneResolvers.push(resolve));
+    public waitForOne(): Promise<string | JobData> {
+        return new Promise(resolve  => this.waitForOneResolvers.push(resolve));
     }
 
     public async close(): Promise<void> {
