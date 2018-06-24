@@ -70,7 +70,7 @@ Use this library, if you need a relibable crawler based on puppeteer. This libra
 Cluster module provides a method to launch a cluster of Chromium instances.
 The following is a typical example of using puppeteer-cluster:
 ```js
-const Cluster = require('puppeteer-cluster');
+const { Cluster } = require('puppeteer-cluster');
 
 (async () => {
   const cluster = await Cluster.launch();
