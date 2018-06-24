@@ -3,7 +3,9 @@ const { Cluster } = require('../dist');
 (async () => {
     const cluster = await Cluster.launch({
         concurrency: Cluster.CONCURRENCY_CONTEXT,
-        maxConcurrency: 2
+        maxConcurrency: 4,
+        maxCPU: 10,
+        monitor: true,
     });
 
     await cluster.task(async (url, page) => {
@@ -13,6 +15,18 @@ const { Cluster } = require('../dist');
         console.log(`Page title of ${url} is ${pageTitle}`);
     });
 
+    cluster.queue('http://www.google.com');
+    cluster.queue('http://www.wikipedia.org');
+    cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
+    cluster.queue('http://www.google.com');
+    cluster.queue('http://www.wikipedia.org');
+    cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
+    cluster.queue('http://www.google.com');
+    cluster.queue('http://www.wikipedia.org');
+    cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
+    cluster.queue('http://www.google.com');
+    cluster.queue('http://www.wikipedia.org');
+    cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
     cluster.queue('http://www.google.com');
     cluster.queue('http://www.wikipedia.org');
     cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');

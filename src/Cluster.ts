@@ -47,8 +47,8 @@ interface ClusterOptions extends ClusterOptionsArgument {
 const DEFAULT_OPTIONS: ClusterOptions = {
     concurrency: 2, // CONTEXT
     maxConcurrency: 1,
-    maxCPU: 1,
-    maxMemory: 1,
+    maxCPU: 0,
+    maxMemory: 0,
     puppeteerOptions: {
         // headless: false, // just for testing...
     },
@@ -68,7 +68,9 @@ export interface QueueOptions {
 export type TaskFunction =
     (url: string | JobData, page: Page, options: TaskArguments) => Promise<void>;
 
-const MONITORING_INTERVAL = 500;
+const MONITORING_DISPLAY_INTERVAL = 500;
+const WORKER_CREATION_DELAY = 500;
+const CHECK_FOR_WORK_INTERVAL = 100;
 
 export default class Cluster {
 
@@ -102,6 +104,8 @@ export default class Cluster {
 
     private systemMonitor: SystemMonitor = new SystemMonitor();
 
+    private checkForWorkInterval: NodeJS.Timer | null = null;
+
     public static async launch(options: ClusterOptionsArgument) {
         debug('Launching');
         const cluster = new Cluster(options);
@@ -119,7 +123,7 @@ export default class Cluster {
         if (this.options.monitor) {
             this.monitoringInterval = setInterval(
                 () => this.monitor(),
-                MONITORING_INTERVAL,
+                MONITORING_DISPLAY_INTERVAL,
             );
         }
 
@@ -149,12 +153,17 @@ export default class Cluster {
         }
 
         await this.systemMonitor.init();
+
+        // needed in case resources are getting free (like CPU/memory) to check if
+        // can launch workers
+        this.checkForWorkInterval = setInterval(() => this.work(), CHECK_FOR_WORK_INTERVAL);
     }
 
     private async launchWorker() {
         // signal, that we are starting a worker
         this.workersStarting += 1;
         this.nextWorkerId += 1;
+        this.lastLaunchedWorkerTime = Date.now();
 
         const workerId = this.nextWorkerId;
 
@@ -201,16 +210,16 @@ export default class Cluster {
     private async doWork() {
         this.calledForWork = false;
 
-        if (this.taskFunction === null) {
-            throw new Error('No task defined!');
-        }
-
         // no jobs available
         if (this.jobQueue.size() === 0) {
             if (this.workersBusy.length === 0) {
                 this.idleResolvers.forEach(resolve => resolve());
             }
             return;
+        }
+
+        if (this.taskFunction === null) {
+            throw new Error('No task defined!');
         }
 
         // no workers available
@@ -257,7 +266,7 @@ export default class Cluster {
         const worker = <Worker>this.workersAvail.shift();
         this.workersBusy.push(worker);
 
-        if (this.workersAvail.length !== 0) {
+        if (this.workersAvail.length !== 0 || this.allowedToStartWorker()) {
             // we can execute more work in parallel
             this.work();
         }
@@ -299,9 +308,20 @@ export default class Cluster {
         this.work();
     }
 
+    private lastLaunchedWorkerTime: number = 0;
+
     private allowedToStartWorker(): boolean {
         const workerCount = this.workers.length + this.workersStarting;
-        return (workerCount < this.options.maxConcurrency);
+        return (
+            // option: maxConcurrency
+            (this.options.maxConcurrency === 0
+                || workerCount < this.options.maxConcurrency)
+            // option: maxCPU
+            && (this.options.maxCPU === 0
+                || this.systemMonitor.getCpuUsage() <= this.options.maxCPU)
+            // just allow worker creaton every few milliseconds
+            && (this.lastLaunchedWorkerTime + WORKER_CREATION_DELAY < Date.now())
+        );
     }
 
     // TODO implement all queue options
@@ -321,6 +341,8 @@ export default class Cluster {
 
     public async close(): Promise<void> {
         this.isClosed = true;
+
+        clearInterval(this.checkForWorkInterval as NodeJS.Timer);
 
         // close workers
         await Promise.all(this.workers.map(worker => worker.close()));
