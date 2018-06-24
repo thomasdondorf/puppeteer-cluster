@@ -294,7 +294,7 @@ export default class Cluster extends EventEmitter {
         } else { // error during execution
             // error during execution
             job.addError(resultError);
-            this.emit('error', resultError, job.url);
+            this.emit('taskerror', resultError, job.url);
 
             if (job.tries <= this.options.retryLimit) {
                 let delayUntil = undefined;

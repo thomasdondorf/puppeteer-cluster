@@ -21,7 +21,7 @@ const readFile = util.promisify(fs.readFile);
         console.log(`Page title of ${url} is ${pageTitle}`);
     });
 
-    cluster.on('error', (err, url) => {
+    cluster.on('taskerror', (err, url) => {
         console.log(`  Error crawling ${url}: ${err.message}`);
     });
 

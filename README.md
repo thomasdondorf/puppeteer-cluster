@@ -89,7 +89,7 @@ const { Cluster } = require('puppeteer-cluster');
 })();
 ```
 
-#### event: 'error'
+#### event: 'taskerror'
 - <[Error]>
 - <[string]|[Object]>
 
