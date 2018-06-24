@@ -3,8 +3,10 @@ const { Cluster } = require('../dist');
 (async () => {
     const cluster = await Cluster.launch({
         concurrency: Cluster.CONCURRENCY_CONTEXT,
-        maxConcurrency: 4,
-        maxCPU: 10,
+        maxConcurrency: 40,
+        maxCPU: 80,
+        maxMemory: 50,
+        workerCreationDelay: 4000,
         monitor: true,
     });
 

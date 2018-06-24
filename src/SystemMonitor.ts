@@ -6,14 +6,20 @@ interface SystemLoad {
 }
 
 const INIT_INTERVAL = 50;
-const MEASURE_INTERVAL = 500;
+const MEASURE_INTERVAL = 200;
+
+// timespan of which to measure load
+// must be a multiple of MEASURE_INTERVAL
+const MEASURE_TIMESPAN = 5000;
+
+const loadListSize = MEASURE_TIMESPAN / MEASURE_INTERVAL;
 
 export default class SystemMonitor {
 
     private cpuUsage: number = 0;
     private memoryUsage: number = 0;
 
-    private lastLoad: SystemLoad | null = null;
+    private loads: SystemLoad[] = [];
 
     private interval: NodeJS.Timer | null = null;
 
@@ -37,15 +43,12 @@ export default class SystemMonitor {
     }
 
     private calcLoad() { // based on https://gist.github.com/bag-man/5570809
-        // Initialise sum of idle and time of cores and fetch CPU info
         let totalIdle = 0;
         let totalTick = 0;
         const cpus = os.cpus();
 
-        // Loop through CPU cores
         for (let i = 0, len = cpus.length; i < len; i += 1) {
             const cpu = cpus[i];
-
             for (const type in cpu.times) {
                 totalTick += (cpu.times as any)[type];
             }
@@ -57,15 +60,20 @@ export default class SystemMonitor {
             total: totalTick / cpus.length,
         };
 
-        if (this.lastLoad !== null) {
-            const idleDifference = currentLoad.idle - this.lastLoad.idle;
-            const totalDifference = currentLoad.total - this.lastLoad.total;
+        if (this.loads.length !== 0) {
+            const compareLoad = this.loads[0];
+            const idleDifference = currentLoad.idle - compareLoad.idle;
+            const totalDifference = currentLoad.total - compareLoad.total;
 
             this.cpuUsage = 100 - (100 * idleDifference / totalDifference);
             this.memoryUsage = 100 - (100 * os.freemem() / os.totalmem());
         }
 
-        this.lastLoad = currentLoad;
+        this.loads.push(currentLoad);
+        if (this.loads.length > loadListSize) {
+            // remove oldest entry
+            this.loads.shift();
+        }
     }
 
     public getCpuUsage() {

@@ -21,6 +21,7 @@ interface ClusterOptionsArgument {
     maxConcurrency?: number;
     maxCPU?: number;
     maxMemory?: number;
+    workerCreationDelay?: number;
     puppeteerOptions?: LaunchOptions;
     monitor?: boolean;
     timeout?: number;
@@ -35,6 +36,7 @@ interface ClusterOptions extends ClusterOptionsArgument {
     maxConcurrency: number;
     maxCPU: number;
     maxMemory: number;
+    workerCreationDelay: number;
     puppeteerOptions: LaunchOptions;
     monitor: boolean;
     timeout: number;
@@ -49,6 +51,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     maxConcurrency: 1,
     maxCPU: 0,
     maxMemory: 0,
+    workerCreationDelay: 0,
     puppeteerOptions: {
         // headless: false, // just for testing...
     },
@@ -69,7 +72,6 @@ export type TaskFunction =
     (url: string | JobData, page: Page, options: TaskArguments) => Promise<void>;
 
 const MONITORING_DISPLAY_INTERVAL = 500;
-const WORKER_CREATION_DELAY = 500;
 const CHECK_FOR_WORK_INTERVAL = 100;
 
 export default class Cluster {
@@ -319,8 +321,12 @@ export default class Cluster {
             // option: maxCPU
             && (this.options.maxCPU === 0
                 || this.systemMonitor.getCpuUsage() <= this.options.maxCPU)
+            // option: maxMemory
+            && (this.options.maxMemory === 0
+                || this.systemMonitor.getMemoryUsage() <= this.options.maxMemory)
             // just allow worker creaton every few milliseconds
-            && (this.lastLaunchedWorkerTime + WORKER_CREATION_DELAY < Date.now())
+            && (this.options.workerCreationDelay === 0
+                || this.lastLaunchedWorkerTime + this.options.workerCreationDelay < Date.now())
         );
     }
 
