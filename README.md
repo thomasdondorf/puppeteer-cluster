@@ -37,7 +37,7 @@ Describe pages, context, browsers TODO
 ### Examples
 * Minimal example
 * Crawling the Alexa Top 1 Million
-* TODO Using options.data.device when crawling
+* TODO Using JobData instead of string for URL when crawling
 * TODO Multiple tasks, each URL is run by one task (example: crawl google results and extract page title from pages)
 * TODO Multiple tasks, each URL is run by multiple tasks (example: multiple tests, that need to be executed)
 * TODO Cancel after some depth of crawling a page, crawl each page only once
