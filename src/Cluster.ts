@@ -11,6 +11,7 @@ import ConcurrencyContext from './browser/ConcurrencyContext';
 import { LaunchOptions, Page } from 'puppeteer';
 import AbstractBrowser from './browser/AbstractBrowser';
 import Queue from './Queue';
+import SystemMonitor from './SystemMonitor';
 
 const debug = util.debugGenerator('Cluster');
 
@@ -99,6 +100,8 @@ export default class Cluster {
     private duplicateCheckUrls: Set<string> = new Set();
     private lastDomainAccesses: Map<string, number> = new Map();
 
+    private systemMonitor: SystemMonitor = new SystemMonitor();
+
     public static async launch(options: ClusterOptionsArgument) {
         debug('Launching');
         const cluster = new Cluster(options);
@@ -144,6 +147,8 @@ export default class Cluster {
         } catch (err) {
             throw new Error(`Unable to launch browser, error message: ${err.message}`);
         }
+
+        await this.systemMonitor.init();
     }
 
     private async launchWorker() {
@@ -334,6 +339,9 @@ export default class Cluster {
         if (this.display) {
             this.display.close();
         }
+
+        this.systemMonitor.close();
+
         debug('Closed');
     }
 
@@ -347,7 +355,7 @@ export default class Cluster {
         const timeDiff = now - this.startTime;
 
         const doneTargets = this.allTargetCount - this.jobQueue.size() - this.workersBusy.length;
-        const donePercentage = (doneTargets / this.allTargetCount);
+        const donePercentage = this.allTargetCount === 0 ? 1 : (doneTargets / this.allTargetCount);
         const donePercStr = (100 * donePercentage).toFixed(2);
 
         const timeRunning = util.formatDuration(timeDiff);
@@ -358,10 +366,14 @@ export default class Cluster {
         }
         const timeRemining = util.formatDuration(timeRemainingMillis);
 
+        const cpuUsage = this.systemMonitor.getCpuUsage().toFixed(1);
+        const memoryUsage = this.systemMonitor.getMemoryUsage().toFixed(1);
+
         display.log(`== Start:     ${util.formatDateTime(this.startTime)}`);
         display.log(`== Now:       ${util.formatDateTime(now)} (running for ${timeRunning})`);
         display.log(`== Progress:  ${doneTargets} / ${this.allTargetCount} (${donePercStr}%)`);
         display.log(`== Remaining: ${timeRemining} (rough estimation)`);
+        display.log(`== Sys. load: ${cpuUsage}% CPU / ${memoryUsage}% memory`);
         display.log(`== Workers:   ${this.workers.length + this.workersStarting}`);
 
         this.workers.forEach((worker, i) => {
