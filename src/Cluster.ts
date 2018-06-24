@@ -265,6 +265,10 @@ export default class Cluster {
         }
 
         // Check are all positive, let's actually run the job
+        if (this.options.skipDuplicateUrls && url !== undefined) {
+            this.duplicateCheckUrls.add(url);
+        }
+
         const worker = <Worker>this.workersAvail.shift();
         this.workersBusy.push(worker);
 
@@ -280,9 +284,6 @@ export default class Cluster {
         );
 
         if (resultError === null) {
-            if (this.options.skipDuplicateUrls && url !== undefined) {
-                this.duplicateCheckUrls.add(url);
-            }
             if (this.options.sameDomainDelay !== 0 && domain !== undefined) {
                 this.lastDomainAccesses.set(domain, Date.now());
             }

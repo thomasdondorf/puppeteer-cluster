@@ -99,14 +99,14 @@ describe('options', () => {
             });
 
             // TODO currently fails as they are processed in parallel
-            /*test('skipDuplicateUrls (parallel)', async () => {
+            test('skipDuplicateUrls (parallel)', async () => {
                 expect.assertions(1);
 
                 const sameUrl = 'http://www.google.com/';
 
                 const cluster = await Cluster.launch({
                     concurrency,
-                    maxConcurrency: 2, // REASONE FOR FAILING!!
+                    maxConcurrency: 2,
                     skipDuplicateUrls: true,
                 });
 
@@ -119,7 +119,7 @@ describe('options', () => {
 
                 await cluster.idle();
                 await cluster.close();
-            });*/
+            });
 
             test('retryLimit', async () => {
                 expect.assertions(4); // 3 retries -> 4 times called
