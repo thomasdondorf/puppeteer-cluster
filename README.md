@@ -161,3 +161,4 @@ Closes the cluster and all opened Chromium instances including all open pages (i
 [puppeteer.launch]: https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#puppeteerlaunchoptions "puppeteer.launch"
 [Object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object "Object"
 [Cluster.queue]: #Clusterqueueurl-options "Cluster.queue"
+[Error]: https://nodejs.org/api/errors.html#errors_class_error "Error"
