@@ -88,6 +88,7 @@ export default class Cluster {
 
     private allTargetCount = 0;
     private jobQueue: Queue<Job> = new Queue<Job>();
+    private errorCount = 0;
 
     private taskFunction: TaskFunction | null = null;
     private idleResolvers: (() => void)[] = [];
@@ -298,6 +299,8 @@ export default class Cluster {
                 this.jobQueue.push(job, {
                     delayUntil,
                 });
+            } else {
+                this.errorCount += 1;
             }
         }
         this.waitForOneResolvers.forEach(resolve => resolve(job.url));
@@ -384,8 +387,12 @@ export default class Cluster {
         const timeDiff = now - this.startTime;
 
         const doneTargets = this.allTargetCount - this.jobQueue.size() - this.workersBusy.length;
-        const donePercentage = this.allTargetCount === 0 ? 1 : (doneTargets / this.allTargetCount);
+        const donePercentage = this.allTargetCount === 0
+            ? 1 : (doneTargets / this.allTargetCount);
         const donePercStr = (100 * donePercentage).toFixed(2);
+
+        const errorPerc = doneTargets === 0 ?
+            '0.00' : (100 * this.errorCount / doneTargets).toFixed(2);
 
         const timeRunning = util.formatDuration(timeDiff);
 
@@ -400,7 +407,8 @@ export default class Cluster {
 
         display.log(`== Start:     ${util.formatDateTime(this.startTime)}`);
         display.log(`== Now:       ${util.formatDateTime(now)} (running for ${timeRunning})`);
-        display.log(`== Progress:  ${doneTargets} / ${this.allTargetCount} (${donePercStr}%)`);
+        display.log(`== Progress:  ${doneTargets} / ${this.allTargetCount} (${donePercStr}%)`
+            + `, errors: ${this.errorCount} (${errorPerc}%)`);
         display.log(`== Remaining: ${timeRemining} (rough estimation)`);
         display.log(`== Sys. load: ${cpuUsage}% CPU / ${memoryUsage}% memory`);
         display.log(`== Workers:   ${this.workers.length + this.workersStarting}`);

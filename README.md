@@ -54,7 +54,7 @@ Use this library, if you need a relibable crawler based on puppeteer. This libra
 * Auto retries if a job fails
 * Auto restarts chrome if the browser crashes
 * Parallize using pages, contexts or browsers
-* Scale up and down depending on your resources (CPU, memory) (TODO, not implemented yet)
+* Scale up depending on your resources (CPU, memory)
 * Simple to use, small boilerplate
 * Progress view and monitoring board
 
