@@ -44,10 +44,13 @@ Describe pages, context, browsers TODO
 * TODO maxCPU, maxMemory example
 
 ## TODO
-* priority for jobs
-* Continue a previously started cluster process
 * Run multiple tasks per job
 * Check what happens if puppeteer is unable to run (not corretly installed, etc.)
+
+## Ideas / Long term TODO
+* Continue a previously started cluster process
+* Priority for jobs
+* Give tasks name (seems more complicated than useful to me right now)
 
 ## Features
 Use this library, if you need a relibable crawler based on puppeteer. This library takes care of:

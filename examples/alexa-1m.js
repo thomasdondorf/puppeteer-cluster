@@ -16,7 +16,7 @@ const readFile = util.promisify(fs.readFile);
     });
 
     await cluster.task(async (url, page) => {
-        await page.goto(url);
+        await page.goto(url, { waitUntil: 'domcontentloaded' });
         const pageTitle = await page.evaluate(() => document.title);
         console.log(`Page title of ${url} is ${pageTitle}`);
     });
