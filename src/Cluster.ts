@@ -54,7 +54,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     maxMemory: 0,
     workerCreationDelay: 0,
     puppeteerOptions: {
-        // headless: false, // just for testing...
+        headless: false, // just for testing...
     },
     monitor: false,
     timeout: 30 * 1000,
@@ -132,11 +132,6 @@ export default class Cluster extends EventEmitter {
                 MONITORING_DISPLAY_INTERVAL,
             );
         }
-
-        this.jobQueue.on('delayed-job-inserted-empty-before', () => {
-            // queue goes from empty to at least one element
-            this.work();
-        });
     }
 
     private async init() {

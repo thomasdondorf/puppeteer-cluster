@@ -5,9 +5,7 @@ interface QueueOptions {
     priority?: number; // TODO implement
 }
 
-const DELAYED_JOB_EMPTY_BEFORE = 'delayed-job-inserted-empty-before';
-
-export default class Queue<T> extends EventEmitter {
+export default class Queue<T> {
 
     private list: T[] = [];
     private delayedItems: number = 0;
@@ -23,9 +21,6 @@ export default class Queue<T> extends EventEmitter {
                 () => {
                     this.delayedItems -= 1;
                     this.list.push(item);
-                    if (this.list.length === 1) {
-                        this.emit(DELAYED_JOB_EMPTY_BEFORE);
-                    }
                 },
                 (options.delayUntil - Date.now()),
             );
