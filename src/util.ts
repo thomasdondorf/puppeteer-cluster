@@ -79,7 +79,7 @@ export function debugGenerator(namespace: string): Debug.IDebugger {
 }
 
 const logToConsole = Debug('puppeteer-cluster:log');
-logToConsole.log = console.log.bind(console);
+logToConsole.log = console.error.bind(console);
 
 export function log(msg: string): void {
     logToConsole(msg);

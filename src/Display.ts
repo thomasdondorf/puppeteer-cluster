@@ -5,6 +5,10 @@ export default class Display {
     private linesCount: number = 0;
 
     public async log(str: string) : Promise<void> {
+        if (this.linesCount === 0) { // first line empty
+            console.log('\x1B[K');
+            this.linesCount += 1;
+        }
         const strToLog = str.substr(0, 78);
         console.log('\x1B[K' + strToLog);
         this.linesCount += 1;
