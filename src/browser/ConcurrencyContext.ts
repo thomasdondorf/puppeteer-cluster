@@ -3,14 +3,13 @@ import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
 import * as puppeteer from 'puppeteer';
 
 import { debugGenerator } from '../util';
-const debug = debugGenerator('Browser');
+const debug = debugGenerator('BrowserContext');
 
 export default class ConcurrencyPage extends AbstractBrowser {
 
     private chrome: puppeteer.Browser | null = null;
 
     private repairRequested: boolean = false;
-    private repairing: boolean = false;
     private openInstances: number = 0;
     private waitingForRepairResolvers: (() => void)[] = [];
 
@@ -23,25 +22,26 @@ export default class ConcurrencyPage extends AbstractBrowser {
     }
 
     private async startRepair() {
-        if (this.repairing || this.openInstances !== 0) {
+        if (this.openInstances !== 0) {
             // already repairing or there are still pages open? -> cancel
+            await new Promise(resolve => this.waitingForRepairResolvers.push(resolve));
             return;
         }
 
-        this.repairing = true;
         debug('Starting repair');
 
         try {
             // will probably fail, but just in case the repair was not necessary
             await (<puppeteer.Browser>this.chrome).close();
-        } catch (e) {}
+        } catch (e) {
+            debug('Unable to close browser.');
+        }
 
         try {
             this.chrome = await puppeteer.launch(this.options);
         } catch (err) {
             throw new Error('Unable to restart chrome.');
         }
-        this.repairing = false;
         this.repairRequested = false;
         this.waitingForRepairResolvers.forEach(resolve => resolve());
         this.waitingForRepairResolvers = [];
@@ -54,13 +54,13 @@ export default class ConcurrencyPage extends AbstractBrowser {
         return {
             instance: async () => {
                 if (this.repairRequested) {
-                    await new Promise(resolve => this.waitingForRepairResolvers.push(resolve));
+                    await this.startRepair();
                 }
 
-                this.openInstances += 1;
                 // @ts-ignore Typings are not up-to-date, ignore for now...
                 context = await this.chrome.createIncognitoBrowserContext();
                 page = await context.newPage();
+                this.openInstances += 1;
 
                 return {
                     page,
@@ -81,6 +81,7 @@ export default class ConcurrencyPage extends AbstractBrowser {
             },
 
             repair: async () => {
+                debug('Repair requested');
                 this.repairRequested = true;
                 await this.startRepair();
             },
