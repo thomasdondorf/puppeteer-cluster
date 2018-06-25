@@ -410,11 +410,14 @@ export default class Cluster extends EventEmitter {
         const cpuUsage = this.systemMonitor.getCpuUsage().toFixed(1);
         const memoryUsage = this.systemMonitor.getMemoryUsage().toFixed(1);
 
+        const pagesPerSecond = doneTargets === 0 ?
+            '0' : (doneTargets * 1000 / timeDiff).toFixed(2);
+
         display.log(`== Start:     ${util.formatDateTime(this.startTime)}`);
         display.log(`== Now:       ${util.formatDateTime(now)} (running for ${timeRunning})`);
         display.log(`== Progress:  ${doneTargets} / ${this.allTargetCount} (${donePercStr}%)`
-            + `, errors: ${this.errorCount} (${errorPerc}%)`);
-        display.log(`== Remaining: ${timeRemining} (rough estimation)`);
+            + `, errors: ${this.errorCount} (${pagesPerSecond}%)`);
+        display.log(`== Remaining: ${timeRemining} (@ ${pagesPerSecond} pages/second)`);
         display.log(`== Sys. load: ${cpuUsage}% CPU / ${memoryUsage}% memory`);
         display.log(`== Workers:   ${this.workers.length + this.workersStarting}`);
 
