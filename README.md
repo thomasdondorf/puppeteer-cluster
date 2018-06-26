@@ -125,19 +125,13 @@ The method launches a cluster instance.
   - `options` <[Object]> An object containing additional information about your taks.
     - `worker` <[Object]> The worker executing the current URL.
       - `id` <[number]> ID of the worker. Worker IDs start at 0.
-- TODO NOT WORKING YET `options` <[Object]> Optional information about the task
-  - TODO NOT WORKING YET `name` <[string]> Specify the name when you have multiple differen tasks. Use `context.task` when calling the `queue` function to specify which task should execute the URL.
-  - TODO NOT WORKING YET `timeout` <[number]> Optional parameter to specify a timeout for task executions. Overrides the cluster options.
 - returns: <[Promise]>
 
 Specifies a task for the cluster. A task is called for each job you queue via [Cluster.queue]. You can specify multiple tasks by naming them via `options.name`. Check out the example TODO for more information about multiple tasks.
 
 #### Cluster.queue(url[, options])
 - `url` <[string]|[Object]> URL to be called or alternatively an object containing any information. The string or object will be provided to your task function(s). See example TODO for a more complex usage of this argument.
-- TODO NOT WORKING YET `options`<[Object]> Optional parameter which allows to specify details about the task and set data for custom task execution.
-    - TODO NOT WORKING YET `priority` <[number]> Optional argument specifying the priority of the URL.
-    - TODO NOT WORKING YET `task` <[string]> If you have multiple tasks defined, you can specify the name of the task, which should handle the URL.
-- returns: void TODO
+- returns: void (TODO? Maybe return a Promise instead to make API consistent?)
 
 Puts a URL (a job) into the queue. You can provide data specific to the job by using `options.data`. Check out the example TODO for more information related to that.
 
