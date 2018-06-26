@@ -1,5 +1,5 @@
 
-import { formatDateTime, formatDuration, cancellableTimeout } from '../src/util';
+import { formatDateTime, formatDuration, timeoutExecute } from '../src/util';
 
 describe('formatDateTime', () => {
 
@@ -71,31 +71,37 @@ describe('formatDuration', () => {
 
 });
 
-jest.useFakeTimers();
+describe('timeoutExecute', () => {
+    jest.useRealTimers();
 
-describe('cancellableTimeout', () => {
-
-    test('resolve after some time', async () => {
+    test('timeout after given time', async () => {
         expect.assertions(1);
 
-        const promiseWrapper = cancellableTimeout(100000);
-
-        jest.runAllTimers();
-
-        expect(promiseWrapper.promise).resolves.toBe(undefined);
+        try {
+            await timeoutExecute(
+                10,
+                new Promise(resolve => setTimeout(resolve, 50)),
+            );
+            fail();
+        } catch (e) {
+            expect(e.message).toEqual(expect.stringContaining('Timeout'));
+        }
     });
 
-    test('is cancellable', async () => {
-        expect.assertions(1);
+    test('execute promise before timeout', async () => {
+        const result = await timeoutExecute(
+            50,
+            new Promise(resolve => setTimeout(() => resolve(123), 10)),
+        );
+        expect(result).toBe(123);
+    });
 
-        let promiseWrapper;
-
-        (async () => {
-            promiseWrapper = cancellableTimeout(100000);
-            const result = await promiseWrapper.promise;
-            expect(result).toBe(undefined);
-        })();
-        promiseWrapper.cancel();
+    test('cancel timeout when promise resolves', async () => {
+        const result = await timeoutExecute(
+            100000,
+            new Promise(resolve => setTimeout(() => resolve(123), 10)),
+        );
+        expect(result).toBe(123);
     });
 
 });

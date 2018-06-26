@@ -52,25 +52,21 @@ export function formatDuration(millis: number): string {
     return `${remaining.toFixed(1)} ${TIME_UNITS[nextUnitIndex - 1].name}`;
 }
 
-export interface CancellableTimeout {
-    cancel: () => void;
-    promise: Promise<void>;
-}
+export async function timeoutExecute<T>(millis: number, promise: Promise<T>): Promise<T> {
 
-export function cancellableTimeout(millis: number): CancellableTimeout {
-    let timeout: NodeJS.Timer;
-    let resolveCb: () => void;
+    let timeout: NodeJS.Timer | null = null;
 
-    return {
-        cancel: () => {
-            resolveCb();
-            clearTimeout(timeout);
-        },
-        promise: new Promise((resolve) => {
-            resolveCb = resolve;
-            timeout = setTimeout(resolve, millis);
-        }),
-    };
+    const result = await Promise.race([
+        (async () => {
+            await new Promise((resolve) => {
+                timeout = setTimeout(resolve, millis);
+            });
+            throw new Error(`Timeout hit: ${millis}`);
+        })(),
+        promise,
+    ]);
+    clearTimeout(timeout as any as NodeJS.Timer); // is there a better way?
+    return result;
 }
 
 export function debugGenerator(namespace: string): Debug.IDebugger {

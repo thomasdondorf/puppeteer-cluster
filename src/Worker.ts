@@ -3,7 +3,7 @@ import Job, { JobData } from './Job';
 import Cluster, { TaskFunction } from './Cluster';
 import { WorkerBrowserInstance, ContextInstance } from './browser/AbstractBrowser';
 import { Page } from 'puppeteer';
-import { cancellableTimeout, CancellableTimeout, debugGenerator, log } from './util';
+import { timeoutExecute, debugGenerator, log } from './util';
 
 const debug = debugGenerator('Worker');
 
@@ -23,6 +23,8 @@ export interface TaskArguments {
         id: number;
     };
 }
+
+const BROWSER_TIMEOUT = 5000;
 
 export default class Worker implements WorkerOptions {
 
@@ -49,11 +51,11 @@ export default class Worker implements WorkerOptions {
         ): Promise<Error | null> {
         this.activeTarget = job;
 
-        let browserInstance: ContextInstance;
-        let page: Page;
+        let browserInstance: ContextInstance | null = null;
+        let page: Page | null = null;
 
         try {
-            browserInstance = await this.browser.instance();
+            browserInstance = await timeoutExecute(BROWSER_TIMEOUT, this.browser.instance());
             page = browserInstance.page;
         } catch (err) {
             debug('Error getting browser page: ' + err.message);
@@ -63,27 +65,21 @@ export default class Worker implements WorkerOptions {
         }
 
         let errorState: Error | null = null;
-        let taskTimeout: CancellableTimeout | null = null;
 
         try {
-            taskTimeout = cancellableTimeout(timeout);
-            await Promise.race([
-                (async () => { // timeout promise
-                    await taskTimeout.promise;
-                    throw new Error('Timeout hit: ' + timeout);
-                })(),
+            await timeoutExecute(
+                timeout,
                 task(job.url, page, {
                     worker: { id: this.id },
                 }),
-            ]);
+            );
         } catch (err) {
             errorState = err;
             log('Error crawling ' + job.url + ' // message: ' + err.message);
         }
-        (<CancellableTimeout>taskTimeout).cancel();
 
         try {
-            await browserInstance.close();
+            await timeoutExecute(BROWSER_TIMEOUT, browserInstance.close());
         } catch (e) {
             debug('Error closing browser instance for ' + job.url + ': ' + e.message);
             await this.browser.repair();
