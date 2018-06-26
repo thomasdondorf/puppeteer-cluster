@@ -54,7 +54,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     maxMemory: 0,
     workerCreationDelay: 0,
     puppeteerOptions: {
-        headless: false, // just for testing...
+        // headless: false, // just for testing...
     },
     monitor: false,
     timeout: 30 * 1000,
