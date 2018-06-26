@@ -9,6 +9,7 @@ export default class ConcurrencyPage extends AbstractBrowser {
 
     private chrome: puppeteer.Browser | null = null;
 
+    private repairing: boolean = false;
     private repairRequested: boolean = false;
     private openInstances: number = 0;
     private waitingForRepairResolvers: (() => void)[] = [];
@@ -28,6 +29,7 @@ export default class ConcurrencyPage extends AbstractBrowser {
             return;
         }
 
+        this.repairing = true;
         debug('Starting repair');
 
         try {
@@ -43,6 +45,7 @@ export default class ConcurrencyPage extends AbstractBrowser {
             throw new Error('Unable to restart chrome.');
         }
         this.repairRequested = false;
+        this.repairing = false;
         this.waitingForRepairResolvers.forEach(resolve => resolve());
         this.waitingForRepairResolvers = [];
     }
