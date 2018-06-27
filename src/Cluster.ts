@@ -64,11 +64,6 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     sameDomainDelay: 0,
 };
 
-export interface QueueOptions {
-    priority?: number;
-    task?: string;
-}
-
 export type TaskFunction =
     (url: string | JobData, page: Page, options: TaskArguments) => Promise<void>;
 
@@ -194,7 +189,6 @@ export default class Cluster extends EventEmitter {
 
     public async task(taskFunction: TaskFunction) {
         this.taskFunction = taskFunction;
-        // TODO handle different names for tasks
     }
 
     private calledForWork: boolean = false;
@@ -334,8 +328,7 @@ export default class Cluster extends EventEmitter {
         );
     }
 
-    // TODO implement all queue options
-    public async queue(url: string | JobData, options: QueueOptions = {}) {
+    public async queue(url: string | JobData) {
         this.allTargetCount += 1;
         this.jobQueue.push(new Job(url));
         this.work();

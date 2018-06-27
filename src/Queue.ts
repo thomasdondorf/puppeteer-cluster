@@ -2,7 +2,6 @@ import { EventEmitter } from 'events';
 
 interface QueueOptions {
     delayUntil?: number;
-    priority?: number; // TODO implement
 }
 
 export default class Queue<T> {

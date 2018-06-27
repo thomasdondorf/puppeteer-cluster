@@ -98,7 +98,6 @@ describe('options', () => {
                 await cluster.close();
             });
 
-            // TODO currently fails as they are processed in parallel
             test('skipDuplicateUrls (parallel)', async () => {
                 expect.assertions(1);
 

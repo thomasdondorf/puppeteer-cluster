@@ -37,20 +37,17 @@ Describe pages, context, browsers TODO
 ### Examples
 * Minimal example
 * Crawling the Alexa Top 1 Million
-* TODO Using JobData instead of string for URL when crawling
-* TODO Multiple tasks, each URL is run by one task (example: crawl google results and extract page title from pages)
-* TODO Multiple tasks, each URL is run by multiple tasks (example: multiple tests, that need to be executed)
-* TODO Cancel after some depth of crawling a page, crawl each page only once
-* TODO maxCPU, maxMemory example
+* TODO Using JobData instead of string for URL when crawling (to cancel after some depth)
+* TODO Queuing of functions
+* TODO Improve Google crawl example
 
 ## TODO
-* Run multiple tasks per job
+* Allow queuing of functions (and data?) to be executed instead of URLs
 * Check what happens if puppeteer is unable to run (not corretly installed, etc.)
 
 ## Ideas / Long term TODO
 * Continue a previously started cluster process
 * Priority for jobs
-* Give tasks name (seems more complicated than useful to me right now)
 
 ## Features
 Use this library, if you need a relibable crawler based on puppeteer. This library takes care of:
@@ -104,9 +101,6 @@ TODO example
 - `options` <[Object]> Set of configurable options for the cluster. Can have the following fields:
   - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*> The choosen concurrency model. See [Concurreny models](#concurreny-models) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`.
   - `maxConcurrency` <[number]> Maximal number of parallel workers. Set to `0` to deactivate (in case you want to rely only on maxCPU and/or maxMemory). Defaults to `1`.
-  - `maxCPU` <[number]> Maximal usage of CPU in percentage to allow spawning of more workers. `50` means spawn workers until 50% CPU load is detected. Set to `0` to deactivate. Defaults to `0`.
-  - `maxMemory` <[number]> Maximal usage of memory in percentage to allow spawning of more workers. `50` means spawn workers until 50% of available memory is used. Set to `0` to deactivate. Defaults to `0`.
-  - `workerCreationDelay` <[number]> Time between creation of two workers. Set this to something like `1000` (one second) in case you use `maxCPU` or `maxMemory`. This makes sure not all workers are created at the same time as you want to wait some time before CPU or memory is checked again. Defaults to `0`.
   - `puppeteerOptions` <[Object]> Object passed to [puppeteer.launch]. See puppeteer documentation for more information. Defaults to `{}`.
   - `retryLimit` <[number]> How often do you want to retry a job before marking it as failed. Defaults to `0`.
   - `retryDelay` <[number]> How much time should pass at minimum between the job execution and its retry. Defaults to `0`.
@@ -115,10 +109,13 @@ TODO example
   - `timeout` <[number]> Specify a timeout for all tasks. Can be overridden by [Cluster.task] and [Cluster.queue] options. Defaults to `30000` (30 seconds).
   - `monitor` <[boolean]> If set to `true`, will provide a small command line output to provide information about the crawling process. See TODO screenshot. Defaults to `false`.
 - returns: <[Promise]<[Cluster]>>
+  - `maxCPU` <[number]> (*experimental*) Maximal usage of CPU in percentage to allow spawning of more workers. `50` means spawn workers until 50% CPU load is detected. Set to `0` to deactivate. Defaults to `0`.
+  - `maxMemory` <[number]> (*experimental*) Maximal usage of memory in percentage to allow spawning of more workers. `50` means spawn workers until 50% of available memory is used. Set to `0` to deactivate. Defaults to `0`.
+  - `workerCreationDelay` (*experimental*) <[number]> Time between creation of two workers. Set this to something like `1000` (one second) in case you use `maxCPU` or `maxMemory`. This makes sure not all workers are created at the same time as you want to wait some time before CPU or memory is checked again. Defaults to `0`.
 
 The method launches a cluster instance.
 
-#### Cluster.task(task[, options])
+#### Cluster.task(task)
 - `task` <[function]([string]|[Object], [Page], [Object])> Sets the function, which will be called for each job. The function will be called with three arguments (given below):
   - `url` <[string]|[Object]> The data of the job you provided to [Cluster.queue]. This can either be a URL or an object containing additional data (including the URL). See example TODO for a more complex usage of the argument.
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
@@ -127,13 +124,13 @@ The method launches a cluster instance.
       - `id` <[number]> ID of the worker. Worker IDs start at 0.
 - returns: <[Promise]>
 
-Specifies a task for the cluster. A task is called for each job you queue via [Cluster.queue]. You can specify multiple tasks by naming them via `options.name`. Check out the example TODO for more information about multiple tasks.
+Specifies a task for the cluster. A task is called for each job you queue via [Cluster.queue]. Alternatively you can directly queue the function that you want to be executed. See [Cluster.queue] for an example.
 
-#### Cluster.queue(url[, options])
+#### Cluster.queue(url)
 - `url` <[string]|[Object]> URL to be called or alternatively an object containing any information. The string or object will be provided to your task function(s). See example TODO for a more complex usage of this argument.
 - returns: void (TODO? Maybe return a Promise instead to make API consistent?)
 
-Puts a URL (a job) into the queue. You can provide data specific to the job by using `options.data`. Check out the example TODO for more information related to that.
+Puts a URL (a job) into the queue.
 
 #### Cluster.idle()
 - returns: <[Promise]>
