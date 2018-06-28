@@ -26,6 +26,8 @@ export interface TaskArguments {
 
 const BROWSER_TIMEOUT = 5000;
 
+const BROWSER_INSTANCE_TRIES = 10;
+
 export default class Worker implements WorkerOptions {
 
     cluster: Cluster;
@@ -54,14 +56,20 @@ export default class Worker implements WorkerOptions {
         let browserInstance: ContextInstance | null = null;
         let page: Page | null = null;
 
-        try {
-            browserInstance = await timeoutExecute(BROWSER_TIMEOUT, this.browser.instance());
-            page = browserInstance.page;
-        } catch (err) {
-            debug('Error getting browser page: ' + err.message);
-            await this.browser.repair();
-            // TODO log how often this does not work to escalte when it happens to often?
-            return err;
+        let tries = 0;
+
+        while (browserInstance === null) {
+            try {
+                browserInstance = await timeoutExecute(BROWSER_TIMEOUT, this.browser.instance());
+                page = browserInstance.page;
+            } catch (err) {
+                debug(`Error getting browser page (try: ${tries}), message: ${err.message}`);
+                await this.browser.repair();
+                tries += 1;
+                if (tries >= BROWSER_INSTANCE_TRIES) {
+                    throw new Error('Unable to get browser page');
+                }
+            }
         }
 
         let errorState: Error | null = null;
@@ -69,7 +77,7 @@ export default class Worker implements WorkerOptions {
         try {
             await timeoutExecute(
                 timeout,
-                task(job.url, page, {
+                task(job.url, (page as Page), {
                     worker: { id: this.id },
                 }),
             );
