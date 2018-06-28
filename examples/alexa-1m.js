@@ -32,7 +32,7 @@ const readFile = util.promisify(fs.readFile);
         const splitterIndex = line.indexOf(',');
         if (splitterIndex !== -1) {
             const url = line.substr(splitterIndex + 1);
-            cluster.queue('http://www.' + url);
+            await cluster.queue('http://www.' + url);
         }
     }
 

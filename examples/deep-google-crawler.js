@@ -29,7 +29,7 @@ const { Cluster } = require('../dist');
 
     });
 
-    cluster.queue({ url: 'https://www.google.com/search?q=puppeteer-cluster' });
+    await cluster.queue({ url: 'https://www.google.com/search?q=puppeteer-cluster' });
 
     await cluster.idle();
     await cluster.close();

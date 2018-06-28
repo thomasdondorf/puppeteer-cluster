@@ -13,9 +13,9 @@ const { Cluster } = require('../dist');
         console.log(`Page title of ${url} is ${pageTitle}`);
     });
 
-    cluster.queue('http://www.google.com');
-    cluster.queue('http://www.wikipedia.org');
-    cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
+    await cluster.queue('http://www.google.com');
+    await cluster.queue('http://www.wikipedia.org');
+    await cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
 
     await cluster.idle();
     await cluster.close();

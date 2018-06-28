@@ -19,6 +19,9 @@ export default class ConcurrencyPage extends AbstractBrowser {
     }
 
     public async close() {
+        // TODO investigate this: WINDOWS-specifig problem: On Windows this call sometimes
+        // logs "The process with pid could not be terminated" but does not throw an error
+        // Has not been a problem so far, expect that Windows logs something in the console
         await (<puppeteer.Browser>this.chrome).close();
     }
 

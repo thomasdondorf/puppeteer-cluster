@@ -45,10 +45,6 @@ Describe pages, context, browsers TODO
 * Allow queuing of functions (and data?) to be executed instead of URLs
 * Check what happens if puppeteer is unable to run (not corretly installed, etc.)
 
-## Ideas / Long term TODO
-* Continue a previously started cluster process
-* Priority for jobs
-
 ## Features
 Use this library, if you need a relibable crawler based on puppeteer. This library takes care of:
 * Takes care of crawl errors, browser crashes, etc.
@@ -95,7 +91,11 @@ const { Cluster } = require('puppeteer-cluster');
 
 Emitted when the task ends in an error for some reason. Reasons might be a network error, your code throwing an error, timeout hit, etc. The first argument will the error itself. The second argument is the URL or data of the job (as given to [Cluster.queue]). If retryLimit is set to a value greater than `0`, the cluster will automatically requeue the job and retry it again later.
 
-TODO example
+```js
+  cluster.on('taskerror', (err, url) => {
+      console.log(`Error crawling ${url}: ${err.message}`);
+  });
+```
 
 #### Cluster.launch(options)
 - `options` <[Object]> Set of configurable options for the cluster. Can have the following fields:
@@ -108,10 +108,10 @@ TODO example
   - `skipDuplicateUrls` <[boolean]> If set to `true`, will skip URLs which were already crawled by the cluster. Defaults to `false`.
   - `timeout` <[number]> Specify a timeout for all tasks. Can be overridden by [Cluster.task] and [Cluster.queue] options. Defaults to `30000` (30 seconds).
   - `monitor` <[boolean]> If set to `true`, will provide a small command line output to provide information about the crawling process. See TODO screenshot. Defaults to `false`.
-- returns: <[Promise]<[Cluster]>>
   - `maxCPU` <[number]> (*experimental*) Maximal usage of CPU in percentage to allow spawning of more workers. `50` means spawn workers until 50% CPU load is detected. Set to `0` to deactivate. Defaults to `0`.
   - `maxMemory` <[number]> (*experimental*) Maximal usage of memory in percentage to allow spawning of more workers. `50` means spawn workers until 50% of available memory is used. Set to `0` to deactivate. Defaults to `0`.
   - `workerCreationDelay` (*experimental*) <[number]> Time between creation of two workers. Set this to something like `1000` (one second) in case you use `maxCPU` or `maxMemory`. This makes sure not all workers are created at the same time as you want to wait some time before CPU or memory is checked again. Defaults to `0`.
+- returns: <[Promise]<[Cluster]>>
 
 The method launches a cluster instance.
 
@@ -128,7 +128,7 @@ Specifies a task for the cluster. A task is called for each job you queue via [C
 
 #### Cluster.queue(url)
 - `url` <[string]|[Object]> URL to be called or alternatively an object containing any information. The string or object will be provided to your task function(s). See example TODO for a more complex usage of this argument.
-- returns: void (TODO? Maybe return a Promise instead to make API consistent?)
+- returns: <[Promise]>
 
 Puts a URL (a job) into the queue.
 
