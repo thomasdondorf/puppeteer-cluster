@@ -77,7 +77,7 @@ export default class Worker implements WorkerOptions {
         try {
             await timeoutExecute(
                 timeout,
-                task(job.url, (page as Page), {
+                task((page as Page), job.url, {
                     worker: { id: this.id },
                 }),
             );

@@ -1,6 +1,6 @@
 # Puppeteer Cluster
 
-Create a cluster of puppeteer workers.
+Create a cluster of puppeteer workers. This library spawns a pool of Chromium instances via [Puppeteer] and helps to keep track of jobs and errors. This is hepful if you want to crawl multiple pages or run tests in parallel. Puppeteer Cluster takes care of reusing Chromium, retrying in case of errors.
 
 ## Install
 
@@ -16,11 +16,31 @@ Currently tested with node versions >= v8.10.0.
 
 ## Usage
 
-TODO
+The following is a typical example of using puppeteer-cluster. A cluster is created with 2 concurrent workers. Then a task is defined which includes going to the URL and taking a screenshot. We then wait for the cluster to idle and close it.
 
-## Issues / Hints
-* does not cache asynchronous errors outside of await/async in the task (example: setTimeout produces error) TODO give examples
-* When timeout is hit, page might run longer, but never clears -> timeout of page.goto might be respected here TODO document that?
+```js
+const { Cluster } = require('puppeteer-cluster');
+
+(async () => {
+  const cluster = await Cluster.launch({
+    concurrency: Cluster.CONCURRENCY_CONTEXT,
+    maxConcurrency: 2,
+  });
+
+  cluster.task(async (url, page) => {
+    await page.goto(url);
+    const screen = await page.screenshot();
+    // Store screenshot, do something else
+  });
+
+  await cluster.queue('http://www.google.com/');
+  await cluster.queue('http://www.wikipedia.org/');
+  // many more pages
+
+  await cluster.idle();
+  await cluster.close();
+})();
+```
 
 ### Concurreny models
 
@@ -65,25 +85,6 @@ Use this library, if you need a relibable crawler based on puppeteer. This libra
 ### class: Cluster
 
 Cluster module provides a method to launch a cluster of Chromium instances.
-The following is a typical example of using puppeteer-cluster:
-```js
-const { Cluster } = require('puppeteer-cluster');
-
-(async () => {
-  const cluster = await Cluster.launch();
-  cluster.task(async (url, page) => {
-    await page.goto(url);
-    // ...
-  });
-
-  cluster.queue('http://www.google.com/');
-  cluster.queue('http://www.wikipedia.org/');
-  // many more pages
-
-  await cluster.idle();
-  await cluster.close();
-})();
-```
 
 #### event: 'taskerror'
 - <[Error]>
@@ -117,8 +118,8 @@ The method launches a cluster instance.
 
 #### Cluster.task(task)
 - `task` <[function]([string]|[Object], [Page], [Object])> Sets the function, which will be called for each job. The function will be called with three arguments (given below):
-  - `url` <[string]|[Object]> The data of the job you provided to [Cluster.queue]. This can either be a URL or an object containing additional data (including the URL). See example TODO for a more complex usage of the argument.
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
+  - `url` <[string]|[Object]> The data of the job you provided to [Cluster.queue]. This can either be a URL or an object containing additional data (including the URL). See example TODO for a more complex usage of the argument.
   - `options` <[Object]> An object containing additional information about your taks.
     - `worker` <[Object]> The worker executing the current URL.
       - `id` <[number]> ID of the worker. Worker IDs start at 0.
@@ -130,7 +131,7 @@ Specifies a task for the cluster. A task is called for each job you queue via [C
 - `url` <[string]|[Object]> URL to be called or alternatively an object containing any information. The string or object will be provided to your task function(s). See example TODO for a more complex usage of this argument.
 - returns: <[Promise]>
 
-Puts a URL (a job) into the queue.
+Puts a URL (a job) into the queue. TODO add options for queue(function) and queue(url, function)
 
 #### Cluster.idle()
 - returns: <[Promise]>
@@ -156,3 +157,4 @@ Closes the cluster and all opened Chromium instances including all open pages (i
 [Object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object "Object"
 [Cluster.queue]: #Clusterqueueurl-options "Cluster.queue"
 [Error]: https://nodejs.org/api/errors.html#errors_class_error "Error"
+[Puppeteer]: https://github.com/GoogleChrome/puppeteer "Puppeteer"

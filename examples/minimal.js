@@ -6,7 +6,7 @@ const { Cluster } = require('../dist');
         maxConcurrency: 2,
     });
 
-    await cluster.task(async (url, page) => {
+    await cluster.task(async (page, url) => {
         await page.goto(url);
 
         const pageTitle = await page.evaluate(() => document.title);

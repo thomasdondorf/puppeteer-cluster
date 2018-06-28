@@ -65,7 +65,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
 };
 
 export type TaskFunction =
-    (url: string | JobData, page: Page, options: TaskArguments) => Promise<void>;
+    (page: Page, url: string | JobData, options: TaskArguments) => Promise<void>;
 
 const MONITORING_DISPLAY_INTERVAL = 500;
 const CHECK_FOR_WORK_INTERVAL = 100;

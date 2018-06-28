@@ -6,7 +6,7 @@ const { Cluster } = require('../dist');
         maxConcurrency: 2,
     });
 
-    await cluster.task(async ({ url, position }, page) => {
+    await cluster.task(async (page, { url, position }) => {
         await page.goto(url, { waitUntil: 'domcontentloaded' });
 
         if (position === undefined) {
