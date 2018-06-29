@@ -1,6 +1,6 @@
 # Puppeteer Cluster
 
-Create a cluster of puppeteer workers. This library spawns a pool of Chromium instances via [Puppeteer] and helps to keep track of jobs and errors. This is hepful if you want to crawl multiple pages or run tests in parallel. Puppeteer Cluster takes care of reusing Chromium, retrying in case of errors.
+Create a cluster of puppeteer workers. This library spawns a pool of Chromium instances via [Puppeteer] and helps to keep track of jobs and errors. This is hepful if you want to crawl multiple pages or run tests in parallel. Puppeteer Cluster takes care of reusing Chromium and retrying in case of errors.
 
 ## Install
 
@@ -27,7 +27,7 @@ const { Cluster } = require('puppeteer-cluster');
     maxConcurrency: 2,
   });
 
-  cluster.task(async (url, page) => {
+  cluster.task(async (page, url) => {
     await page.goto(url);
     const screen = await page.screenshot();
     // Store screenshot, do something else
@@ -75,11 +75,6 @@ Use this library, if you need a relibable crawler based on puppeteer. This libra
 * Simple to use, small boilerplate
 * Progress view and monitoring board
 
-### When to use this library (and when not)
-* Use this library when you want to crawl more than 10 pages relibably (maybe even repeatedly)
-* Don't use this library if you only want to crawl a few pages once. Of course, you can use this library in that case, but you are probably better off just using puppeteer without a cluster.
-* Don't use this library if you don't want to use puppeteer. This library is built on puppeteer.
-
 ## API
 
 ### class: Cluster
@@ -120,7 +115,7 @@ The method launches a cluster instance.
 - `task` <[function]([string]|[Object], [Page], [Object])> Sets the function, which will be called for each job. The function will be called with three arguments (given below):
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
   - `url` <[string]|[Object]> The data of the job you provided to [Cluster.queue]. This can either be a URL or an object containing additional data (including the URL). See example TODO for a more complex usage of the argument.
-  - `options` <[Object]> An object containing additional information about your taks.
+  - `information` <[Object]> An object containing additional information about your taks.
     - `worker` <[Object]> The worker executing the current URL.
       - `id` <[number]> ID of the worker. Worker IDs start at 0.
 - returns: <[Promise]>
@@ -158,3 +153,4 @@ Closes the cluster and all opened Chromium instances including all open pages (i
 [Cluster.queue]: #Clusterqueueurl-options "Cluster.queue"
 [Error]: https://nodejs.org/api/errors.html#errors_class_error "Error"
 [Puppeteer]: https://github.com/GoogleChrome/puppeteer "Puppeteer"
+[Cluster.task]: #clustertasktask "Cluster.task"
