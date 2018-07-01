@@ -1,5 +1,6 @@
 
 import { URL } from 'url';
+import { TaskFunction } from './Cluster';
 
 // needs an URL, but can have any other information in it
 export interface JobData {
@@ -9,16 +10,21 @@ export interface JobData {
 
 export default class Job {
 
-    public url: string | JobData;
+    public url: string | JobData | undefined;
+    public taskFunction: TaskFunction | undefined;
 
     private lastError: Error | null = null;
     public tries: number = 0;
 
-    public constructor(url: string | JobData) {
+    public constructor(url: string | JobData | undefined, taskFunction?: TaskFunction) {
         this.url = url;
+        this.taskFunction = taskFunction;
     }
 
     public getUrl(): string | undefined {
+        if (this.url === undefined) {
+            return undefined;
+        }
         if (typeof this.url === 'string') {
             return this.url;
         }

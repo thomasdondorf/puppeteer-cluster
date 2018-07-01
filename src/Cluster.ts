@@ -65,7 +65,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
 };
 
 export type TaskFunction =
-    (page: Page, url: string | JobData, options: TaskArguments) => Promise<void>;
+    (page: Page, url: string | JobData | undefined, options: TaskArguments) => Promise<void>;
 
 const MONITORING_DISPLAY_INTERVAL = 500;
 const CHECK_FOR_WORK_INTERVAL = 100;
@@ -88,7 +88,7 @@ export default class Cluster extends EventEmitter {
 
     private taskFunction: TaskFunction | null = null;
     private idleResolvers: (() => void)[] = [];
-    private waitForOneResolvers: ((url:string | JobData) => void)[] = [];
+    private waitForOneResolvers: ((url:string | JobData | undefined) => void)[] = [];
     private browser: AbstractBrowser | null = null;
 
     private isClosed = false;
@@ -270,8 +270,15 @@ export default class Cluster extends EventEmitter {
             this.work();
         }
 
+        let jobFunction;
+        if (job.taskFunction === undefined) {
+            jobFunction = this.taskFunction;
+        } else {
+            jobFunction = job.taskFunction;
+        }
+
         const resultError: Error | null = await worker.handle(
-            this.taskFunction,
+            jobFunction,
             job,
             this.options.timeout,
         );
@@ -328,9 +335,21 @@ export default class Cluster extends EventEmitter {
         );
     }
 
-    public async queue(url: string | JobData) {
+    public async queue(url: string, taskFunction?: TaskFunction): Promise<void>;
+    public async queue(url: JobData, taskFunction?: TaskFunction): Promise<void>;
+    public async queue(taskFunction: TaskFunction): Promise<void>;
+    public async queue(
+        urlOrDataOrFunction: JobData | string | TaskFunction,
+        taskFunction?: TaskFunction,
+    ): Promise<void> {
+        let job;
+        if (typeof urlOrDataOrFunction === 'function') {
+            job = new Job(undefined, urlOrDataOrFunction);
+        } else {
+            job = new Job(urlOrDataOrFunction, taskFunction);
+        }
         this.allTargetCount += 1;
-        this.jobQueue.push(new Job(url));
+        this.jobQueue.push(job);
         this.work();
     }
 

@@ -61,10 +61,6 @@ Describe pages, context, browsers TODO
 * TODO Queuing of functions
 * TODO Improve Google crawl example
 
-## TODO
-* Allow queuing of functions (and data?) to be executed instead of URLs
-* Check what happens if puppeteer is unable to run (not corretly installed, etc.)
-
 ## Features
 Use this library, if you need a relibable crawler based on puppeteer. This library takes care of:
 * Takes care of crawl errors, browser crashes, etc.
@@ -111,8 +107,8 @@ Emitted when the task ends in an error for some reason. Reasons might be a netwo
 
 The method launches a cluster instance.
 
-#### Cluster.task(task)
-- `task` <[function]([string]|[Object], [Page], [Object])> Sets the function, which will be called for each job. The function will be called with three arguments (given below):
+#### Cluster.task(taskFunction)
+- `taskFunction` <[function]([string]|[Object], [Page], [Object])> Sets the function, which will be called for each job. The function will be called with three arguments (given below):
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
   - `url` <[string]|[Object]> The data of the job you provided to [Cluster.queue]. This can either be a URL or an object containing additional data (including the URL). See example TODO for a more complex usage of the argument.
   - `information` <[Object]> An object containing additional information about your taks.
@@ -122,11 +118,13 @@ The method launches a cluster instance.
 
 Specifies a task for the cluster. A task is called for each job you queue via [Cluster.queue]. Alternatively you can directly queue the function that you want to be executed. See [Cluster.queue] for an example.
 
-#### Cluster.queue(url)
-- `url` <[string]|[Object]> URL to be called or alternatively an object containing any information. The string or object will be provided to your task function(s). See example TODO for a more complex usage of this argument.
+#### Cluster.queue([urlOrData,] [taskFunction])
+- `urlOrData` <[string]|[Object]> URL to be called or alternatively an object containing information. The string or object will be provided to your task function(s). See example TODO for a more complex usage of this argument.
+- `taskFunction` <[function]> Function like the one given to [Cluster.task]. If a function is provided, this function will be used instead of the function provided to [Cluster.task].
+  - TODO specify arguments (like t he ones from Cluster.task)
 - returns: <[Promise]>
 
-Puts a URL (a job) into the queue. TODO add options for queue(function) and queue(url, function)
+Puts a URL (a job) into the queue. TODO add examples for all possible calls
 
 #### Cluster.idle()
 - returns: <[Promise]>
