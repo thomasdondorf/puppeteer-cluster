@@ -1,5 +1,5 @@
 
-import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
+import AbstractBrowser from './AbstractBrowser';
 import * as puppeteer from 'puppeteer';
 
 import { debugGenerator } from '../util';

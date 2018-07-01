@@ -1,5 +1,5 @@
 
-import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
+import AbstractBrowser from './AbstractBrowser';
 import * as puppeteer from 'puppeteer';
 
 import { debugGenerator } from '../util';
@@ -23,7 +23,7 @@ export default class ConcurrencyPage extends AbstractBrowser {
     }
 
     private async startRepair() {
-        if (this.openInstances !== 0) {
+        if (this.openInstances !== 0 || this.repairing) {
             // already repairing or there are still pages open? -> cancel
             await new Promise(resolve => this.waitingForRepairResolvers.push(resolve));
             return;
