@@ -27,7 +27,7 @@ async function cookieTest(concurrencyType) {
 
     const randomValue = Math.random().toString();
 
-    cluster.task(async (url: string, page) => {
+    cluster.task(async (page, url: string) => {
         await page.goto(url);
         const cookies = await page.cookies();
 
@@ -87,7 +87,7 @@ describe('options', () => {
                     skipDuplicateUrls: true,
                 });
 
-                cluster.task(async (url) => {
+                cluster.task(async (page, url) => {
                     expect(url).toBe(TEST_URL);
                 });
 
@@ -109,7 +109,7 @@ describe('options', () => {
                     skipDuplicateUrls: true,
                 });
 
-                cluster.task(async (url) => {
+                cluster.task(async (page, url) => {
                     expect(url).toBe(sameUrl);
                 });
 
@@ -129,7 +129,7 @@ describe('options', () => {
                     retryLimit: 3,
                 });
 
-                cluster.task(async (url) => {
+                cluster.task(async (page, url) => {
                     expect(true).toBe(true);
                     throw new Error('testing retryLimit');
                 });
@@ -146,7 +146,7 @@ describe('options', () => {
                 });
                 let counter = 0;
 
-                cluster.task(async (url) => {
+                cluster.task(async (page, url) => {
                     counter += 1;
                 });
                 cluster.queue(TEST_URL);
@@ -172,7 +172,7 @@ describe('options', () => {
 
                 const ERROR_URL = 'http://example.com/we-are-never-visited-the-page';
 
-                cluster.task(async (url) => {
+                cluster.task(async (page, url) => {
                     if (url === ERROR_URL) {
                         throw new Error('testing retryDelay');
                     }
@@ -209,7 +209,7 @@ describe('options', () => {
 
                 const ERROR_URL = 'http://example.com/we-are-never-visited-the-page';
 
-                cluster.task(async (url) => {
+                cluster.task(async (page, url) => {
                     if (url === ERROR_URL) {
                         throw new Error('testing retryDelay');
                     }
@@ -252,7 +252,7 @@ describe('options', () => {
                 // increments URL increments the counter
                 // other urls will not
 
-                cluster.task(async (url) => {
+                cluster.task(async (page, url) => {
                     if (url === INCREMENT_URL) {
                         counter += 1;
                     }
