@@ -6,3 +6,5 @@ data/
 src/
 test/
 examples/
+
+.travis.yml
