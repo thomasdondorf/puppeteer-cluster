@@ -1,14 +1,19 @@
 language: node_js
-
 node_js:
-  - "10"
-  - "8"
-
+- '10'
+- '8'
 cache:
   directories:
-    - "node_modules"
-
+  - node_modules
 addons:
   apt:
     packages:
-    - "chromium-browser"
+    - chromium-browser
+deploy:
+  provider: npm
+  email: thomasdondorf@gmail.com
+  api_key:
+    secure: wSmG4oVJpKRAUiKxJ6WyZDsLGg+bkzODVDzvmjPH66eeiEnYvABvJEme9+2tzqRj65ijqGwy4gXaMaD2CCXg/BzAtnd3oT2dNAVn4UAnI6x64P/YhMsmorcUTmlkjgBi26R2sONDI3b/imwxWjt7xGb71/GveBPx9wjkZOU8vEGWk7z8Egg+QAYO748Ikpd/6Bkk1MFdKP7VPVL2xJa+cMgHjgJK02uonxNS8RSl38lZg7IF+1Lv/djeCqCWsJqSvD3aw3EqOKK2yuQrrM7TO4nCh+WRsqnZzg8SpemUHX5Yu7wtGzAiaRhwzHhqw3/IuFUu+X3BgaHieM8tj9om1nmgwGlyqHgt0Rz0vO+hM08+0mIsI3bTwOYnraxoYjTouhMzORAUzIF5PJPz3N/XUXOv8BNQdRLYSVIKLphlirkM2HJZkGER0/vsMQ1lE7A9IbQ24Imi9oOiBhwmsEO2R2R3NUbXNr1eC4j56BSMZLUSUmRXRvEw+im0pCgfR4QmLaA8lfyzJRDM8G+xw/vSTC+sMv5duKtrS2Nox9Vnc4f7IkUxwXb2DncDdwgJBHVUjvTna2da1/cPmpoUzHMevOdn/Mhmh+fR7mPbsu4n76dOWeMz48NgNzr2BT0LyI6TQ2ViQ4p0KvmfV/q+hYi2xMJ8kOtQPnQ4n6IGxUeZly0=
+  on:
+    tags: true
+    branch: master
