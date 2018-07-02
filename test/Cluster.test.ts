@@ -21,6 +21,7 @@ afterAll(() => {
 
 async function cookieTest(concurrencyType) {
     const cluster = await Cluster.launch({
+        puppeteerOptions: { args: ['--no-sandbox'] },
         maxConcurrency: 1,
         concurrency: concurrencyType,
     });
@@ -83,6 +84,7 @@ describe('options', () => {
 
                 const cluster = await Cluster.launch({
                     concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
                     maxConcurrency: 1,
                     skipDuplicateUrls: true,
                 });
@@ -105,6 +107,7 @@ describe('options', () => {
 
                 const cluster = await Cluster.launch({
                     concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
                     maxConcurrency: 2,
                     skipDuplicateUrls: true,
                 });
@@ -125,6 +128,7 @@ describe('options', () => {
 
                 const cluster = await Cluster.launch({
                     concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
                     maxConcurrency: 1,
                     retryLimit: 3,
                 });
@@ -143,6 +147,7 @@ describe('options', () => {
             test('waitForOne', async () => {
                 const cluster = await Cluster.launch({
                     concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
                 });
                 let counter = 0;
 
@@ -165,6 +170,7 @@ describe('options', () => {
             test('retryDelay = 0', async () => {
                 const cluster = await Cluster.launch({
                     concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
                     maxConcurrency: 1,
                     retryLimit: 1,
                     retryDelay: 0,
@@ -202,6 +208,7 @@ describe('options', () => {
             test('retryDelay > 0', async () => {
                 const cluster = await Cluster.launch({
                     concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
                     maxConcurrency: 1,
                     retryLimit: 1,
                     retryDelay: 100000,
@@ -242,6 +249,7 @@ describe('options', () => {
 
                 const cluster = await Cluster.launch({
                     concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
                     maxConcurrency: 1,
                     sameDomainDelay: 50,
                 });
