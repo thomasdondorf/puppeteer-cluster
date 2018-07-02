@@ -1,22 +1,29 @@
 # Puppeteer Cluster
 
-Create a cluster of puppeteer workers. This library spawns a pool of Chromium instances via [Puppeteer] and helps to keep track of jobs and errors. This is hepful if you want to crawl multiple pages or run tests in parallel. Puppeteer Cluster takes care of reusing Chromium and retrying in case of errors.
+Create a cluster of puppeteer workers. This library spawns a pool of Chromium instances via [Puppeteer] and helps to keep track of jobs and errors. This is hepful if you want to crawl multiple pages or run tests in parallel. Puppeteer Cluster takes care of reusing Chromium and restarting the browser in case of errors.
+
+###### What does this library do?
+
+* Handling of crawling errors
+* Auto restarts the browser in case of a crash
+* Can automatically retry if a job fails
+* Different concurrency models to choose from (pages, contexts, browsers)
+* Simple to use, small boilerplate
+* Progress view and monitoring statistics
 
 ## Install
 
-Install puppeteer (if you not already have it installed), with at least version 1.5.
+Install puppeteer:
 
 `npm install --save puppeteer`
 
-Install Puppeteer cluster
+Install puppeteer-cluster (currently tested with Node.js versions >= 8.10):
 
 `npm install --save puppeteer-cluster`
 
-Currently tested with node versions >= v8.10.0.
-
 ## Usage
 
-The following is a typical example of using puppeteer-cluster. A cluster is created with 2 concurrent workers. Then a task is defined which includes going to the URL and taking a screenshot. We then wait for the cluster to idle and close it.
+The following is a typical example of using puppeteer-cluster. A cluster is created with 2 concurrent workers. Then a task is defined which includes going to the URL and taking a screenshot. We then queue two jobs and wait for the cluster to finish.
 
 ```js
 const { Cluster } = require('puppeteer-cluster');
@@ -42,34 +49,22 @@ const { Cluster } = require('puppeteer-cluster');
 })();
 ```
 
-### Concurreny models
+## Examples
+* Minimal example
+* TODO Improve Google crawl example
+* Crawling the Alexa Top 1 Million
+* Crawl Wikipedia until some depth is reached
+* TODO Queuing of functions
 
-There are different concurrency models, which define how isolated each job is run. You can set it in the `options` when calling [Cluster.launch](#Clusterlaunchoptions). The default option is `Cluster.CONCURRENCY_CONTEXT`, but it is recommended to always specify what model you want to use.
+## Concurreny models
+
+There are different concurrency models, which define how isolated each job is run. You can set it in the `options` when calling [Cluster.launch](#Clusterlaunchoptions). The default option is `Cluster.CONCURRENCY_CONTEXT`, but it is recommended to always specify which one you want to use.
 
 | Concurrency | Description | Shared data |
 | --- | --- | --- |
 | `CONCURRENCY_PAGE` | One [Page] for each URL | Shares everything (cookies, localStorage, etc.) between jobs. |
 | `CONCURRENCY_CONTEXT` | Incognito page (see [IncognitoBrowserContext](https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#browsercreateincognitobrowsercontext)) for each URL  | No shared data. |
 | `CONCURRENCY_BROWSER` | One browser (using an incognito page) per URL. If one browser instance crashes for any reason, this will not affect other jobs. | No shared data.  |
-
-Describe pages, context, browsers TODO
-
-### Examples
-* Minimal example
-* Crawling the Alexa Top 1 Million
-* TODO Using JobData instead of string for URL when crawling (to cancel after some depth)
-* TODO Queuing of functions
-* TODO Improve Google crawl example
-
-## Features
-Use this library, if you need a relibable crawler based on puppeteer. This library takes care of:
-* Takes care of crawl errors, browser crashes, etc.
-* Auto retries if a job fails
-* Auto restarts chrome if the browser crashes
-* Parallize using pages, contexts or browsers
-* Scale up depending on your resources (CPU, memory)
-* Simple to use, small boilerplate
-* Progress view and monitoring board
 
 ## API
 
@@ -112,7 +107,7 @@ The method launches a cluster instance.
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
   - `url` <[string]|[Object]> The data of the job you provided to [Cluster.queue]. This can either be a URL or an object containing additional data (including the URL). See example TODO for a more complex usage of the argument.
   - `information` <[Object]> An object containing additional information about your taks.
-    - `worker` <[Object]> The worker executing the current URL.
+    - `worker` <[Object]> The worker executing the current job.
       - `id` <[number]> ID of the worker. Worker IDs start at 0.
 - returns: <[Promise]>
 
@@ -120,8 +115,12 @@ Specifies a task for the cluster. A task is called for each job you queue via [C
 
 #### Cluster.queue([urlOrData,] [taskFunction])
 - `urlOrData` <[string]|[Object]> URL to be called or alternatively an object containing information. The string or object will be provided to your task function(s). See example TODO for a more complex usage of this argument.
-- `taskFunction` <[function]> Function like the one given to [Cluster.task]. If a function is provided, this function will be used instead of the function provided to [Cluster.task].
-  - TODO specify arguments (like t he ones from Cluster.task)
+- `taskFunction` <[function]> Function like the one given to [Cluster.task]. If a function is provided, this function will be called (only for this job) instead of the function provided to [Cluster.task].
+  - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
+  - `url` <[string]|[Object]> The data of the job you provided as first argument to [Cluster.queue]. This might be `undefined` in case you only specified a function.
+  - `information` <[Object]> An object containing additional information about your taks.
+    - `worker` <[Object]> The worker executing the current job.
+      - `id` <[number]> ID of the worker. Worker IDs start at 0.
 - returns: <[Promise]>
 
 Puts a URL (a job) into the queue. TODO add examples for all possible calls
@@ -138,17 +137,18 @@ Closes the cluster and all opened Chromium instances including all open pages (i
 
 
 
-[function]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function "Function"
+[Cluster.queue]: #clusterqueueurlordata-taskfunction "Cluster.queue"
+[Cluster.task]: #clustertasktaskfunction "Cluster.task"
+[Cluster]: #class-cluster "Cluster"
+
+[Puppeteer]: https://github.com/GoogleChrome/puppeteer "Puppeteer"
 [Page]: https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#class-page "Page"
+[puppeteer.launch]: https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#puppeteerlaunchoptions "puppeteer.launch"
+
+[function]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function "Function"
 [string]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type "String"
 [number]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type "Number"
-[Worker]: #class-worker "Worker"
 [Promise]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise "Promise"
 [boolean]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type "Boolean"
-[Cluster]: #class-cluster "Cluster"
-[puppeteer.launch]: https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#puppeteerlaunchoptions "puppeteer.launch"
 [Object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object "Object"
-[Cluster.queue]: #Clusterqueueurl-options "Cluster.queue"
 [Error]: https://nodejs.org/api/errors.html#errors_class_error "Error"
-[Puppeteer]: https://github.com/GoogleChrome/puppeteer "Puppeteer"
-[Cluster.task]: #clustertasktask "Cluster.task"
