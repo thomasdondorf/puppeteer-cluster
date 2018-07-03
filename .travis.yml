@@ -2,15 +2,19 @@ language: node_js
 node_js:
 - '10'
 - '8'
-cache:
-  directories:
-  - node_modules
-before_script:
-  - npm run build
 addons:
   apt:
     packages:
     - chromium-browser
+cache:
+  directories:
+  - node_modules
+
+before_script:
+  - npm run build
+
+script: npm run coverage
+
 deploy:
   provider: npm
   skip_cleanup: true
@@ -20,3 +24,5 @@ deploy:
   on:
     tags: true
     branch: master
+
+after_script: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage

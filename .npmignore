@@ -2,6 +2,7 @@ node_modules/
 data/
 .idea/
 .vscode/
+coverage/
 
 src/
 test/
