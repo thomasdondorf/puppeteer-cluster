@@ -20,8 +20,6 @@ const debug = util.debugGenerator('Cluster');
 interface ClusterOptionsArgument {
     concurrency?: number;
     maxConcurrency?: number;
-    maxCPU?: number;
-    maxMemory?: number;
     workerCreationDelay?: number;
     puppeteerOptions?: LaunchOptions;
     monitor?: boolean;
@@ -35,8 +33,6 @@ interface ClusterOptionsArgument {
 interface ClusterOptions extends ClusterOptionsArgument {
     concurrency: number;
     maxConcurrency: number;
-    maxCPU: number;
-    maxMemory: number;
     workerCreationDelay: number;
     puppeteerOptions: LaunchOptions;
     monitor: boolean;
@@ -50,8 +46,6 @@ interface ClusterOptions extends ClusterOptionsArgument {
 const DEFAULT_OPTIONS: ClusterOptions = {
     concurrency: 2, // CONTEXT
     maxConcurrency: 1,
-    maxCPU: 0,
-    maxMemory: 0,
     workerCreationDelay: 0,
     puppeteerOptions: {
         // headless: false, // just for testing...
@@ -323,12 +317,6 @@ export default class Cluster extends EventEmitter {
             // option: maxConcurrency
             (this.options.maxConcurrency === 0
                 || workerCount < this.options.maxConcurrency)
-            // option: maxCPU
-            && (this.options.maxCPU === 0
-                || this.systemMonitor.getCpuUsage() <= this.options.maxCPU)
-            // option: maxMemory
-            && (this.options.maxMemory === 0
-                || this.systemMonitor.getMemoryUsage() <= this.options.maxMemory)
             // just allow worker creaton every few milliseconds
             && (this.options.workerCreationDelay === 0
                 || this.lastLaunchedWorkerTime + this.options.workerCreationDelay < Date.now())

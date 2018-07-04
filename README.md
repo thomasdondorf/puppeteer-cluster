@@ -22,7 +22,7 @@ Install puppeteer:
 
 `npm install --save puppeteer`
 
-Install puppeteer-cluster (currently tested with Node.js versions >= 8.10):
+Install puppeteer-cluster:
 
 `npm install --save puppeteer-cluster`
 
@@ -92,7 +92,7 @@ Emitted when the task ends in an error for some reason. Reasons might be a netwo
 #### Cluster.launch(options)
 - `options` <[Object]> Set of configurable options for the cluster. Can have the following fields:
   - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*> The choosen concurrency model. See [Concurreny models](#concurreny-models) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`.
-  - `maxConcurrency` <[number]> Maximal number of parallel workers. Set to `0` to deactivate (in case you want to rely only on maxCPU and/or maxMemory). Defaults to `1`.
+  - `maxConcurrency` <[number]> Maximal number of parallel workers. Defaults to `1`.
   - `puppeteerOptions` <[Object]> Object passed to [puppeteer.launch]. See puppeteer documentation for more information. Defaults to `{}`.
   - `retryLimit` <[number]> How often do you want to retry a job before marking it as failed. Defaults to `0`.
   - `retryDelay` <[number]> How much time should pass at minimum between the job execution and its retry. Defaults to `0`.
@@ -100,9 +100,7 @@ Emitted when the task ends in an error for some reason. Reasons might be a netwo
   - `skipDuplicateUrls` <[boolean]> If set to `true`, will skip URLs which were already crawled by the cluster. Defaults to `false`.
   - `timeout` <[number]> Specify a timeout for all tasks. Can be overridden by [Cluster.task] and [Cluster.queue] options. Defaults to `30000` (30 seconds).
   - `monitor` <[boolean]> If set to `true`, will provide a small command line output to provide information about the crawling process. See TODO screenshot. Defaults to `false`.
-  - `maxCPU` <[number]> (*experimental*) Maximal usage of CPU in percentage to allow spawning of more workers. `50` means spawn workers until 50% CPU load is detected. Set to `0` to deactivate. Defaults to `0`.
-  - `maxMemory` <[number]> (*experimental*) Maximal usage of memory in percentage to allow spawning of more workers. `50` means spawn workers until 50% of available memory is used. Set to `0` to deactivate. Defaults to `0`.
-  - `workerCreationDelay` (*experimental*) <[number]> Time between creation of two workers. Set this to something like `1000` (one second) in case you use `maxCPU` or `maxMemory`. This makes sure not all workers are created at the same time as you want to wait some time before CPU or memory is checked again. Defaults to `0`.
+  - `workerCreationDelay` <[number]> Time between creation of two workers. Set this to a value like `100` (0.1 seconds) in case you want some time to pass before another worker is created. You can use this to prevent a network peak right at the start. Defaults to `0` (no delay).
 - returns: <[Promise]<[Cluster]>>
 
 The method launches a cluster instance.
