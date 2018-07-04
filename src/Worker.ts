@@ -72,12 +72,20 @@ export default class Worker implements WorkerOptions {
             }
         }
 
+         // We can be sure that page is set now, otherwise an exception would've been thrown
+        page = page as Page; // this is just for TypeScript
+
         let errorState: Error | null = null;
+
+        page.on('error', (err) => {
+            errorState = err;
+            log('Error (page error) crawling ' + job.url + ' // message: ' + err.message);
+        });
 
         try {
             await timeoutExecute(
                 timeout,
-                task((page as Page), job.url, {
+                task(page, job.url, {
                     worker: { id: this.id },
                 }),
             );
