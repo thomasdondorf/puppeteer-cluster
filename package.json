@@ -43,6 +43,7 @@
     "typescript": "^2.9.2"
   },
   "jest": {
+    "setupTestFrameworkScriptFile": "<rootDir>/test/_setup.js",
     "collectCoverageFrom": [
       "src/**/*.{ts}"
     ],
@@ -54,7 +55,7 @@
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
-    "testRegex": "(/test/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "testRegex": "/test/.*\\.test\\.ts$",
     "moduleFileExtensions": [
       "ts",
       "js",
