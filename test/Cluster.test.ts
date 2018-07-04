@@ -281,6 +281,61 @@ describe('options', () => {
 
                 await cluster.close();
             });
+
+            test('works with only functions', async () => {
+                expect.assertions(4);
+
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
+                    maxConcurrency: 1,
+                });
+
+                await cluster.queue(async (page, url) => {
+                    expect(page).toBeDefined();
+                    expect(url).toBeUndefined();
+                });
+
+                await cluster.queue('something', async (page, url) => {
+                    expect(page).toBeDefined();
+                    expect(url).toBe('something');
+                });
+
+                await cluster.idle();
+                await cluster.close();
+            });
+
+            test('works with a mix of task functions', async () => {
+                expect.assertions(8);
+
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
+                    maxConcurrency: 1,
+                });
+
+                await cluster.task(async (page, url) => {
+                    // called two times
+                    expect(page).toBeDefined();
+                    expect(url).toBe('works');
+                });
+
+                await cluster.queue('works too', async (page, url) => {
+                    expect(page).toBeDefined();
+                    expect(url).toBe('works too');
+                });
+                cluster.queue('works');
+                await cluster.queue(async (page, url) => {
+                    expect(page).toBeDefined();
+                    expect(url).toBeUndefined();
+                });
+                cluster.queue('works');
+
+                await cluster.idle();
+                await cluster.close();
+            });
+
+            // TODO test('throws when no task function given');
         });
     });
 });

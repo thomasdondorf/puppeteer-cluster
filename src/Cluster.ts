@@ -207,10 +207,6 @@ export default class Cluster extends EventEmitter {
             return;
         }
 
-        if (this.taskFunction === null) {
-            throw new Error('No task defined!');
-        }
-
         // no workers available
         if (this.workersAvail.length === 0) {
             if (this.allowedToStartWorker()) {
@@ -265,14 +261,16 @@ export default class Cluster extends EventEmitter {
         }
 
         let jobFunction;
-        if (job.taskFunction === undefined) {
+        if (job.taskFunction !== undefined) {
+            jobFunction = job.taskFunction;
+        } else if (this.taskFunction !== null) {
             jobFunction = this.taskFunction;
         } else {
-            jobFunction = job.taskFunction;
+            throw new Error('No task function defined!');
         }
 
         const resultError: Error | null = await worker.handle(
-            jobFunction,
+            (jobFunction as TaskFunction),
             job,
             this.options.timeout,
         );

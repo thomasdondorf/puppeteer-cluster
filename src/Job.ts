@@ -38,8 +38,14 @@ export default class Job {
         // TODO use tld.js to restrict to top-level domain?
         const urlStr = this.getUrl();
         if (urlStr) {
-            const url = new URL(urlStr);
-            return url.hostname || undefined;
+            try {
+                const url = new URL(urlStr);
+                return url.hostname || undefined;
+            } catch (e) {
+                // if urlStr is not a valid URL this might throw
+                // but we leave this to the user
+                return undefined;
+            }
         }
         return undefined;
     }
