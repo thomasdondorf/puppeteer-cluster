@@ -5,3 +5,5 @@ data/
 coverage/
 
 dist/
+
+examples/top-1m.csv
