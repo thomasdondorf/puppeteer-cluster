@@ -6,30 +6,39 @@ const { Cluster } = require('../dist');
         maxConcurrency: 2,
     });
 
-    await cluster.task(async (page, { url, position }) => {
-        await page.goto(url, { waitUntil: 'domcontentloaded' });
+    // Extract title of page
+    const extractTitle = async (page, { url, position }) => {
+        await page.goto(url);
+        const pageTitle = await page.evaluate(() => document.title);
+        console.log(`Page title of #${position} ${url} is ${pageTitle}`);
+    };
 
-        if (position === undefined) {
-            (await page.evaluate(() => {
-                // get search results from Google
-                return [...document.querySelectorAll('#ires .g .rc > .r a')]
-                    .map(el => ({ url: el.href, name: el.innerText }));
-            })).forEach(({ url, name }, i) => {
-                // Putting result into queue with a position infromation
-                cluster.queue({
-                    url,
-                    position: (i+1)
-                });
-            });
-        } else {
-            // Page is a "result" page
-            const pageTitle = await page.evaluate(() => document.title);
-            console.log(`Page title of #${position} ${url} is ${pageTitle}`);
-        }
+    // Crawl the Google page
+    await cluster.task(async (page, { searchTerm, offset }) => {
 
+        await page.goto(
+            'https://www.google.com/search?q=' + searchTerm + '&start=' + offset,
+            { waitUntil: 'domcontentloaded' }
+        );
+
+        console.log('Extracting Google results for offset=' + offset);
+
+        // Extract the links and titles of the search result page
+        (await page.evaluate(() => {
+            return [...document.querySelectorAll('#ires .g .rc > .r a')]
+                .map(el => ({ url: el.href, name: el.innerText }));
+        })).forEach(({ url, name }, i) => {
+            // Put them into the cluster queue with the task "extractTitle"
+            console.log(`  Adding ${name} to queue`);
+            cluster.queue({
+                url,
+                position: (offset + i+1)
+            }, extractTitle);
+        });
     });
 
-    await cluster.queue({ url: 'https://www.google.com/search?q=puppeteer-cluster' });
+    await cluster.queue({ searchTerm: 'puppeteer-cluster', offset: 0 });
+    await cluster.queue({ searchTerm: 'puppeteer-cluster', offset: 10 });
 
     await cluster.idle();
     await cluster.close();

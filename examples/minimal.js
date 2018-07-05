@@ -1,38 +1,27 @@
 const { Cluster } = require('../dist');
 
 (async () => {
+    // Create a cluster with 2 workers
     const cluster = await Cluster.launch({
         concurrency: Cluster.CONCURRENCY_CONTEXT,
         maxConcurrency: 2,
     });
 
+    // Define a task (extracting document.title in this case)
     await cluster.task(async (page, url) => {
         await page.goto(url);
 
-        const pageTitle = await page.evaluate(() => document.title);
-        console.log(`Page title of ${url} is ${pageTitle}`);
+        const path = url.replace(/[^a-zA-Z]/g, '_') + '.png';
+        await page.screenshot({ path });
+        console.log(`Screenshot of ${url} saved: ${path}`);
     });
 
-    await cluster.queue('http://www.google.com');
-    await cluster.queue('http://www.wikipedia.org');
-    await cluster.queue('https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md');
+    // Add some pages to queue
+    await cluster.queue('https://www.google.com');
+    await cluster.queue('https://www.wikipedia.org');
+    await cluster.queue('https://github.com/');
 
-    // You can also queue functions
-    await cluster.queue(async (page) => {
-        await page.goto('https://www.npmjs.com/package/puppeteer-cluster');
-        // get the version from the npm, yes I know there is an API for that...
-        const version = await page.evaluate(() => {
-            const h3s = document.querySelectorAll('h3');
-            for (let i = 0; i < h3s.length; i += 1) {
-                if (h3s[i].innerText === 'version') {
-                    return h3s[i].nextSibling.innerText;
-                }
-            }
-            return 'Unknown';
-        })
-        console.log(`puppeteer-cluster is currently at version: ${version}`);
-    });
-
+    // Shutdown after everything is done
     await cluster.idle();
     await cluster.close();
 })();

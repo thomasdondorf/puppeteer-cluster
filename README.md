@@ -55,11 +55,12 @@ const { Cluster } = require('puppeteer-cluster');
 ```
 
 ## Examples
-* Minimal example
-* TODO Improve Google crawl example
-* Crawling the Alexa Top 1 Million
-* Crawl Wikipedia until some depth is reached
-* TODO Queuing of functions
+* [Minimal example](examples/minimal.js)
+* [Queuing functions (simple)](examples/function-queuing-simple.js)
+* [Queuing functions (complex)](examples/function-queuing-simple.js)
+* [Crawling the Google search results](examples/deep-google-crawler.js)
+* TODO Improve [Crawling the Alexa Top 1 Million](examples/alexa-1m.js)
+* TODO Crawl Wikipedia until some depth is reached
 
 ## Concurreny models
 
