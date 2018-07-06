@@ -56,11 +56,10 @@ const { Cluster } = require('puppeteer-cluster');
 
 ## Examples
 * [Simple example](examples/minimal.js)
-* [Crawling the Google search results](examples/deep-google-crawler.js)
+* [Deep crawling the Google search results](examples/deep-google-crawler.js)
 * [Crawling the Alexa Top 1 Million](examples/alexa-1m.js)
-* TODO Crawl Wikipedia until some depth is reached
 * [Queuing functions (simple)](examples/function-queuing-simple.js)
-* [Queuing functions (complex)](examples/function-queuing-simple.js)
+* [Queuing functions (complex)](examples/function-queuing-complex.js)
 
 ## Concurreny models
 
@@ -100,7 +99,7 @@ Emitted when the task ends in an error for some reason. Reasons might be a netwo
   - `sameDomainDelay` <[number]> How much time should pass at minimum between two requests to the same domain.
   - `skipDuplicateUrls` <[boolean]> If set to `true`, will skip URLs which were already crawled by the cluster. Defaults to `false`.
   - `timeout` <[number]> Specify a timeout for all tasks. Can be overridden by [Cluster.task] and [Cluster.queue] options. Defaults to `30000` (30 seconds).
-  - `monitor` <[boolean]> If set to `true`, will provide a small command line output to provide information about the crawling process. See TODO screenshot. Defaults to `false`.
+  - `monitor` <[boolean]> If set to `true`, will provide a small command line output to provide information about the crawling process. Defaults to `false`.
   - `workerCreationDelay` <[number]> Time between creation of two workers. Set this to a value like `100` (0.1 seconds) in case you want some time to pass before another worker is created. You can use this to prevent a network peak right at the start. Defaults to `0` (no delay).
 - returns: <[Promise]<[Cluster]>>
 
@@ -109,7 +108,7 @@ The method launches a cluster instance.
 #### Cluster.task(taskFunction)
 - `taskFunction` <[function]([string]|[Object], [Page], [Object])> Sets the function, which will be called for each job. The function will be called with three arguments (given below):
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
-  - `url` <[string]|[Object]> The data of the job you provided to [Cluster.queue]. This can either be a URL or an object containing additional data (including the URL). See example TODO for a more complex usage of the argument.
+  - `url` <[string]|[Object]> The data of the job you provided to [Cluster.queue]. This can either be a URL or an object containing additional data (including the URL). See [examples](examples/) for a more complex usage of the argument.
   - `information` <[Object]> An object containing additional information about your taks.
     - `worker` <[Object]> The worker executing the current job.
       - `id` <[number]> ID of the worker. Worker IDs start at 0.
@@ -118,7 +117,7 @@ The method launches a cluster instance.
 Specifies a task for the cluster. A task is called for each job you queue via [Cluster.queue]. Alternatively you can directly queue the function that you want to be executed. See [Cluster.queue] for an example.
 
 #### Cluster.queue([urlOrData,] [taskFunction])
-- `urlOrData` <[string]|[Object]> URL to be called or alternatively an object containing information. The string or object will be provided to your task function(s). See example TODO for a more complex usage of this argument.
+- `urlOrData` <[string]|[Object]> URL to be called or alternatively an object containing information. The string or object will be provided to your task function(s). See [examples] for a more complex usage of this argument.
 - `taskFunction` <[function]> Function like the one given to [Cluster.task]. If a function is provided, this function will be called (only for this job) instead of the function provided to [Cluster.task].
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
   - `url` <[string]|[Object]> The data of the job you provided as first argument to [Cluster.queue]. This might be `undefined` in case you only specified a function.
@@ -127,7 +126,7 @@ Specifies a task for the cluster. A task is called for each job you queue via [C
       - `id` <[number]> ID of the worker. Worker IDs start at 0.
 - returns: <[Promise]>
 
-Puts a URL (a job) into the queue. TODO add examples for all possible calls
+Puts a URL or data into the queue. Alternatively (or even additionally) you can queue functions to be executed. See the examples about function queuing for more information: ([Simple function queuing](examples/function-queuing-simple.js), [complex function queuing](examples/function-queuing-complex.js))
 
 #### Cluster.idle()
 - returns: <[Promise]>
