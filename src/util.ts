@@ -63,7 +63,15 @@ export async function timeoutExecute<T>(millis: number, promise: Promise<T>): Pr
             });
             throw new Error(`Timeout hit: ${millis}`);
         })(),
-        promise,
+        (async () => {
+            try {
+                return await promise;
+            } catch (error) {
+                // Cancel timeout in error case
+                clearTimeout(timeout as any as NodeJS.Timer);
+                throw error;
+            }
+        })(),
     ]);
     clearTimeout(timeout as any as NodeJS.Timer); // is there a better way?
     return result;
