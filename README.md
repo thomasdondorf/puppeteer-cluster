@@ -7,10 +7,6 @@
 
 Create a cluster of puppeteer workers. This library spawns a pool of Chromium instances via [Puppeteer] and helps to keep track of jobs and errors. This is hepful if you want to crawl multiple pages or run tests in parallel. Puppeteer Cluster takes care of reusing Chromium and restarting the browser in case of errors.
 
-<p align="center">
-  <img src="https://i.imgur.com/koGNkBN.gif" height="250">
-</p>
-
 ###### What does this library do?
 
 * Handling of crawling errors
@@ -18,7 +14,11 @@ Create a cluster of puppeteer workers. This library spawns a pool of Chromium in
 * Can automatically retry if a job fails
 * Different concurrency models to choose from (pages, contexts, browsers)
 * Simple to use, small boilerplate
-* Progress view and monitoring statistics
+* Progress view and monitoring statistics (see below)
+
+<p align="center">
+  <img src="https://i.imgur.com/koGNkBN.gif" height="250">
+</p>
 
 ## Install
 
