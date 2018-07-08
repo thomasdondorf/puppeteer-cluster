@@ -64,6 +64,7 @@ const { Cluster } = require('puppeteer-cluster');
 * [Crawling the Alexa Top 1 Million](examples/alexa-1m.js)
 * [Queuing functions (simple)](examples/function-queuing-simple.js)
 * [Queuing functions (complex)](examples/function-queuing-complex.js)
+* [Error handling](examples/error-handling.js)
 
 ## Concurreny models
 
