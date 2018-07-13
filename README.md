@@ -49,7 +49,7 @@ const { Cluster } = require('puppeteer-cluster');
     maxConcurrency: 2,
   });
 
-  cluster.task(async (page, url) => {
+  cluster.task(async ({ page, data: url }) => {
     await page.goto(url);
     const screen = await page.screenshot();
     // Store screenshot, do something else
@@ -107,8 +107,8 @@ Emitted when the task ends in an error for some reason. Reasons might be a netwo
   - `puppeteerOptions` <[Object]> Object passed to [puppeteer.launch]. See puppeteer documentation for more information. Defaults to `{}`.
   - `retryLimit` <[number]> How often do you want to retry a job before marking it as failed. Defaults to `0`.
   - `retryDelay` <[number]> How much time should pass at minimum between the job execution and its retry. Defaults to `0`.
-  - `sameDomainDelay` <[number]> How much time should pass at minimum between two requests to the same domain.
-  - `skipDuplicateUrls` <[boolean]> If set to `true`, will skip URLs which were already crawled by the cluster. Defaults to `false`.
+  - `sameDomainDelay` <[number]> How much time should pass at minimum between two requests to the same domain. If you use this field, the queued `data` must be your URL or `data` must be an object containing a field called `url`.
+  - `skipDuplicateUrls` <[boolean]> If set to `true`, will skip URLs which were already crawled by the cluster. Defaults to `false`. If you use this field, the queued `data` must be your URL or `data` must be an object containing a field called `url`.
   - `timeout` <[number]> Specify a timeout for all tasks. Can be overridden by [Cluster.task] and [Cluster.queue] options. Defaults to `30000` (30 seconds).
   - `monitor` <[boolean]> If set to `true`, will provide a small command line output to provide information about the crawling process. Defaults to `false`.
   - `workerCreationDelay` <[number]> Time between creation of two workers. Set this to a value like `100` (0.1 seconds) in case you want some time to pass before another worker is created. You can use this to prevent a network peak right at the start. Defaults to `0` (no delay).
@@ -117,24 +117,22 @@ Emitted when the task ends in an error for some reason. Reasons might be a netwo
 The method launches a cluster instance.
 
 #### Cluster.task(taskFunction)
-- `taskFunction` <[function]([string]|[Object], [Page], [Object])> Sets the function, which will be called for each job. The function will be called with three arguments (given below):
+- `taskFunction` <[function]([string]|[Object], [Page], [Object])> Sets the function, which will be called for each job. The function will be called with an object having the following fields:
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
-  - `url` <[string]|[Object]> The data of the job you provided to [Cluster.queue]. This can either be a URL or an object containing additional data (including the URL). See [examples](examples/) for a more complex usage of the argument.
-  - `information` <[Object]> An object containing additional information about your taks.
-    - `worker` <[Object]> The worker executing the current job.
-      - `id` <[number]> ID of the worker. Worker IDs start at 0.
+  - `data` <any> The data of the job you provided to [Cluster.queue].
+  - `worker` <[Object]> An object containing information about the worker executing the current job.
+    - `id` <[number]> ID of the worker. Worker IDs start at 0.
 - returns: <[Promise]>
 
 Specifies a task for the cluster. A task is called for each job you queue via [Cluster.queue]. Alternatively you can directly queue the function that you want to be executed. See [Cluster.queue] for an example.
 
-#### Cluster.queue([urlOrData,] [taskFunction])
-- `urlOrData` <[string]|[Object]> URL to be called or alternatively an object containing information. The string or object will be provided to your task function(s). See [examples] for a more complex usage of this argument.
-- `taskFunction` <[function]> Function like the one given to [Cluster.task]. If a function is provided, this function will be called (only for this job) instead of the function provided to [Cluster.task].
+#### Cluster.queue([data] [, taskFunction])
+- `data` <any> Data to be queued. This might be your URL (a string) or a more complex object containing data. The data given will be provided to your task function(s). See [examples] for a more complex usage of this argument.
+- `taskFunction` <[function]> Function like the one given to [Cluster.task]. If a function is provided, this function will be called (only for this job) instead of the function provided to [Cluster.task]. The function will be called with an object having the following fields:
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
-  - `url` <[string]|[Object]> The data of the job you provided as first argument to [Cluster.queue]. This might be `undefined` in case you only specified a function.
-  - `information` <[Object]> An object containing additional information about your taks.
-    - `worker` <[Object]> The worker executing the current job.
-      - `id` <[number]> ID of the worker. Worker IDs start at 0.
+  - `data` <any> The data of the job you provided as first argument to [Cluster.queue]. This might be `undefined` in case you only specified a function.
+  - `worker` <[Object]> An object containing information about the worker executing the current job.
+    - `id` <[number]> ID of the worker. Worker IDs start at 0.
 - returns: <[Promise]>
 
 Puts a URL or data into the queue. Alternatively (or even additionally) you can queue functions to be executed. See the examples about function queuing for more information: ([Simple function queuing](examples/function-queuing-simple.js), [complex function queuing](examples/function-queuing-complex.js))
