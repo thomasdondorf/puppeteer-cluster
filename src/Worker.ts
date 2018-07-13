@@ -1,5 +1,5 @@
 
-import Job, { JobData } from './Job';
+import Job from './Job';
 import Cluster, { TaskFunction } from './Cluster';
 import { WorkerBrowserInstance, ContextInstance } from './browser/AbstractBrowser';
 import { Page } from 'puppeteer';
@@ -16,12 +16,6 @@ interface WorkerOptions {
     args: string[];
     id: number;
     browser: WorkerBrowserInstance;
-}
-
-export interface TaskArguments {
-    worker: {
-        id: number;
-    };
 }
 
 const BROWSER_TIMEOUT = 5000;
@@ -79,25 +73,31 @@ export default class Worker implements WorkerOptions {
 
         page.on('error', (err) => {
             errorState = err;
-            log('Error (page error) crawling ' + job.url + ' // message: ' + err.message);
+            log('Error (page error) crawling ' + JSON.stringify(job.data)
+                + ' // message: ' + err.message);
         });
 
         try {
             await timeoutExecute(
                 timeout,
-                task(page, job.url, {
-                    worker: { id: this.id },
+                task({
+                    page,
+                    data: job.data,
+                    worker: {
+                        id: this.id,
+                    },
                 }),
             );
         } catch (err) {
             errorState = err;
-            log('Error crawling ' + job.url + ' // message: ' + err.message);
+            log('Error crawling ' + JSON.stringify(job.data) + ' // message: ' + err.message);
         }
 
         try {
             await timeoutExecute(BROWSER_TIMEOUT, browserInstance.close());
         } catch (e) {
-            debug('Error closing browser instance for ' + job.url + ': ' + e.message);
+            debug('Error closing browser instance for ' + + JSON.stringify(job.data)
+                + ': ' + e.message);
             await this.browser.repair();
         }
 

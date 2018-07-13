@@ -8,7 +8,7 @@ const { Cluster } = require('../dist');
     });
 
     // Define a task (extracting document.title in this case)
-    await cluster.task(async (page, url) => {
+    await cluster.task(async ({ page, data: url }) => {
         await page.goto(url);
 
         const path = url.replace(/[^a-zA-Z]/g, '_') + '.png';

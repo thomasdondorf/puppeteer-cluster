@@ -2,7 +2,7 @@
 import Job, { JobData } from './Job';
 import Display from './Display';
 import * as util from './util';
-import Worker, { TaskArguments } from './Worker';
+import Worker from './Worker';
 
 import ConcurrencyBrowser from './browser/ConcurrencyBrowser';
 import ConcurrencyPage from './browser/ConcurrencyPage';
@@ -58,8 +58,15 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     sameDomainDelay: 0,
 };
 
-export type TaskFunction =
-    (page: Page, url: string | JobData | undefined, options: TaskArguments) => Promise<void>;
+interface TaskFunctionArguments {
+    page: Page;
+    data: JobData;
+    worker: {
+        id: number;
+    };
+}
+
+export type TaskFunction = (arg: TaskFunctionArguments) => Promise<void>;
 
 const MONITORING_DISPLAY_INTERVAL = 500;
 const CHECK_FOR_WORK_INTERVAL = 100;
@@ -82,7 +89,7 @@ export default class Cluster extends EventEmitter {
 
     private taskFunction: TaskFunction | null = null;
     private idleResolvers: (() => void)[] = [];
-    private waitForOneResolvers: ((url:string | JobData | undefined) => void)[] = [];
+    private waitForOneResolvers: ((data:JobData) => void)[] = [];
     private browser: AbstractBrowser | null = null;
 
     private isClosed = false;
@@ -282,7 +289,7 @@ export default class Cluster extends EventEmitter {
         } else { // error during execution
             // error during execution
             job.addError(resultError);
-            this.emit('taskerror', resultError, job.url);
+            this.emit('taskerror', resultError, job.data);
 
             if (job.tries <= this.options.retryLimit) {
                 let delayUntil = undefined;
@@ -296,7 +303,7 @@ export default class Cluster extends EventEmitter {
                 this.errorCount += 1;
             }
         }
-        this.waitForOneResolvers.forEach(resolve => resolve(job.url));
+        this.waitForOneResolvers.forEach(resolve => resolve(job.data));
 
         // add worker to available workers again
         const workerIndex = this.workersBusy.indexOf(worker);
@@ -321,18 +328,17 @@ export default class Cluster extends EventEmitter {
         );
     }
 
-    public async queue(url: string, taskFunction?: TaskFunction): Promise<void>;
-    public async queue(url: JobData, taskFunction?: TaskFunction): Promise<void>;
+    public async queue(data: JobData, taskFunction?: TaskFunction): Promise<void>;
     public async queue(taskFunction: TaskFunction): Promise<void>;
     public async queue(
-        urlOrDataOrFunction: JobData | string | TaskFunction,
+        data: JobData | TaskFunction,
         taskFunction?: TaskFunction,
     ): Promise<void> {
         let job;
-        if (typeof urlOrDataOrFunction === 'function') {
-            job = new Job(undefined, urlOrDataOrFunction);
+        if (typeof data === 'function') {
+            job = new Job(undefined, data);
         } else {
-            job = new Job(urlOrDataOrFunction, taskFunction);
+            job = new Job(data, taskFunction);
         }
         this.allTargetCount += 1;
         this.jobQueue.push(job);
@@ -343,7 +349,7 @@ export default class Cluster extends EventEmitter {
         return new Promise(resolve => this.idleResolvers.push(resolve));
     }
 
-    public waitForOne(): Promise<string | JobData> {
+    public waitForOne(): Promise<JobData> {
         return new Promise(resolve  => this.waitForOneResolvers.push(resolve));
     }
 

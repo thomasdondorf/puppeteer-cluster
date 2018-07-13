@@ -2,34 +2,30 @@
 import { URL } from 'url';
 import { TaskFunction } from './Cluster';
 
-// needs an URL, but can have any other information in it
-export interface JobData {
-    url: string;
-    [x: string]: any;
-}
+export type JobData = any;
 
 export default class Job {
 
-    public url: string | JobData | undefined;
+    public data: JobData;
     public taskFunction: TaskFunction | undefined;
 
     private lastError: Error | null = null;
     public tries: number = 0;
 
-    public constructor(url: string | JobData | undefined, taskFunction?: TaskFunction) {
-        this.url = url;
+    public constructor(data: JobData, taskFunction?: TaskFunction) {
+        this.data = data;
         this.taskFunction = taskFunction;
     }
 
     public getUrl(): string | undefined {
-        if (this.url === undefined) {
+        if (this.data === undefined) {
             return undefined;
         }
-        if (typeof this.url === 'string') {
-            return this.url;
+        if (typeof this.data === 'string') {
+            return this.data;
         }
-        if ((typeof (this.url as JobData).url === 'string')) {
-            return this.url.url;
+        if (this.data !== undefined && typeof this.data.url === 'string') {
+            return this.data.url;
         }
         return undefined;
     }

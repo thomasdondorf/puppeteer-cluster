@@ -13,11 +13,11 @@ const { Cluster } = require('../dist');
     });
 
     // Event handler to be called in case of problems
-    cluster.on('taskerror', (err, url) => {
-        console.log(`Error crawling ${url}: ${err.message}`);
+    cluster.on('taskerror', (err, data) => {
+        console.log(`Error crawling ${data}: ${err.message}`);
     });
 
-    await cluster.task(async (page, url) => {
+    await cluster.task(async ({ page, data: url }) => {
         // Simulate an error for Wikipedia
         if (url === 'https://www.wikipedia.org/') {
             throw new Error('Fake error');

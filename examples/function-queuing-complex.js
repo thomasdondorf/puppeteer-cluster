@@ -7,13 +7,13 @@ const { Cluster } = require('../dist');
     });
 
     // We don't define a task and instead use own functions
-    const screenshot = async (page, url) => {
+    const screenshot = async ({ page, data: url }) => {
         await page.goto(url);
         const path = url.replace(/[^a-zA-Z]/g, '_') + '.png';
         await page.screenshot({ path });
     };
 
-    const extractTitle = async (page, url) => {
+    const extractTitle = async ({ page, data: url }) => {
         await page.goto(url);
         const pageTitle = await page.evaluate(() => document.title);
         console.log(`Page title is ${pageTitle}`);
@@ -28,7 +28,7 @@ const { Cluster } = require('../dist');
     await cluster.queue('https://twitter.com/', extractTitle);
 
     // We can still define single functions
-    await cluster.queue(async (page) => {
+    await cluster.queue(async ({ page }) => {
         await page.goto('https://www.google.com/');
         // ...
         console.log('Went to google.com');

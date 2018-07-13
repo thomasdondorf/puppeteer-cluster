@@ -16,15 +16,15 @@ const readFile = util.promisify(fs.readFile);
     });
 
     // Extracts document.title of the crawled pages
-    await cluster.task(async (page, url) => {
+    await cluster.task(async ({ page, data: url }) => {
         await page.goto(url, { waitUntil: 'domcontentloaded' });
         const pageTitle = await page.evaluate(() => document.title);
         console.log(`Page title of ${url} is ${pageTitle}`);
     });
 
     // In case of problems, log them
-    cluster.on('taskerror', (err, url) => {
-        console.log(`  Error crawling ${url}: ${err.message}`);
+    cluster.on('taskerror', (err, data) => {
+        console.log(`  Error crawling ${data}: ${err.message}`);
     });
 
     // Read the top-1m.csv file from the current directory

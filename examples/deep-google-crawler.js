@@ -7,15 +7,16 @@ const { Cluster } = require('../dist');
     });
 
     // Extract title of page
-    const extractTitle = async (page, { url, position }) => {
+    const extractTitle = async ({ page, data }) => {
+        const { url, position } = data;
         await page.goto(url);
         const pageTitle = await page.evaluate(() => document.title);
         console.log(`Page title of #${position} ${url} is ${pageTitle}`);
     };
 
     // Crawl the Google page
-    await cluster.task(async (page, { searchTerm, offset }) => {
-
+    await cluster.task(async ({ page, data }) => {
+        const { searchTerm, offset } = data;
         await page.goto(
             'https://www.google.com/search?q=' + searchTerm + '&start=' + offset,
             { waitUntil: 'domcontentloaded' }

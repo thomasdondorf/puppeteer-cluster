@@ -9,13 +9,13 @@ const { Cluster } = require('../dist');
     // We don't define a task and instead queue individual functions
 
     // Make a screenshot
-    await cluster.queue(async (page) => {
+    await cluster.queue(async ({ page }) => {
         await page.goto('http://www.wikipedia.org');
         await page.screenshot({path: 'wikipedia.png'});
     });
 
     // Extract a title
-    await cluster.queue(async (page) => {
+    await cluster.queue(async ({ page }) => {
         await page.goto('https://www.google.com/');
         const pageTitle = await page.evaluate(() => document.title);
         console.log(`Page title is ${pageTitle}`);
@@ -23,7 +23,7 @@ const { Cluster } = require('../dist');
 
 
     // And do more stuff...
-    await cluster.queue(async (page) => {
+    await cluster.queue(async ({ page }) => {
         await page.goto('https://www.google.com/');
         // ...
     });

@@ -28,7 +28,7 @@ async function cookieTest(concurrencyType) {
 
     const randomValue = Math.random().toString();
 
-    cluster.task(async (page, url: string) => {
+    cluster.task(async ({ page, data: url }) => {
         await page.goto(url);
         const cookies = await page.cookies();
 
@@ -89,7 +89,7 @@ describe('options', () => {
                     skipDuplicateUrls: true,
                 });
 
-                cluster.task(async (page, url) => {
+                cluster.task(async ({ page, data: url }) => {
                     expect(url).toBe(TEST_URL);
                 });
 
@@ -112,7 +112,7 @@ describe('options', () => {
                     skipDuplicateUrls: true,
                 });
 
-                cluster.task(async (page, url) => {
+                cluster.task(async ({ page, data: url }) => {
                     expect(url).toBe(sameUrl);
                 });
 
@@ -133,7 +133,7 @@ describe('options', () => {
                     retryLimit: 3,
                 });
 
-                cluster.task(async (page, url) => {
+                cluster.task(async ({ page, data: url }) => {
                     expect(true).toBe(true);
                     throw new Error('testing retryLimit');
                 });
@@ -151,7 +151,7 @@ describe('options', () => {
                 });
                 let counter = 0;
 
-                cluster.task(async (page, url) => {
+                cluster.task(async ({ page, data: url }) => {
                     counter += 1;
                 });
                 cluster.queue(TEST_URL);
@@ -178,7 +178,7 @@ describe('options', () => {
 
                 const ERROR_URL = 'http://example.com/we-are-never-visited-the-page';
 
-                cluster.task(async (page, url) => {
+                cluster.task(async ({ page, data: url }) => {
                     if (url === ERROR_URL) {
                         throw new Error('testing retryDelay');
                     }
@@ -216,7 +216,7 @@ describe('options', () => {
 
                 const ERROR_URL = 'http://example.com/we-are-never-visited-the-page';
 
-                cluster.task(async (page, url) => {
+                cluster.task(async ({ page, data: url }) => {
                     if (url === ERROR_URL) {
                         throw new Error('testing retryDelay');
                     }
@@ -260,7 +260,7 @@ describe('options', () => {
                 // increments URL increments the counter
                 // other urls will not
 
-                cluster.task(async (page, url) => {
+                cluster.task(async ({ page, data: url }) => {
                     if (url === INCREMENT_URL) {
                         counter += 1;
                     }
@@ -291,12 +291,12 @@ describe('options', () => {
                     maxConcurrency: 1,
                 });
 
-                await cluster.queue(async (page, url) => {
+                await cluster.queue(async ({ page, data }) => {
                     expect(page).toBeDefined();
-                    expect(url).toBeUndefined();
+                    expect(data).toBeUndefined();
                 });
 
-                await cluster.queue('something', async (page, url) => {
+                await cluster.queue('something', async ({ page, data: url }) => {
                     expect(page).toBeDefined();
                     expect(url).toBe('something');
                 });
@@ -314,22 +314,38 @@ describe('options', () => {
                     maxConcurrency: 1,
                 });
 
-                await cluster.task(async (page, url) => {
+                await cluster.task(async ({ page, data: url }) => {
                     // called two times
                     expect(page).toBeDefined();
                     expect(url).toBe('works');
                 });
 
-                await cluster.queue('works too', async (page, url) => {
+                await cluster.queue('works too', async ({ page, data: url }) => {
                     expect(page).toBeDefined();
                     expect(url).toBe('works too');
                 });
                 cluster.queue('works');
-                await cluster.queue(async (page, url) => {
+                await cluster.queue(async ({ page, data: url }) => {
                     expect(page).toBeDefined();
                     expect(url).toBeUndefined();
                 });
                 cluster.queue('works');
+
+                await cluster.idle();
+                await cluster.close();
+            });
+
+            test('works with complex objects', async () => {
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
+                    maxConcurrency: 1,
+                });
+
+                await cluster.task(async ({ page, data }) => {
+                    expect(data.a.b).toBe('test');
+                });
+                cluster.queue({ a: { b: 'test' } });
 
                 await cluster.idle();
                 await cluster.close();
