@@ -9,20 +9,17 @@ addons:
 cache:
   directories:
   - node_modules
-
 before_script:
-  - npm run build
-
+- npm run build
 script: npm run coverage
-
 deploy:
   provider: npm
   skip_cleanup: true
   email: thomasdondorf@gmail.com
   api_key:
-    secure: wSmG4oVJpKRAUiKxJ6WyZDsLGg+bkzODVDzvmjPH66eeiEnYvABvJEme9+2tzqRj65ijqGwy4gXaMaD2CCXg/BzAtnd3oT2dNAVn4UAnI6x64P/YhMsmorcUTmlkjgBi26R2sONDI3b/imwxWjt7xGb71/GveBPx9wjkZOU8vEGWk7z8Egg+QAYO748Ikpd/6Bkk1MFdKP7VPVL2xJa+cMgHjgJK02uonxNS8RSl38lZg7IF+1Lv/djeCqCWsJqSvD3aw3EqOKK2yuQrrM7TO4nCh+WRsqnZzg8SpemUHX5Yu7wtGzAiaRhwzHhqw3/IuFUu+X3BgaHieM8tj9om1nmgwGlyqHgt0Rz0vO+hM08+0mIsI3bTwOYnraxoYjTouhMzORAUzIF5PJPz3N/XUXOv8BNQdRLYSVIKLphlirkM2HJZkGER0/vsMQ1lE7A9IbQ24Imi9oOiBhwmsEO2R2R3NUbXNr1eC4j56BSMZLUSUmRXRvEw+im0pCgfR4QmLaA8lfyzJRDM8G+xw/vSTC+sMv5duKtrS2Nox9Vnc4f7IkUxwXb2DncDdwgJBHVUjvTna2da1/cPmpoUzHMevOdn/Mhmh+fR7mPbsu4n76dOWeMz48NgNzr2BT0LyI6TQ2ViQ4p0KvmfV/q+hYi2xMJ8kOtQPnQ4n6IGxUeZly0=
+    secure: gKsvGl7Yk0PmXNB58/Y9g+AQ/FnvIsJCdX3sAJd73JjF7oTN+cHvP+NcoC7UDc6vEbhsA2apchGJx0YRYw8kbqbZ43o1H+l3NeVlq3P2aj6uzcvYCg4Pvo/N9TwlBTRrIhkex6F5mIKqsL3sXn1v4RtN8RlMBFdCzTATM/uryNkErjIKiAQ+AvDoNNFBtefRMxf0b6QETTA3IfKjbcED48FqzD9Wfjzb4D5sgneUl6N2KRNc4ID5uZvpdBQLmgmaWcvw5yzYOM6JMPXvTtFM3XjwVjtLOCWqYqAuKN0jWDRwG3c4STlgP/9LJfbn1oEDWT7vCqXBKuA4+9GLFrQfSDrn8BQGSPOKmbY5kxgm/H2aeO4HiD8sZVeKCwHA8YCl/dpnwu5TWSs2G60pvmra4qO+aSwmjZQZbGAT6XjSqs9j6jts9THhdoklmZex7TlQ/7njPnTJBnR8wC1/o9gXME0t2hAYHErHrYluRPIufTjjvLu55OUiIGfWfjB698T9/qIOwFUkAB6slC9Ox0aw/nPdyC/wFBbxPB0iZB3sbMyYSXhB1oUHyBmyWN8MbgqjrLLMmDQbBrflJ8z73VDjoHnsMgamxXwqoVFj8MqADQSz7YPMzrTVOmtqe9FfAdsGy+pVp5ppangGK0UujKJprP4pHChy/RT+FEXblhSVz2A=
   on:
     tags: true
     branch: master
-
-after_script: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+after_script: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+  && rm -rf ./coverage
