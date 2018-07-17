@@ -4,6 +4,7 @@ import Cluster, { TaskFunction } from './Cluster';
 import { WorkerBrowserInstance, ContextInstance } from './browser/AbstractBrowser';
 import { Page } from 'puppeteer';
 import { timeoutExecute, debugGenerator, log } from './util';
+import { inspect } from 'util';
 
 const debug = debugGenerator('Worker');
 
@@ -73,7 +74,7 @@ export default class Worker implements WorkerOptions {
 
         page.on('error', (err) => {
             errorState = err;
-            log('Error (page error) crawling ' + JSON.stringify(job.data)
+            log('Error (page error) crawling ' + inspect(job.data)
                 + ' // message: ' + err.message);
         });
 
@@ -90,13 +91,13 @@ export default class Worker implements WorkerOptions {
             );
         } catch (err) {
             errorState = err;
-            log('Error crawling ' + JSON.stringify(job.data) + ' // message: ' + err.message);
+            log('Error crawling ' + inspect(job.data) + ' // message: ' + err.message);
         }
 
         try {
             await timeoutExecute(BROWSER_TIMEOUT, browserInstance.close());
         } catch (e) {
-            debug('Error closing browser instance for ' + + JSON.stringify(job.data)
+            debug('Error closing browser instance for ' + inspect(job.data)
                 + ': ' + e.message);
             await this.browser.repair();
         }
