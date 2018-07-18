@@ -95,8 +95,8 @@ Cluster module provides a method to launch a cluster of Chromium instances.
 Emitted when the task ends in an error for some reason. Reasons might be a network error, your code throwing an error, timeout hit, etc. The first argument will the error itself. The second argument is the URL or data of the job (as given to [Cluster.queue]). If retryLimit is set to a value greater than `0`, the cluster will automatically requeue the job and retry it again later.
 
 ```js
-  cluster.on('taskerror', (err, url) => {
-      console.log(`Error crawling ${url}: ${err.message}`);
+  cluster.on('taskerror', (err, data) => {
+      console.log(`Error crawling ${data}: ${err.message}`);
   });
 ```
 
