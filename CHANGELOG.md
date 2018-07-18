@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.9.1] - 2018-07-18
+### Fixed
+- Circular structures led to crashs in case of crawling errors.
+
 ## [0.9.0] - 2018-07-13
 ### Changed
 - Cluster.task function signature changed from `Cluster.task(page, url)` to `Cluster.task({ page, data })`. `Cluster.queue` can be passed any data instead of a string or object.
