@@ -78,6 +78,8 @@ export default class Worker implements WorkerOptions {
                 + ' // message: ' + err.message);
         });
 
+        debug(`Executing task on worker #${this.id} with data: ${inspect(job.data)}`);
+
         try {
             await timeoutExecute(
                 timeout,
@@ -93,6 +95,8 @@ export default class Worker implements WorkerOptions {
             errorState = err;
             log('Error crawling ' + inspect(job.data) + ' // message: ' + err.message);
         }
+
+        debug(`Finished executing task on worker #${this.id}`);
 
         try {
             await timeoutExecute(BROWSER_TIMEOUT, browserInstance.close());
