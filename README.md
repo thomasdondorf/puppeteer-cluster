@@ -11,6 +11,7 @@ Create a cluster of puppeteer workers. This library spawns a pool of Chromium in
 - [Usage](#usage)
 - [Examples](#examples)
 - [Concurreny models](#concurreny-models)
+- [Debugging](#debugging)
 - [API](#api)
 
 ###### What does this library do?
@@ -81,6 +82,17 @@ There are different concurrency models, which define how isolated each job is ru
 | `CONCURRENCY_PAGE` | One [Page] for each URL | Shares everything (cookies, localStorage, etc.) between jobs. |
 | `CONCURRENCY_CONTEXT` | Incognito page (see [IncognitoBrowserContext](https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#browsercreateincognitobrowsercontext)) for each URL  | No shared data. |
 | `CONCURRENCY_BROWSER` | One browser (using an incognito page) per URL. If one browser instance crashes for any reason, this will not affect other jobs. | No shared data.  |
+
+## Debugging
+
+Try to checkout the [puppeteer debugging tips](https://github.com/GoogleChrome/puppeteer#debugging-tips) first. Your problem might not be related to `puppeteer-cluster`, but `puppteer` itself. Additionally, you can enable verbose logging to see which data is consumed by which worker and some other cluster information. Set the DEBUG environment variable to `puppeteer-cluster:*`. See an example below or checkout the [debug docs](https://github.com/visionmedia/debug#windows-command-prompt-notes) for more information.
+
+```bash
+# Linux
+DEBUG='puppeteer-cluster:*' node examples/minimal
+# Windows Powershell
+$env:DEBUG='puppeteer-cluster:*';node examples/minimal
+```
 
 ## API
 
