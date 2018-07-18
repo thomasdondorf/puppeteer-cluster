@@ -1,7 +1,7 @@
 # Puppeteer Cluster
 
 [![Build Status](https://api.travis-ci.org/thomasdondorf/puppeteer-cluster.svg?branch=master)](https://travis-ci.org/thomasdondorf/puppeteer-cluster)
-[![npm](https://img.shields.io/npm/v/puppeteer-cluster.svg)](https://www.npmjs.com/package/puppeteer-cluster)
+[![npm](https://badgen.now.sh/npm/v/puppeteer-cluster)](https://www.npmjs.com/package/puppeteer-cluster)
 [![Coverage Status](https://coveralls.io/repos/github/thomasdondorf/puppeteer-cluster/badge.svg?branch=master)](https://coveralls.io/github/thomasdondorf/puppeteer-cluster?branch=master)
 [![Known Vulnerabilities](https://snyk.io/test/github/thomasdondorf/puppeteer-cluster/badge.svg)](https://snyk.io/test/github/thomasdondorf/puppeteer-cluster)
 
