@@ -22,16 +22,25 @@ const TIME_UNITS: TimeUnit[] = [
 
 const TIME_UNIT_THRESHOLD = 0.95;
 
+function padDate(value: number|string, num: number): string {
+    const str = value.toString();
+    if (str.length >= num) {
+        return str;
+    }
+    const zeroesToAdd = num - str.length;
+    return '0'.repeat(zeroesToAdd) + str;
+}
+
 export function formatDateTime(datetime: Date | number): string {
     const date = (typeof datetime === 'number') ? new Date(datetime) : datetime;
 
     const dateStr = `${date.getFullYear()}`
-        + `-${(date.getMonth() + 1).toString().padStart(2, '0')}`
-        + `-${(date.getDate()).toString().padStart(2, '0')}`;
-    const timeStr = `${date.getHours().toString().padStart(2, '0')}`
-        + `:${date.getMinutes().toString().padStart(2, '0')}`
-        + `:${date.getSeconds().toString().padStart(2, '0')}`
-        + `.${date.getMilliseconds().toString().padStart(3, '0')}`;
+        + `-${padDate(date.getMonth() + 1, 2)}`
+        + `-${padDate(date.getDate(), 2)}`;
+    const timeStr = `${padDate(date.getHours(), 2)}`
+        + `:${padDate(date.getMinutes(), 2)}`
+        + `:${padDate(date.getSeconds(), 2)}`
+        + `.${padDate(date.getMilliseconds(), 3)}`;
 
     return `${dateStr} ${timeStr}`;
 }
