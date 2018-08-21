@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.10.0] - 2018-08-21
+### Added
+- Node.js support for version 6 and 7 added
+
 ## [0.9.1] - 2018-07-18
 ### Fixed
 - Circular structures led to crashs in case of crawling errors.
