@@ -7,7 +7,7 @@ const { Cluster } = require('../dist');
         maxConcurrency: 2,
     });
 
-    // Define a task (extracting document.title in this case)
+    // Define a task (in this case: screenshot of page)
     await cluster.task(async ({ page, data: url }) => {
         await page.goto(url);
 
