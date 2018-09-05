@@ -121,7 +121,7 @@ Emitted when the task ends in an error for some reason. Reasons might be a netwo
   - `retryDelay` <[number]> How much time should pass at minimum between the job execution and its retry. Defaults to `0`.
   - `sameDomainDelay` <[number]> How much time should pass at minimum between two requests to the same domain. If you use this field, the queued `data` must be your URL or `data` must be an object containing a field called `url`.
   - `skipDuplicateUrls` <[boolean]> If set to `true`, will skip URLs which were already crawled by the cluster. Defaults to `false`. If you use this field, the queued `data` must be your URL or `data` must be an object containing a field called `url`.
-  - `timeout` <[number]> Specify a timeout for all tasks. Can be overridden by [Cluster.task] and [Cluster.queue] options. Defaults to `30000` (30 seconds).
+  - `timeout` <[number]> Specify a timeout for all tasks. Defaults to `30000` (30 seconds).
   - `monitor` <[boolean]> If set to `true`, will provide a small command line output to provide information about the crawling process. Defaults to `false`.
   - `workerCreationDelay` <[number]> Time between creation of two workers. Set this to a value like `100` (0.1 seconds) in case you want some time to pass before another worker is created. You can use this to prevent a network peak right at the start. Defaults to `0` (no delay).
 - returns: <[Promise]<[Cluster]>>
