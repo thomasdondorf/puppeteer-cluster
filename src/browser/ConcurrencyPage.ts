@@ -2,8 +2,10 @@
 import AbstractBrowser from './AbstractBrowser';
 import * as puppeteer from 'puppeteer';
 
-import { debugGenerator } from '../util';
+import { debugGenerator, timeoutExecute } from '../util';
 const debug = debugGenerator('BrowserPage');
+
+const BROWSER_TIMEOUT = 5000;
 
 export default class ConcurrencyPage extends AbstractBrowser {
 
@@ -59,7 +61,9 @@ export default class ConcurrencyPage extends AbstractBrowser {
                     await this.startRepair();
                 }
 
-                page = await (<puppeteer.Browser>this.chrome).newPage();
+                await timeoutExecute(BROWSER_TIMEOUT, (async () => {
+                    page = await (<puppeteer.Browser>this.chrome).newPage();
+                })());
                 this.openInstances += 1;
 
                 return {
@@ -67,7 +71,7 @@ export default class ConcurrencyPage extends AbstractBrowser {
 
                     close: async () => {
                         this.openInstances -= 1; // decrement first in case of error
-                        await page.close();
+                        await timeoutExecute(BROWSER_TIMEOUT, page.close());
 
                         if (this.repairRequested) {
                             await this.startRepair();

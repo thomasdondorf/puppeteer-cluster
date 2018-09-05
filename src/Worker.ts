@@ -19,8 +19,6 @@ interface WorkerOptions {
     browser: WorkerBrowserInstance;
 }
 
-const BROWSER_TIMEOUT = 5000;
-
 const BROWSER_INSTANCE_TRIES = 10;
 
 export default class Worker implements WorkerOptions {
@@ -55,7 +53,7 @@ export default class Worker implements WorkerOptions {
 
         while (browserInstance === null) {
             try {
-                browserInstance = await timeoutExecute(BROWSER_TIMEOUT, this.browser.instance());
+                browserInstance = await this.browser.instance();
                 page = browserInstance.page;
             } catch (err) {
                 debug(`Error getting browser page (try: ${tries}), message: ${err.message}`);
@@ -99,7 +97,7 @@ export default class Worker implements WorkerOptions {
         debug(`Finished executing task on worker #${this.id}`);
 
         try {
-            await timeoutExecute(BROWSER_TIMEOUT, browserInstance.close());
+            await browserInstance.close();
         } catch (e) {
             debug('Error closing browser instance for ' + inspect(job.data)
                 + ': ' + e.message);

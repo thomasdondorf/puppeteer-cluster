@@ -2,8 +2,10 @@
 import AbstractBrowser from './AbstractBrowser';
 import * as puppeteer from 'puppeteer';
 
-import { debugGenerator } from '../util';
+import { debugGenerator, timeoutExecute } from '../util';
 const debug = debugGenerator('BrowserContext');
+
+const BROWSER_TIMEOUT = 5000;
 
 export default class ConcurrencyPage extends AbstractBrowser {
 
@@ -63,9 +65,11 @@ export default class ConcurrencyPage extends AbstractBrowser {
                     await this.startRepair();
                 }
 
-                // @ts-ignore Typings are not up-to-date, ignore for now...
-                context = await this.chrome.createIncognitoBrowserContext();
-                page = await context.newPage();
+                await timeoutExecute(BROWSER_TIMEOUT, (async () => {
+                    // @ts-ignore Typings are not up-to-date, ignore for now...
+                    context = await this.chrome.createIncognitoBrowserContext();
+                    page = await context.newPage();
+                })());
                 this.openInstances += 1;
 
                 return {
@@ -73,7 +77,7 @@ export default class ConcurrencyPage extends AbstractBrowser {
 
                     close: async () => {
                         this.openInstances -= 1; // decrement first in case of error
-                        await context.close();
+                        await timeoutExecute(BROWSER_TIMEOUT, context.close());
 
                         if (this.repairRequested) {
                             await this.startRepair();

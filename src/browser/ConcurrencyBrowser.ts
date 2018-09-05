@@ -2,8 +2,10 @@
 import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
 import * as puppeteer from 'puppeteer';
 
-import { debugGenerator } from '../util';
+import { debugGenerator, timeoutExecute } from '../util';
 const debug = debugGenerator('Browser');
+
+const BROWSER_TIMEOUT = 5000;
 
 export default class ConcurrencyBrowser extends AbstractBrowser {
     public async init() {}
@@ -17,14 +19,17 @@ export default class ConcurrencyBrowser extends AbstractBrowser {
         return {
             instance: async () => {
                 // @ts-ignore: Old definition file of puppeteer
-                context = await chrome.createIncognitoBrowserContext();
-                page = await context.newPage();
+                await timeoutExecute(BROWSER_TIMEOUT, (async () => {
+                    // @ts-ignore Typings are not up-to-date, ignore for now...
+                    context = await chrome.createIncognitoBrowserContext();
+                    page = await context.newPage();
+                })());
 
                 return {
                     page,
 
                     close: async () => {
-                        await context.close();
+                        await timeoutExecute(BROWSER_TIMEOUT, context.close());
                     },
                 };
             },
