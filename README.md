@@ -50,7 +50,7 @@ const { Cluster } = require('puppeteer-cluster');
     maxConcurrency: 2,
   });
 
-  cluster.task(async ({ page, data: url }) => {
+  await cluster.task(async ({ page, data: url }) => {
     await page.goto(url);
     const screen = await page.screenshot();
     // Store screenshot, do something else
