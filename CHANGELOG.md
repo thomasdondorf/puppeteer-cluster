@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.11.0] - 2018-09-05
+### Fixed
+- Fixed rarely happening bug (issue #3), which made browser not able to restart
+
 ## [0.10.0] - 2018-08-21
 ### Added
 - Node.js support for version 6 and 7 added
@@ -22,7 +26,7 @@ All notable changes to this project will be documented in this file.
 - Cluster can be used without defining a Cluster.task function by queuing only functions.
 
 ### Fixed
-- Page errors ("Page crashed!") wre not caught so far
+- Page errors ("Page crashed!") were not caught so far
 
 ### Removed
 - maxCPU and maxMemory options removed as they made no sense (better to check how much chromium your machine can handle.)
