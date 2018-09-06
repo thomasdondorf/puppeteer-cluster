@@ -250,40 +250,7 @@ describe('options', () => {
                 jest.useRealTimers();
             });
 
-            test('sameDomainDelay = 0', async () => {
-                const cluster = await Cluster.launch({
-                    concurrency,
-                    puppeteerOptions: { args: ['--no-sandbox'] },
-                    maxConcurrency: 1,
-                    sameDomainDelay: 0,
-                });
-                cluster.on('taskerror', (err) => {
-                    throw err;
-                });
-
-                let counter = 0;
-
-                const FIRST_URL = 'http://example.com/we-are-never-visiting-the-page';
-                const SECOND_URL = 'http://another.tld/we-are-never-visiting-the-page';
-
-                await cluster.task(async ({ page, data: { url, counterShouldBe } }) => {
-                    counter += 1;
-                    expect(counter).toBe(counterShouldBe);
-                });
-
-                await cluster.queue({ url: FIRST_URL, counterShouldBe: 1 });
-                await cluster.queue({ url: FIRST_URL, counterShouldBe: 2 });
-                await cluster.waitForOne();
-                await cluster.queue({ url: SECOND_URL, counterShouldBe: 3 });
-                await cluster.queue({ url: SECOND_URL, counterShouldBe: 4 });
-                await cluster.waitForOne();
-                await cluster.queue({ url: TEST_URL, counterShouldBe: 5 });
-
-                await cluster.idle();
-                await cluster.close();
-            });
-
-            test('sameDomainDelay != 0', async () => {
+            test('sameDomainDelay with one worker', async () => {
                 jest.useRealTimers();
                 const cluster = await Cluster.launch({
                     concurrency,
@@ -306,12 +273,9 @@ describe('options', () => {
                 });
 
                 await cluster.queue({ url: FIRST_URL, counterShouldBe: 1 });
-                await cluster.queue({ url: FIRST_URL, counterShouldBe: 4 });
+                await cluster.queue({ url: FIRST_URL, counterShouldBe: 3 });
                 await cluster.waitForOne();
                 await cluster.queue({ url: SECOND_URL, counterShouldBe: 2 });
-                await cluster.queue({ url: SECOND_URL, counterShouldBe: 5 });
-                await cluster.waitForOne();
-                await cluster.queue({ url: TEST_URL, counterShouldBe: 3 });
 
                 await cluster.idle();
                 await cluster.close();
@@ -341,12 +305,9 @@ describe('options', () => {
                 });
 
                 await cluster.queue({ url: FIRST_URL, counterShouldBe: 1 });
-                await cluster.queue({ url: FIRST_URL, counterShouldBe: 4 });
+                await cluster.queue({ url: FIRST_URL, counterShouldBe: 3 });
                 await cluster.waitForOne();
                 await cluster.queue({ url: SECOND_URL, counterShouldBe: 2 });
-                await cluster.queue({ url: SECOND_URL, counterShouldBe: 5 });
-                await cluster.waitForOne();
-                await cluster.queue({ url: TEST_URL, counterShouldBe: 3 });
 
                 await cluster.idle();
                 await cluster.close();
