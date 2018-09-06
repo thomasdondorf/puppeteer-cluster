@@ -258,6 +258,9 @@ export default class Cluster extends EventEmitter {
         if (this.options.skipDuplicateUrls && url !== undefined) {
             this.duplicateCheckUrls.add(url);
         }
+        if (this.options.sameDomainDelay !== 0 && domain !== undefined) {
+            this.lastDomainAccesses.set(domain, Date.now());
+        }
 
         const worker = <Worker>this.workersAvail.shift();
         this.workersBusy.push(worker);
@@ -282,11 +285,7 @@ export default class Cluster extends EventEmitter {
             this.options.timeout,
         );
 
-        if (resultError === null) {
-            if (this.options.sameDomainDelay !== 0 && domain !== undefined) {
-                this.lastDomainAccesses.set(domain, Date.now());
-            }
-        } else { // error during execution
+        if (resultError !== null) {
             // error during execution
             job.addError(resultError);
             this.emit('taskerror', resultError, job.data);
