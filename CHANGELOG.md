@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.11.1] - 2018-09-06
+### Fixed
+- Fixed sameDomainDelay bug (issue #11)
+
 ## [0.11.0] - 2018-09-05
 ### Fixed
 - Fixed rarely happening bug (issue #3), which made browser not able to restart

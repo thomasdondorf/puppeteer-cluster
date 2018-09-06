@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-cluster",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Cluster management for puppeteer",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
