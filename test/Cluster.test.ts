@@ -1,5 +1,6 @@
 import Cluster from '../src/Cluster';
 import * as http from 'http';
+import { timeoutExecute } from '../src/util';
 
 let testServer;
 
@@ -174,6 +175,7 @@ describe('options', () => {
             });
 
             test('retryDelay = 0', async () => {
+                expect.assertions(2);
                 const cluster = await Cluster.launch({
                     concurrency,
                     puppeteerOptions: { args: ['--no-sandbox'] },
@@ -190,34 +192,28 @@ describe('options', () => {
                     }
                 });
 
-                jest.useFakeTimers();
                 cluster.queue(ERROR_URL);
 
                 const url1 = await cluster.waitForOne();
                 expect(url1).toBe(ERROR_URL);
 
-                jest.advanceTimersByTime(10000);
-                cluster.queue(TEST_URL);
-
-                const url2 = await cluster.waitForOne();
-                expect(url2).toBe(ERROR_URL);
-
-                jest.advanceTimersByTime(100000);
-                const url3 = await cluster.waitForOne();
-                expect(url3).toBe(TEST_URL);
+                await timeoutExecute(200, (async () => {
+                    const url2 = await cluster.waitForOne();
+                    expect(url2).toBe(ERROR_URL);
+                })());
 
                 await cluster.close();
-
-                jest.useRealTimers();
             });
 
             test('retryDelay > 0', async () => {
+                expect.assertions(3);
+
                 const cluster = await Cluster.launch({
                     concurrency,
                     puppeteerOptions: { args: ['--no-sandbox'] },
                     maxConcurrency: 1,
                     retryLimit: 1,
-                    retryDelay: 100000,
+                    retryDelay: 250,
                 });
 
                 const ERROR_URL = 'http://example.com/we-are-never-visited-the-page';
@@ -228,30 +224,26 @@ describe('options', () => {
                     }
                 });
 
-                jest.useFakeTimers();
                 cluster.queue(ERROR_URL);
 
                 const url1 = await cluster.waitForOne();
                 expect(url1).toBe(ERROR_URL);
 
-                // forward, but no jobs sould be executed
-                jest.advanceTimersByTime(10000);
-                cluster.queue(TEST_URL);
+                try {
+                    await timeoutExecute(200, (async () => {
+                        await cluster.waitForOne(); // should time out!
+                    })());
+                } catch (err) {
+                    expect(err.message).toMatch(/Timeout/);
+                }
 
                 const url2 = await cluster.waitForOne();
-                expect(url2).toBe(TEST_URL);
-
-                jest.advanceTimersByTime(100000);
-                const url3 = await cluster.waitForOne();
-                expect(url3).toBe(ERROR_URL);
+                expect(url2).toBe(ERROR_URL);
 
                 await cluster.close();
-
-                jest.useRealTimers();
             });
 
             test('sameDomainDelay with one worker', async () => {
-                jest.useRealTimers();
                 const cluster = await Cluster.launch({
                     concurrency,
                     puppeteerOptions: { args: ['--no-sandbox'] },
@@ -282,8 +274,6 @@ describe('options', () => {
             });
 
             test('sameDomainDelay with multiple workers', async () => {
-                jest.useRealTimers();
-
                 const cluster = await Cluster.launch({
                     concurrency,
                     puppeteerOptions: { args: ['--no-sandbox'] },

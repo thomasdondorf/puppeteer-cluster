@@ -70,6 +70,7 @@ export type TaskFunction = (arg: TaskFunctionArguments) => Promise<void>;
 
 const MONITORING_DISPLAY_INTERVAL = 500;
 const CHECK_FOR_WORK_INTERVAL = 100;
+const WORK_CALL_INTERVAL_LIMIT = 10;
 
 export default class Cluster extends EventEmitter {
 
@@ -192,30 +193,41 @@ export default class Cluster extends EventEmitter {
         this.taskFunction = taskFunction;
     }
 
-    private calledForWork: boolean = false;
+    private nextWorkCall: number = 0;
+    private workCallTimeout: NodeJS.Timer|null = null;
 
     // check for new work soon (wait if there will be put more data into the queue, first)
     private async work() {
-        // make sure, there is only one setImmediate call waiting
-        if (!this.calledForWork) {
-            this.calledForWork = true;
-            setImmediate(() => this.doWork());
+        // make sure, we only call work once every WORK_CALL_INTERVAL_LIMIT (currently: 10ms)
+        if (this.workCallTimeout === null) {
+            const now = Date.now();
+
+            // calculate when the next work call should happen
+            this.nextWorkCall = Math.max(
+                this.nextWorkCall + WORK_CALL_INTERVAL_LIMIT,
+                now,
+            );
+            const timeUntilNextWorkCall = this.nextWorkCall - now;
+
+            this.workCallTimeout = setTimeout(
+                () => {
+                    this.workCallTimeout = null;
+                    this.doWork();
+                },
+                timeUntilNextWorkCall,
+            );
         }
     }
 
     private async doWork() {
-        this.calledForWork = false;
-
-        // no jobs available
-        if (this.jobQueue.size() === 0) {
+        if (this.jobQueue.size() === 0) { // no jobs available
             if (this.workersBusy.length === 0) {
                 this.idleResolvers.forEach(resolve => resolve());
             }
             return;
         }
 
-        // no workers available
-        if (this.workersAvail.length === 0) {
+        if (this.workersAvail.length === 0) { // no workers available
             if (this.allowedToStartWorker()) {
                 await this.launchWorker();
                 this.work();
@@ -227,13 +239,13 @@ export default class Cluster extends EventEmitter {
 
         if (job === undefined) {
             // skip, there are items in the queue but they are all delayed
-            this.work();
             return;
         }
 
         const url = job.getUrl();
         const domain = job.getDomain();
 
+        // Check if URL was already crawled (on skipDuplicateUrls)
         if (this.options.skipDuplicateUrls
             && url !== undefined && this.duplicateCheckUrls.has(url)) {
             // already crawled, just ignore
@@ -242,6 +254,7 @@ export default class Cluster extends EventEmitter {
             return;
         }
 
+        // Check if the job needs to be delayed due to sameDomainDelay
         if (this.options.sameDomainDelay !== 0 && domain !== undefined) {
             const lastDomainAccess = this.lastDomainAccesses.get(domain);
             if (lastDomainAccess !== undefined
@@ -356,6 +369,7 @@ export default class Cluster extends EventEmitter {
         this.isClosed = true;
 
         clearInterval(this.checkForWorkInterval as NodeJS.Timer);
+        clearTimeout(this.workCallTimeout as NodeJS.Timer);
 
         // close workers
         await Promise.all(this.workers.map(worker => worker.close()));
