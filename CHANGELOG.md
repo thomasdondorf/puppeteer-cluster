@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.12.0] - ...
+### Added
+- Updated all dependencies to their latest versions
+
 ## [0.11.2] - 2018-09-07
 ### Fixed
 - Fixed another sameDomainDelay bug leading to high CPU usage

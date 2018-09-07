@@ -66,8 +66,8 @@ export default class ConcurrencyPage extends AbstractBrowser {
                 }
 
                 await timeoutExecute(BROWSER_TIMEOUT, (async () => {
-                    // @ts-ignore Typings are not up-to-date, ignore for now...
-                    context = await this.chrome.createIncognitoBrowserContext();
+                    context = await (this.chrome as puppeteer.Browser)
+                        .createIncognitoBrowserContext();
                     page = await context.newPage();
                 })());
                 this.openInstances += 1;
