@@ -96,6 +96,13 @@ $env:DEBUG='puppeteer-cluster:*';node examples/minimal
 
 ## API
 
+- [class: Cluster](#class-cluster)
+  * [Cluster.launch(options)](#clusterlaunchoptions)
+  * [cluster.task(taskFunction)](#clustertasktaskfunction)
+  * [cluster.queue([data] [, taskFunction])](#clusterqueuedata--taskfunction)
+  * [cluster.idle()](#clusteridle)
+  * [cluster.close()](#clusterclose)
+
 ### class: Cluster
 
 Cluster module provides a method to launch a cluster of Chromium instances.
@@ -128,7 +135,7 @@ Emitted when the task ends in an error for some reason. Reasons might be a netwo
 
 The method launches a cluster instance.
 
-#### Cluster.task(taskFunction)
+#### cluster.task(taskFunction)
 - `taskFunction` <[function]([string]|[Object], [Page], [Object])> Sets the function, which will be called for each job. The function will be called with an object having the following fields:
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
   - `data` <any> The data of the job you provided to [Cluster.queue].
@@ -138,7 +145,7 @@ The method launches a cluster instance.
 
 Specifies a task for the cluster. A task is called for each job you queue via [Cluster.queue]. Alternatively you can directly queue the function that you want to be executed. See [Cluster.queue] for an example.
 
-#### Cluster.queue([data] [, taskFunction])
+#### cluster.queue([data] [, taskFunction])
 - `data` <any> Data to be queued. This might be your URL (a string) or a more complex object containing data. The data given will be provided to your task function(s). See [examples] for a more complex usage of this argument.
 - `taskFunction` <[function]> Function like the one given to [Cluster.task]. If a function is provided, this function will be called (only for this job) instead of the function provided to [Cluster.task]. The function will be called with an object having the following fields:
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
@@ -149,19 +156,19 @@ Specifies a task for the cluster. A task is called for each job you queue via [C
 
 Puts a URL or data into the queue. Alternatively (or even additionally) you can queue functions to be executed. See the examples about function queuing for more information: ([Simple function queuing](examples/function-queuing-simple.js), [complex function queuing](examples/function-queuing-complex.js))
 
-#### Cluster.idle()
+#### cluster.idle()
 - returns: <[Promise]>
 
 Promise is resolved when the queue becomes empty.
 
-#### Cluster.close()
+#### cluster.close()
 - returns: <[Promise]>
 
 Closes the cluster and all opened Chromium instances including all open pages (if any were opened). It is recommended to run [Cluster.idle](#clusteridle) before calling this function. The [Cluster] object itself is considered to be disposed and cannot be used anymore.
 
 
 
-[Cluster.queue]: #clusterqueueurlordata-taskfunction "Cluster.queue"
+[Cluster.queue]: #clusterqueuedata--taskfunction "Cluster.queue"
 [Cluster.task]: #clustertasktaskfunction "Cluster.task"
 [Cluster]: #class-cluster "Cluster"
 
