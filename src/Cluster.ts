@@ -141,7 +141,7 @@ export default class Cluster extends EventEmitter {
         } else if (this.options.concurrency === Cluster.CONCURRENCY_BROWSER) {
             this.browser = new ConcurrencyBrowser(browserOptions);
         } else {
-            throw new Error('Unknown concurrency option: ' + this.options.concurrency);
+            throw new Error(`Unknown concurrency option: ${this.options.concurrency}`);
         }
 
         try {
@@ -249,7 +249,7 @@ export default class Cluster extends EventEmitter {
         if (this.options.skipDuplicateUrls
             && url !== undefined && this.duplicateCheckUrls.has(url)) {
             // already crawled, just ignore
-            debug('Skipping duplicate URL: ' + job.getUrl());
+            debug(`Skipping duplicate URL: ${job.getUrl()}`);
             this.work();
             return;
         }

@@ -72,8 +72,7 @@ export default class Worker implements WorkerOptions {
 
         page.on('error', (err) => {
             errorState = err;
-            log('Error (page error) crawling ' + inspect(job.data)
-                + ' // message: ' + err.message);
+            log(`Error (page error) crawling ${inspect(job.data)} // message: ${err.message}`);
         });
 
         debug(`Executing task on worker #${this.id} with data: ${inspect(job.data)}`);
@@ -91,7 +90,7 @@ export default class Worker implements WorkerOptions {
             );
         } catch (err) {
             errorState = err;
-            log('Error crawling ' + inspect(job.data) + ' // message: ' + err.message);
+            log(`Error crawling ${inspect(job.data)} // message: ${err.message}`);
         }
 
         debug(`Finished executing task on worker #${this.id}`);
@@ -99,8 +98,7 @@ export default class Worker implements WorkerOptions {
         try {
             await browserInstance.close();
         } catch (e) {
-            debug('Error closing browser instance for ' + inspect(job.data)
-                + ': ' + e.message);
+            debug(`Error closing browser instance for ${inspect(job.data)}: ${e.message}`);
             await this.browser.repair();
         }
 

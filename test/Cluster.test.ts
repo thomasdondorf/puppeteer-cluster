@@ -78,7 +78,7 @@ describe('options', () => {
         Cluster.CONCURRENCY_CONTEXT,
         Cluster.CONCURRENCY_BROWSER,
     ].forEach((concurrency) => {
-        describe('concurrency: ' + concurrency, () => {
+        describe(`concurrency: ${concurrency}`, () => {
 
             test('skipDuplicateUrls', async () => {
                 expect.assertions(1);

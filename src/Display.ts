@@ -10,7 +10,7 @@ export default class Display {
             this.linesCount += 1;
         }
         const strToLog = str.substr(0, 78);
-        console.log('\x1B[K' + strToLog);
+        console.log(`\x1B[K${strToLog}`);
         this.linesCount += 1;
     }
 
