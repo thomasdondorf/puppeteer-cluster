@@ -197,7 +197,7 @@ describe('options', () => {
                 const url1 = await cluster.waitForOne();
                 expect(url1).toBe(ERROR_URL);
 
-                await timeoutExecute(200, (async () => {
+                await timeoutExecute(1000, (async () => {
                     const url2 = await cluster.waitForOne();
                     expect(url2).toBe(ERROR_URL);
                 })());
@@ -384,4 +384,61 @@ describe('options', () => {
             // TODO test('throws when no task function given');
         });
     });
+    // end of tests for all concurrency options
+
+    describe('monitoring', () => {
+        // setup and cleanup are copied from Display.test.ts
+        let write;
+        let log;
+        let output = '';
+
+        function cleanup() {
+            process.stdout.write = write;
+            console.log = log;
+        }
+
+        beforeEach(() => {
+            output = '';
+            write = process.stdout.write;
+            log = console.log;
+
+            (process.stdout.write as any) = (str) => {
+                output += str;
+            };
+
+            console.log = (str) => {
+                output += `${str}\n`;
+            };
+        });
+
+        afterEach(cleanup);
+
+        test('monitoring enabled', async () => {
+            const cluster = await Cluster.launch({
+                concurrency: Cluster.CONCURRENCY_CONTEXT,
+                puppeteerOptions: { args: ['--no-sandbox'] },
+                maxConcurrency: 1,
+                monitor: true,
+            });
+            cluster.on('taskerror', (err) => {
+                throw err;
+            });
+
+            cluster.task(async () => {
+                await new Promise(resolve => setTimeout(resolve, 550));
+            });
+
+            cluster.queue(TEST_URL);
+
+            // there should be at least one logging call in a 500ms interval
+            output = '';
+            await new Promise(resolve => setTimeout(resolve, 510));
+            const numberOfLines = output.match(/\n/g).length;
+            expect(numberOfLines).toBeGreaterThan(5);
+
+            await cluster.idle();
+            await cluster.close();
+        });
+    });
+
 });

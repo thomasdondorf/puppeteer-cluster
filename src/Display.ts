@@ -1,16 +1,22 @@
 
+const CLEAR_LINE = '\x1B[K';
+
 export default class Display {
 
     private lastLinesCount: number = 0;
     private linesCount: number = 0;
 
     public async log(str: string) : Promise<void> {
-        if (this.linesCount === 0) { // first line empty
-            console.log('\x1B[K');
+        // We create an empty line at the start so that any console.log calls
+        // from within the script are above our output.
+        if (this.linesCount === 0) {
+            console.log(CLEAR_LINE); // erases the current line
             this.linesCount += 1;
         }
+
+        // Strip lines that are too long
         const strToLog = str.substr(0, 78);
-        console.log(`\x1B[K${strToLog}`);
+        console.log(`${CLEAR_LINE}${strToLog}`);
         this.linesCount += 1;
     }
 
