@@ -473,7 +473,7 @@ describe('Repair', () => {
                     await expect(
                         page.goto(TEST_URL),
                     ).rejects.toMatchObject({
-                        message: expect.stringMatching(/Protocol error/)
+                        message: expect.stringMatching(/Protocol error/),
                     });
                 });
 
