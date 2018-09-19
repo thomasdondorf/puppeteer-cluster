@@ -2,9 +2,17 @@ import Cluster from '../src/Cluster';
 import * as http from 'http';
 import { timeoutExecute } from '../src/util';
 
+const kill = require('tree-kill');
+
 let testServer;
 
 const TEST_URL = 'http://127.0.0.1:3001/';
+
+const concurrencyTypes = [
+    Cluster.CONCURRENCY_PAGE,
+    Cluster.CONCURRENCY_CONTEXT,
+    Cluster.CONCURRENCY_BROWSER,
+];
 
 beforeAll(async () => {
     // test server
@@ -20,41 +28,41 @@ afterAll(() => {
     testServer.close();
 });
 
-async function cookieTest(concurrencyType) {
-    const cluster = await Cluster.launch({
-        puppeteerOptions: { args: ['--no-sandbox'] },
-        maxConcurrency: 1,
-        concurrency: concurrencyType,
-    });
-
-    const randomValue = Math.random().toString();
-
-    cluster.task(async ({ page, data: url }) => {
-        await page.goto(url);
-        const cookies = await page.cookies();
-
-        cookies.forEach(({ name, value }) => {
-            if (name === 'puppeteer-cluster-testcookie' && value === randomValue) {
-                expect(true).toBe(true);
-            }
-        });
-
-        await page.setCookie({
-            name: 'puppeteer-cluster-testcookie',
-            value: randomValue,
-            url: TEST_URL,
-        });
-    });
-
-    // one job sets the cookie, the other page reads the cookie
-    cluster.queue(TEST_URL);
-    cluster.queue(TEST_URL);
-
-    await cluster.idle();
-    await cluster.close();
-}
-
 describe('options', () => {
+
+    async function cookieTest(concurrencyType) {
+        const cluster = await Cluster.launch({
+            puppeteerOptions: { args: ['--no-sandbox'] },
+            maxConcurrency: 1,
+            concurrency: concurrencyType,
+        });
+
+        const randomValue = Math.random().toString();
+
+        cluster.task(async ({ page, data: url }) => {
+            await page.goto(url);
+            const cookies = await page.cookies();
+
+            cookies.forEach(({ name, value }) => {
+                if (name === 'puppeteer-cluster-testcookie' && value === randomValue) {
+                    expect(true).toBe(true);
+                }
+            });
+
+            await page.setCookie({
+                name: 'puppeteer-cluster-testcookie',
+                value: randomValue,
+                url: TEST_URL,
+            });
+        });
+
+        // one job sets the cookie, the other page reads the cookie
+        cluster.queue(TEST_URL);
+        cluster.queue(TEST_URL);
+
+        await cluster.idle();
+        await cluster.close();
+    }
 
     test('cookie sharing in Cluster.CONCURRENCY_PAGE', async () => {
         expect.assertions(1);
@@ -73,11 +81,7 @@ describe('options', () => {
 
     // repeat remaining tests for all concurrency options
 
-    [
-        Cluster.CONCURRENCY_PAGE,
-        Cluster.CONCURRENCY_CONTEXT,
-        Cluster.CONCURRENCY_BROWSER,
-    ].forEach((concurrency) => {
+    concurrencyTypes.forEach((concurrency) => {
         describe(`concurrency: ${concurrency}`, () => {
 
             test('skipDuplicateUrls', async () => {
@@ -441,4 +445,47 @@ describe('options', () => {
         });
     });
 
+});
+
+describe('Repair', () => {
+    concurrencyTypes.forEach((concurrency) => {
+
+        describe(`concurrency: ${concurrency}`, () => {
+            test('Repair unexpected crash', async () => {
+
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
+                    maxConcurrency: 1,
+                });
+                cluster.on('taskerror', (err) => {
+                    throw err;
+                });
+
+                // first job kills the browser
+                cluster.queue(async ({ page }) => {
+                    // kill process
+                    await new Promise((resolve) => {
+                        kill(page.browser().process().pid, 'SIGKILL', resolve);
+                    });
+
+                    // check if its actually crashed
+                    await expect(
+                        page.goto(TEST_URL),
+                    ).rejects.toMatchObject({
+                        message: expect.stringMatching(/Protocol error/)
+                    });
+                });
+
+                // second one should still work after the crash
+                cluster.queue(async ({ page }) => {
+                    page.goto(TEST_URL); // if this does not throw, we are happy
+                    expect(true).toBe(true);
+                });
+
+                await cluster.idle();
+                await cluster.close();
+            });
+        });
+    });
 });
