@@ -4,7 +4,10 @@
         "lib": [ "es2017" ],
         "module": "commonjs",
         "moduleResolution": "node",
-        "types": ["node"],
+        "types": [
+            "node",
+            "jest"
+        ],
 
         "rootDir": "./src",
         "outDir": "./dist",
