@@ -1,10 +1,11 @@
 import Cluster from '../src/Cluster';
 import * as http from 'http';
 import { timeoutExecute } from '../src/util';
+import { Page } from 'puppeteer';
 
 const kill = require('tree-kill');
 
-let testServer;
+let testServer: http.Server;
 
 const TEST_URL = 'http://127.0.0.1:3001/';
 
@@ -30,7 +31,7 @@ afterAll(() => {
 
 describe('options', () => {
 
-    async function cookieTest(concurrencyType) {
+    async function cookieTest(concurrencyType: number) {
         const cluster = await Cluster.launch({
             puppeteerOptions: { args: ['--no-sandbox'] },
             maxConcurrency: 1,
@@ -319,7 +320,7 @@ describe('options', () => {
                     throw err;
                 });
 
-                await cluster.queue(async ({ page, data }) => {
+                await cluster.queue(async ({ page, data }: { page: any, data: any}) => {
                     expect(page).toBeDefined();
                     expect(data).toBeUndefined();
                 });
@@ -356,9 +357,9 @@ describe('options', () => {
                     expect(url).toBe('works too');
                 });
                 cluster.queue('works');
-                await cluster.queue(async ({ page, data: url }) => {
+                await cluster.queue(async ({ page, data }: { page: any, data: any}) => {
                     expect(page).toBeDefined();
-                    expect(url).toBeUndefined();
+                    expect(data).toBeUndefined();
                 });
                 cluster.queue('works');
 
@@ -392,8 +393,8 @@ describe('options', () => {
 
     describe('monitoring', () => {
         // setup and cleanup are copied from Display.test.ts
-        let write;
-        let log;
+        let write: any;
+        let log: any;
         let output = '';
 
         function cleanup() {
@@ -406,7 +407,7 @@ describe('options', () => {
             write = process.stdout.write;
             log = console.log;
 
-            (process.stdout.write as any) = (str) => {
+            (process.stdout.write as any) = (str: string) => {
                 output += str;
             };
 
@@ -437,7 +438,7 @@ describe('options', () => {
             // there should be at least one logging call in a 500ms interval
             output = '';
             await new Promise(resolve => setTimeout(resolve, 510));
-            const numberOfLines = output.match(/\n/g).length;
+            const numberOfLines = (output.match(/\n/g) || []).length;
             expect(numberOfLines).toBeGreaterThan(5);
 
             await cluster.idle();
@@ -463,7 +464,7 @@ describe('Repair', () => {
                 });
 
                 // first job kills the browser
-                cluster.queue(async ({ page }) => {
+                cluster.queue(async ({ page }: { page: Page }) => {
                     // kill process
                     await new Promise((resolve) => {
                         kill(page.browser().process().pid, 'SIGKILL', resolve);
@@ -478,7 +479,7 @@ describe('Repair', () => {
                 });
 
                 // second one should still work after the crash
-                cluster.queue(async ({ page }) => {
+                cluster.queue(async ({ page }: { page: Page }) => {
                     page.goto(TEST_URL); // if this does not throw, we are happy
                     expect(true).toBe(true);
                 });

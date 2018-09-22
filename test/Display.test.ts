@@ -1,8 +1,8 @@
 import Display from '../src/Display';
 
 describe('Display', () => {
-    let write;
-    let log;
+    let write: any;
+    let log: any;
     let output = '';
 
     function cleanup() {
@@ -15,11 +15,11 @@ describe('Display', () => {
         write = process.stdout.write;
         log = console.log;
 
-        (process.stdout.write as any) = (str) => {
+        (process.stdout.write as any) = (str: string) => {
             output += str;
         };
 
-        console.log = (str) => {
+        console.log = (str: string) => {
             output += `${str}\n`;
         };
     });
@@ -33,7 +33,7 @@ describe('Display', () => {
         display.log('line two');
         display.log('line three');
 
-        const numberOfLines = output.match(/\n/g).length;
+        const numberOfLines = (output.match(/\n/g) || []).length;
         expect(numberOfLines).toBe(3);
     });
 
