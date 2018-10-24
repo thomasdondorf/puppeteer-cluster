@@ -16,21 +16,7 @@ import { EventEmitter } from 'events';
 
 const debug = util.debugGenerator('Cluster');
 
-// TODO find out how we can combine options and optionsargument
-interface ClusterOptionsArgument {
-    concurrency?: number;
-    maxConcurrency?: number;
-    workerCreationDelay?: number;
-    puppeteerOptions?: LaunchOptions;
-    monitor?: boolean;
-    timeout?: number;
-    retryLimit?: number;
-    retryDelay?: number;
-    skipDuplicateUrls?: boolean;
-    sameDomainDelay?: number;
-}
-
-interface ClusterOptions extends ClusterOptionsArgument {
+interface ClusterOptions {
     concurrency: number;
     maxConcurrency: number;
     workerCreationDelay: number;
@@ -42,6 +28,12 @@ interface ClusterOptions extends ClusterOptionsArgument {
     skipDuplicateUrls: boolean;
     sameDomainDelay: number;
 }
+
+type Partial<T> = {
+    [P in keyof T]?: T[P];
+};
+
+type ClusterOptionsArgument = Partial<ClusterOptions>;
 
 const DEFAULT_OPTIONS: ClusterOptions = {
     concurrency: 2, // CONTEXT
