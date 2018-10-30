@@ -480,7 +480,7 @@ describe('Repair', () => {
 
                 // second one should still work after the crash
                 cluster.queue(async ({ page }: { page: Page }) => {
-                    page.goto(TEST_URL); // if this does not throw, we are happy
+                    await page.goto(TEST_URL); // if this does not throw, we are happy
                     expect(true).toBe(true);
                 });
 
