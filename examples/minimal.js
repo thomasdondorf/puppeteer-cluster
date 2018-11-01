@@ -14,6 +14,7 @@ const { Cluster } = require('../dist');
         const path = url.replace(/[^a-zA-Z]/g, '_') + '.png';
         await page.screenshot({ path });
         console.log(`Screenshot of ${url} saved: ${path}`);
+        await page.close()
     });
 
     // Add some pages to queue
