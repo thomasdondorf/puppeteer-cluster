@@ -474,7 +474,10 @@ describe('Repair', () => {
                     await expect(
                         page.goto(TEST_URL),
                     ).rejects.toMatchObject({
-                        message: expect.stringMatching(/Protocol error/),
+                        // error message of puppeteer disconnect
+                        // before 1.9 -> error said "Protocol error"
+                        // since 1.9 -> "Navigation failed because browser has disconnected!"
+                        message: expect.stringMatching(/Protocol error|disconnected/),
                     });
                 });
 
