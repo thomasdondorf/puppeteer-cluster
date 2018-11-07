@@ -1,7 +1,8 @@
 import Cluster from '../src/Cluster';
 import * as http from 'http';
 import { timeoutExecute } from '../src/util';
-import { Page } from 'puppeteer';
+import * as puppeteer from 'puppeteer';
+import * as puppeteerCore from 'puppeteer-core';
 
 const kill = require('tree-kill');
 
@@ -391,6 +392,37 @@ describe('options', () => {
     });
     // end of tests for all concurrency options
 
+    test('other puppeteer objects like puppeteer-core', async () => {
+        expect.assertions(2);
+
+        const executablePath = puppeteer.executablePath();
+        const cluster = await Cluster.launch({
+            concurrency: Cluster.CONCURRENCY_BROWSER,
+            puppeteerOptions: {
+                executablePath,
+                args: ['--no-sandbox'],
+            },
+            maxConcurrency: 1,
+            puppeteer: puppeteerCore,
+        });
+        cluster.on('taskerror', (err) => {
+            throw err;
+        });
+
+        cluster.task(async ({ page, data: url }) => {
+            await page.goto(url);
+            // if we get here two times without any errors, we are fine
+            expect(true).toBe(true);
+        });
+
+        // one job sets the cookie, the other page reads the cookie
+        cluster.queue(TEST_URL);
+        cluster.queue(TEST_URL);
+
+        await cluster.idle();
+        await cluster.close();
+    });
+
     describe('monitoring', () => {
         // setup and cleanup are copied from Display.test.ts
         let write: any;
@@ -464,7 +496,7 @@ describe('Repair', () => {
                 });
 
                 // first job kills the browser
-                cluster.queue(async ({ page }: { page: Page }) => {
+                cluster.queue(async ({ page }: { page: puppeteer.Page }) => {
                     // kill process
                     await new Promise((resolve) => {
                         kill(page.browser().process().pid, 'SIGKILL', resolve);
@@ -482,7 +514,7 @@ describe('Repair', () => {
                 });
 
                 // second one should still work after the crash
-                cluster.queue(async ({ page }: { page: Page }) => {
+                cluster.queue(async ({ page }: { page: puppeteer.Page }) => {
                     await page.goto(TEST_URL); // if this does not throw, we are happy
                     expect(true).toBe(true);
                 });

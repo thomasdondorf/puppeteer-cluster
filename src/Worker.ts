@@ -1,10 +1,10 @@
 
 import Job from './Job';
 import Cluster, { TaskFunction } from './Cluster';
-import { WorkerBrowserInstance, ContextInstance } from './browser/AbstractBrowser';
 import { Page } from 'puppeteer';
 import { timeoutExecute, debugGenerator, log } from './util';
 import { inspect } from 'util';
+import { WorkerInstance, JobInstance } from './concurrency/ConcurrencyImplementation';
 
 const debug = debugGenerator('Worker');
 
@@ -16,7 +16,7 @@ interface WorkerOptions {
     cluster: Cluster;
     args: string[];
     id: number;
-    browser: WorkerBrowserInstance;
+    browser: WorkerInstance;
 }
 
 const BROWSER_INSTANCE_TRIES = 10;
@@ -26,7 +26,7 @@ export default class Worker implements WorkerOptions {
     cluster: Cluster;
     args: string[];
     id: number;
-    browser: WorkerBrowserInstance;
+    browser: WorkerInstance;
 
     activeTarget: Job | null = null;
 
@@ -46,15 +46,15 @@ export default class Worker implements WorkerOptions {
         ): Promise<Error | null> {
         this.activeTarget = job;
 
-        let browserInstance: ContextInstance | null = null;
+        let jobInstance: JobInstance | null = null;
         let page: Page | null = null;
 
         let tries = 0;
 
-        while (browserInstance === null) {
+        while (jobInstance === null) {
             try {
-                browserInstance = await this.browser.instance();
-                page = browserInstance.page;
+                jobInstance = await this.browser.jobInstance();
+                page = jobInstance.resources.page;
             } catch (err) {
                 debug(`Error getting browser page (try: ${tries}), message: ${err.message}`);
                 await this.browser.repair();
@@ -96,7 +96,7 @@ export default class Worker implements WorkerOptions {
         debug(`Finished executing task on worker #${this.id}`);
 
         try {
-            await browserInstance.close();
+            await jobInstance.close();
         } catch (e) {
             debug(`Error closing browser instance for ${inspect(job.data)}: ${e.message}`);
             await this.browser.repair();

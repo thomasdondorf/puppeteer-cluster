@@ -1,30 +1,32 @@
 
-import AbstractBrowser, { WorkerBrowserInstance } from './AbstractBrowser';
 import * as puppeteer from 'puppeteer';
 
-import { debugGenerator, timeoutExecute } from '../util';
-const debug = debugGenerator('Browser');
+import { debugGenerator, timeoutExecute } from '../../util';
+import ConcurrencyImplementation, { WorkerInstance } from '../ConcurrencyImplementation';
+const debug = debugGenerator('BrowserConcurrency');
 
 const BROWSER_TIMEOUT = 5000;
 
-export default class ConcurrencyBrowser extends AbstractBrowser {
+export default class Browser extends ConcurrencyImplementation {
     public async init() {}
     public async close() {}
 
-    public async workerInstance(): Promise<WorkerBrowserInstance> {
-        let chrome = await puppeteer.launch(this.options);
+    public async workerInstance(): Promise<WorkerInstance> {
+        let chrome = await this.puppeteer.launch(this.options) as puppeteer.Browser;
         let page: puppeteer.Page;
         let context: any; // puppeteer typings are old...
 
         return {
-            instance: async () => {
+            jobInstance: async () => {
                 await timeoutExecute(BROWSER_TIMEOUT, (async () => {
                     context = await chrome.createIncognitoBrowserContext();
                     page = await context.newPage();
                 })());
 
                 return {
-                    page,
+                    resources: {
+                        page,
+                    },
 
                     close: async () => {
                         await timeoutExecute(BROWSER_TIMEOUT, context.close());
@@ -44,7 +46,7 @@ export default class ConcurrencyBrowser extends AbstractBrowser {
                 } catch (e) {}
 
                 // just relaunch as there is only one page per browser
-                chrome = await puppeteer.launch(this.options);
+                chrome = await this.puppeteer.launch(this.options);
             },
         };
     }

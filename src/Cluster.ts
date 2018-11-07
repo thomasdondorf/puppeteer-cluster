@@ -4,15 +4,13 @@ import Display from './Display';
 import * as util from './util';
 import Worker from './Worker';
 
-import ConcurrencyBrowser from './browser/ConcurrencyBrowser';
-import ConcurrencyPage from './browser/ConcurrencyPage';
-import ConcurrencyContext from './browser/ConcurrencyContext';
+import * as builtInConcurrency from './concurrency/builtInConcurrency';
 
 import { LaunchOptions, Page } from 'puppeteer';
-import AbstractBrowser from './browser/AbstractBrowser';
 import Queue from './Queue';
 import SystemMonitor from './SystemMonitor';
 import { EventEmitter } from 'events';
+import ConcurrencyImplementation, { WorkerInstance } from './concurrency/ConcurrencyImplementation';
 
 const debug = util.debugGenerator('Cluster');
 
@@ -27,6 +25,7 @@ interface ClusterOptions {
     retryDelay: number;
     skipDuplicateUrls: boolean;
     sameDomainDelay: number;
+    puppeteer: any;
 }
 
 type Partial<T> = {
@@ -48,6 +47,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     retryDelay: 0,
     skipDuplicateUrls: false,
     sameDomainDelay: 0,
+    puppeteer: undefined,
 };
 
 interface TaskFunctionArguments {
@@ -83,7 +83,7 @@ export default class Cluster extends EventEmitter {
     private taskFunction: TaskFunction | null = null;
     private idleResolvers: (() => void)[] = [];
     private waitForOneResolvers: ((data:JobData) => void)[] = [];
-    private browser: AbstractBrowser | null = null;
+    private browser: ConcurrencyImplementation | null = null;
 
     private isClosed = false;
     private startTime = Date.now();
@@ -125,13 +125,21 @@ export default class Cluster extends EventEmitter {
 
     private async init() {
         const browserOptions = this.options.puppeteerOptions;
+        let puppeteer = this.options.puppeteer;
+
+
+        if (this.options.puppeteer == null) { // check for null or undefined
+            puppeteer = require('puppeteer');
+        } else {
+            debug('Using provided (custom) puppteer object.');
+        }
 
         if (this.options.concurrency === Cluster.CONCURRENCY_PAGE) {
-            this.browser = new ConcurrencyPage(browserOptions);
+            this.browser = new builtInConcurrency.Page(browserOptions, puppeteer);
         } else if (this.options.concurrency === Cluster.CONCURRENCY_CONTEXT) {
-            this.browser = new ConcurrencyContext(browserOptions);
+            this.browser = new builtInConcurrency.Context(browserOptions, puppeteer);
         } else if (this.options.concurrency === Cluster.CONCURRENCY_BROWSER) {
-            this.browser = new ConcurrencyBrowser(browserOptions);
+            this.browser = new builtInConcurrency.Browser(browserOptions, puppeteer);
         } else {
             throw new Error(`Unknown concurrency option: ${this.options.concurrency}`);
         }
@@ -157,9 +165,10 @@ export default class Cluster extends EventEmitter {
 
         const workerId = this.nextWorkerId;
 
-        let workerBrowserInstance;
+        let workerBrowserInstance: WorkerInstance;
         try {
-            workerBrowserInstance = await (this.browser as AbstractBrowser).workerInstance();
+            workerBrowserInstance = await (this.browser as ConcurrencyImplementation)
+                .workerInstance();
         } catch (err) {
             throw new Error(`Unable to launch browser for worker, error message: ${err.message}`);
         }
@@ -367,7 +376,7 @@ export default class Cluster extends EventEmitter {
         await Promise.all(this.workers.map(worker => worker.close()));
 
         try {
-            await (this.browser as AbstractBrowser).close();
+            await (this.browser as ConcurrencyImplementation).close();
         } catch (err) {
             debug(`Error: Unable to close browser, message: ${err.message}`);
         }

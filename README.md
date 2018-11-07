@@ -73,6 +73,7 @@ const { Cluster } = require('puppeteer-cluster');
 * [Queuing functions (simple)](examples/function-queuing-simple.js)
 * [Queuing functions (complex)](examples/function-queuing-complex.js)
 * [Error handling](examples/error-handling.js)
+* [Using a different puppeteer library (like puppeteer-core)](examples/different-puppeteer-library.js)
 
 ## Concurreny models
 
@@ -132,6 +133,7 @@ Emitted when the task ends in an error for some reason. Reasons might be a netwo
   - `timeout` <[number]> Specify a timeout for all tasks. Defaults to `30000` (30 seconds).
   - `monitor` <[boolean]> If set to `true`, will provide a small command line output to provide information about the crawling process. Defaults to `false`.
   - `workerCreationDelay` <[number]> Time between creation of two workers. Set this to a value like `100` (0.1 seconds) in case you want some time to pass before another worker is created. You can use this to prevent a network peak right at the start. Defaults to `0` (no delay).
+  - `puppeteer` <[Object]> In case you want to use a different puppeteer library (like [puppeteer-core](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#puppeteer-vs-puppeteer-core) or [puppeteer-extra](https://github.com/berstend/puppeteer-extra)), pass the object here. If not set, will default to using puppeteer. When using `puppeteer-core`, make sure to also provide `puppeteerOptions.executablePath`.
 - returns: <[Promise]<[Cluster]>>
 
 The method launches a cluster instance.
