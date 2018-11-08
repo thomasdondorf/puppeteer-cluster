@@ -1,8 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## Unreleased - ...
-...
+## [0.12.1] - 2018-11-08
+### Fixed
+- Fixed support for custom concurrency implementations
 
 ## [0.12.0] - 2018-11-07
 ### Added
