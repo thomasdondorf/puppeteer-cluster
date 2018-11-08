@@ -1,9 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.12.0] - ...
+## Unreleased - ...
+...
+
+## [0.12.0] - 2018-11-07
 ### Added
-- Updated all dependencies to their latest versions
+- Support for custom puppeteer libraries added
+- Support for custom concurrency implementations added
+### Changed
+- Updated dependencies to their latest versions
 
 ## [0.11.2] - 2018-09-07
 ### Fixed
