@@ -11,7 +11,7 @@ Create a cluster of puppeteer workers. This library spawns a pool of Chromium in
 - [Installation](#installation)
 - [Usage](#usage)
 - [Examples](#examples)
-- [Concurreny models](#concurreny-models)
+- [Concurreny implementations](#concurreny-implementations)
 - [Debugging](#debugging)
 - [API](#api)
 
@@ -75,7 +75,7 @@ const { Cluster } = require('puppeteer-cluster');
 * [Error handling](examples/error-handling.js)
 * [Using a different puppeteer library (like puppeteer-core)](examples/different-puppeteer-library.js)
 
-## Concurreny models
+## Concurreny implementations
 
 There are different concurrency models, which define how isolated each job is run. You can set it in the `options` when calling [Cluster.launch](#Clusterlaunchoptions). The default option is `Cluster.CONCURRENCY_CONTEXT`, but it is recommended to always specify which one you want to use.
 
@@ -84,6 +84,7 @@ There are different concurrency models, which define how isolated each job is ru
 | `CONCURRENCY_PAGE` | One [Page] for each URL | Shares everything (cookies, localStorage, etc.) between jobs. |
 | `CONCURRENCY_CONTEXT` | Incognito page (see [IncognitoBrowserContext](https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#browsercreateincognitobrowsercontext)) for each URL  | No shared data. |
 | `CONCURRENCY_BROWSER` | One browser (using an incognito page) per URL. If one browser instance crashes for any reason, this will not affect other jobs. | No shared data.  |
+| Custom concurrency | You can create your own concurrency implementation. Copy one of the files of the `concurrency/built-in` directory and implement `ConcurrencyImplementation`. Then provide the class to the option `concurrency`. | Depends on your implementation |
 
 ## Debugging
 
@@ -123,7 +124,7 @@ Emitted when the task ends in an error for some reason. Reasons might be a netwo
 
 #### Cluster.launch(options)
 - `options` <[Object]> Set of configurable options for the cluster. Can have the following fields:
-  - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*> The choosen concurrency model. See [Concurreny models](#concurreny-models) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`.
+  - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*|ConcurrencyImplementation> The chosen concurrency model. See [Concurreny models](#concurreny-models) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`. Alternatively you can provide a class implementing `ConcurrencyImplementation`.
   - `maxConcurrency` <[number]> Maximal number of parallel workers. Defaults to `1`.
   - `puppeteerOptions` <[Object]> Object passed to [puppeteer.launch]. See puppeteer documentation for more information. Defaults to `{}`.
   - `retryLimit` <[number]> How often do you want to retry a job before marking it as failed. Defaults to `0`.

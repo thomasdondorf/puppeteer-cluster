@@ -3,6 +3,8 @@ import * as http from 'http';
 import { timeoutExecute } from '../src/util';
 import * as puppeteer from 'puppeteer';
 import * as puppeteerCore from 'puppeteer-core';
+import ConcurrencyImplementation from '../src/concurrency/ConcurrencyImplementation';
+import Browser from '../src/concurrency/built-in/Browser';
 
 const kill = require('tree-kill');
 
@@ -421,6 +423,93 @@ describe('options', () => {
 
         await cluster.idle();
         await cluster.close();
+    });
+
+    describe('custom concurrency implementations', () => {
+        test('Test implementation', async () => {
+            expect.assertions(2);
+
+            class CustomConcurrency extends ConcurrencyImplementation {
+                private browser: puppeteer.Browser | undefined = undefined;
+                public async init() {
+                    this.browser = await this.puppeteer.launch(this.options);
+                }
+                public async close() {
+                    await (this.browser as puppeteer.Browser).close();
+                }
+                public async workerInstance() {
+                    return {
+                        jobInstance: async () => {
+                            const page = await (this.browser as puppeteer.Browser).newPage();
+
+                            // make sure this is really the page created by this implementation
+                            (page as any).TESTING = 123;
+
+                            return {
+                                resources: { page },
+
+                                close: async () => {
+                                    await page.close();
+                                },
+                            };
+                        },
+                        close: async () => {
+                            await (this.browser as puppeteer.Browser).close();
+                        },
+
+                        // no repair for this tests, but you should really implement this (!!!)
+                        // have a look at Browser, Context or Page in built-in directory for a
+                        // full implementation
+                        repair: async () => {},
+                    };
+                }
+            }
+
+            const cluster = await Cluster.launch({
+                concurrency: CustomConcurrency,
+                puppeteerOptions: { args: ['--no-sandbox'] },
+                maxConcurrency: 1,
+            });
+            cluster.on('taskerror', (err) => {
+                throw err;
+            });
+
+            cluster.task(async ({ page, data: url }) => {
+                await page.goto(url);
+                expect((page as any).TESTING).toBe(123);
+            });
+
+            // one job sets the cookie, the other page reads the cookie
+            cluster.queue(TEST_URL);
+            cluster.queue(TEST_URL);
+
+            await cluster.idle();
+            await cluster.close();
+        });
+        test('Reuse existing implementation', async () => {
+            expect.assertions(2);
+
+            const cluster = await Cluster.launch({
+                concurrency: Browser, // use one of the existing implementations
+                puppeteerOptions: { args: ['--no-sandbox'] },
+                maxConcurrency: 1,
+            });
+            cluster.on('taskerror', (err) => {
+                throw err;
+            });
+
+            cluster.task(async ({ page, data: url }) => {
+                await page.goto(url);
+                expect(true).toBe(true);
+            });
+
+            // one job sets the cookie, the other page reads the cookie
+            cluster.queue(TEST_URL);
+            cluster.queue(TEST_URL);
+
+            await cluster.idle();
+            await cluster.close();
+        });
     });
 
     describe('monitoring', () => {
