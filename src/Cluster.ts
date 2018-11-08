@@ -10,12 +10,13 @@ import { LaunchOptions, Page } from 'puppeteer';
 import Queue from './Queue';
 import SystemMonitor from './SystemMonitor';
 import { EventEmitter } from 'events';
-import ConcurrencyImplementation, { WorkerInstance } from './concurrency/ConcurrencyImplementation';
+import ConcurrencyImplementation, { WorkerInstance, ConcurrencyImplementationClassType }
+    from './concurrency/ConcurrencyImplementation';
 
 const debug = util.debugGenerator('Cluster');
 
 interface ClusterOptions {
-    concurrency: number;
+    concurrency: number | ConcurrencyImplementationClassType;
     maxConcurrency: number;
     workerCreationDelay: number;
     puppeteerOptions: LaunchOptions;
@@ -127,7 +128,6 @@ export default class Cluster extends EventEmitter {
         const browserOptions = this.options.puppeteerOptions;
         let puppeteer = this.options.puppeteer;
 
-
         if (this.options.puppeteer == null) { // check for null or undefined
             puppeteer = require('puppeteer');
         } else {
@@ -140,6 +140,8 @@ export default class Cluster extends EventEmitter {
             this.browser = new builtInConcurrency.Context(browserOptions, puppeteer);
         } else if (this.options.concurrency === Cluster.CONCURRENCY_BROWSER) {
             this.browser = new builtInConcurrency.Browser(browserOptions, puppeteer);
+        } else if (typeof this.options.concurrency === 'function') {
+            this.browser = new this.options.concurrency(browserOptions, puppeteer);
         } else {
             throw new Error(`Unknown concurrency option: ${this.options.concurrency}`);
         }
