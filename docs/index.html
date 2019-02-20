@@ -1,0 +1,374 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>puppeteer-cluster</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">puppeteer-cluster</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1> puppeteer-cluster</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<h1 id="puppeteer-cluster">Puppeteer Cluster</h1>
+				<p><a href="https://travis-ci.org/thomasdondorf/puppeteer-cluster"><img src="https://api.travis-ci.org/thomasdondorf/puppeteer-cluster.svg?branch=master" alt="Build Status"></a>
+					<a href="https://www.npmjs.com/package/puppeteer-cluster"><img src="https://badgen.now.sh/npm/v/puppeteer-cluster" alt="npm"></a>
+					<a href="https://coveralls.io/github/thomasdondorf/puppeteer-cluster?branch=master"><img src="https://coveralls.io/repos/github/thomasdondorf/puppeteer-cluster/badge.svg?branch=master" alt="Coverage Status"></a>
+					<a href="https://snyk.io/test/github/thomasdondorf/puppeteer-cluster"><img src="https://snyk.io/test/github/thomasdondorf/puppeteer-cluster/badge.svg" alt="Known Vulnerabilities"></a>
+				<a href="https://dependabot.com"><img src="https://api.dependabot.com/badges/status?host=github&repo=thomasdondorf/puppeteer-cluster" alt="Dependabot Status"></a></p>
+				<p>Create a cluster of puppeteer workers. This library spawns a pool of Chromium instances via <a href="https://github.com/GoogleChrome/puppeteer" title="Puppeteer">Puppeteer</a> and helps to keep track of jobs and errors. This is helpful if you want to crawl multiple pages or run tests in parallel. Puppeteer Cluster takes care of reusing Chromium and restarting the browser in case of errors.</p>
+				<ul>
+					<li><a href="#installation">Installation</a></li>
+					<li><a href="#usage">Usage</a></li>
+					<li><a href="#examples">Examples</a></li>
+					<li><a href="#concurreny-implementations">Concurreny implementations</a></li>
+					<li><a href="#debugging">Debugging</a></li>
+					<li><a href="#api">API</a></li>
+				</ul>
+				<h6 id="what-does-this-library-do-">What does this library do?</h6>
+				<ul>
+					<li>Handling of crawling errors</li>
+					<li>Auto restarts the browser in case of a crash</li>
+					<li>Can automatically retry if a job fails</li>
+					<li>Different concurrency models to choose from (pages, contexts, browsers)</li>
+					<li>Simple to use, small boilerplate</li>
+					<li>Progress view and monitoring statistics (see below)</li>
+				</ul>
+				<p align="center">
+					<img src="https://i.imgur.com/koGNkBN.gif" height="250">
+				</p>
+				<h2 id="installation">Installation</h2>
+				<p>Install puppeteer (if you don&#39;t already have it installed):</p>
+				<p><code>npm install --save puppeteer</code></p>
+				<p>Install puppeteer-cluster:</p>
+				<p><code>npm install --save puppeteer-cluster</code></p>
+				<h2 id="usage">Usage</h2>
+				<p>The following is a typical example of using puppeteer-cluster. A cluster is created with 2 concurrent workers. Then a task is defined which includes going to the URL and taking a screenshot. We then queue two jobs and wait for the cluster to finish.</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> { Cluster } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'puppeteer-cluster'</span>);
+
+<span class="hljs-function">(<span class="hljs-params"><span class="hljs-keyword">async</span> (</span>) =&gt;</span> {
+  <span class="hljs-keyword">const</span> cluster = <span class="hljs-keyword">await</span> Cluster.launch({
+    <span class="hljs-attr">concurrency</span>: Cluster.CONCURRENCY_CONTEXT,
+    <span class="hljs-attr">maxConcurrency</span>: <span class="hljs-number">2</span>,
+  });
+
+  <span class="hljs-keyword">await</span> cluster.task(<span class="hljs-keyword">async</span> ({ page, <span class="hljs-attr">data</span>: url }) =&gt; {
+    <span class="hljs-keyword">await</span> page.goto(url);
+    <span class="hljs-keyword">const</span> screen = <span class="hljs-keyword">await</span> page.screenshot();
+    <span class="hljs-comment">// Store screenshot, do something else</span>
+  });
+
+  <span class="hljs-keyword">await</span> cluster.queue(<span class="hljs-string">'http://www.google.com/'</span>);
+  <span class="hljs-keyword">await</span> cluster.queue(<span class="hljs-string">'http://www.wikipedia.org/'</span>);
+  <span class="hljs-comment">// many more pages</span>
+
+  <span class="hljs-keyword">await</span> cluster.idle();
+  <span class="hljs-keyword">await</span> cluster.close();
+})();</code></pre>
+				<h2 id="examples">Examples</h2>
+				<ul>
+					<li><a href="examples/minimal.js">Simple example</a></li>
+					<li><a href="examples/deep-google-crawler.js">Deep crawling the Google search results</a></li>
+					<li><a href="examples/alexa-1m.js">Crawling the Alexa Top 1 Million</a></li>
+					<li><a href="examples/function-queuing-simple.js">Queuing functions (simple)</a></li>
+					<li><a href="examples/function-queuing-complex.js">Queuing functions (complex)</a></li>
+					<li><a href="examples/error-handling.js">Error handling</a></li>
+					<li><a href="examples/different-puppeteer-library.js">Using a different puppeteer library (like puppeteer-core)</a></li>
+				</ul>
+				<h2 id="concurreny-implementations">Concurreny implementations</h2>
+				<p>There are different concurrency models, which define how isolated each job is run. You can set it in the <code>options</code> when calling <a href="#Clusterlaunchoptions">Cluster.launch</a>. The default option is <code>Cluster.CONCURRENCY_CONTEXT</code>, but it is recommended to always specify which one you want to use.</p>
+				<table>
+					<thead>
+						<tr>
+							<th>Concurrency</th>
+							<th>Description</th>
+							<th>Shared data</th>
+						</tr>
+					</thead>
+					<tbody><tr>
+							<td><code>CONCURRENCY_PAGE</code></td>
+							<td>One <a href="https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#class-page" title="Page">Page</a> for each URL</td>
+							<td>Shares everything (cookies, localStorage, etc.) between jobs.</td>
+						</tr>
+						<tr>
+							<td><code>CONCURRENCY_CONTEXT</code></td>
+							<td>Incognito page (see <a href="https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#browsercreateincognitobrowsercontext">IncognitoBrowserContext</a>) for each URL</td>
+							<td>No shared data.</td>
+						</tr>
+						<tr>
+							<td><code>CONCURRENCY_BROWSER</code></td>
+							<td>One browser (using an incognito page) per URL. If one browser instance crashes for any reason, this will not affect other jobs.</td>
+							<td>No shared data.</td>
+						</tr>
+						<tr>
+							<td>Custom concurrency</td>
+							<td>You can create your own concurrency implementation. Copy one of the files of the <code>concurrency/built-in</code> directory and implement <code>ConcurrencyImplementation</code>. Then provide the class to the option <code>concurrency</code>.</td>
+							<td>Depends on your implementation</td>
+						</tr>
+				</tbody></table>
+				<h2 id="debugging">Debugging</h2>
+				<p>Try to checkout the <a href="https://github.com/GoogleChrome/puppeteer#debugging-tips">puppeteer debugging tips</a> first. Your problem might not be related to <code>puppeteer-cluster</code>, but <code>puppteer</code> itself. Additionally, you can enable verbose logging to see which data is consumed by which worker and some other cluster information. Set the DEBUG environment variable to <code>puppeteer-cluster:*</code>. See an example below or checkout the <a href="https://github.com/visionmedia/debug#windows-command-prompt-notes">debug docs</a> for more information.</p>
+				<pre><code class="language-bash"><span class="hljs-comment"># Linux</span>
+DEBUG=<span class="hljs-string">'puppeteer-cluster:*'</span> node examples/minimal
+<span class="hljs-comment"># Windows Powershell</span>
+<span class="hljs-variable">$env</span>:DEBUG=<span class="hljs-string">'puppeteer-cluster:*'</span>;node examples/minimal</code></pre>
+				<h2 id="api">API</h2>
+				<ul>
+					<li><a href="#class-cluster">class: Cluster</a><ul>
+							<li><a href="#clusterlaunchoptions">Cluster.launch(options)</a></li>
+							<li><a href="#clustertasktaskfunction">cluster.task(taskFunction)</a></li>
+							<li><a href="#clusterqueuedata--taskfunction">cluster.queue([data] [, taskFunction])</a></li>
+							<li><a href="#clusteridle">cluster.idle()</a></li>
+							<li><a href="#clusterclose">cluster.close()</a></li>
+						</ul>
+					</li>
+				</ul>
+				<h3 id="class-cluster">class: Cluster</h3>
+				<p>Cluster module provides a method to launch a cluster of Chromium instances.</p>
+				<h4 id="event-taskerror-">event: &#39;taskerror&#39;</h4>
+				<ul>
+					<li>&lt;<a href="https://nodejs.org/api/errors.html#errors_class_error" title="Error">Error</a>&gt;</li>
+					<li>&lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" title="String">string</a>|<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" title="Object">Object</a>&gt;</li>
+				</ul>
+				<p>Emitted when the task ends in an error for some reason. Reasons might be a network error, your code throwing an error, timeout hit, etc. The first argument will the error itself. The second argument is the URL or data of the job (as given to <a href="#clusterqueuedata--taskfunction" title="Cluster.queue">Cluster.queue</a>). If retryLimit is set to a value greater than <code>0</code>, the cluster will automatically requeue the job and retry it again later.</p>
+				<pre><code class="language-js">  cluster.on(<span class="hljs-string">'taskerror'</span>, (err, data) =&gt; {
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Error crawling <span class="hljs-subst">${data}</span>: <span class="hljs-subst">${err.message}</span>`</span>);
+  });</code></pre>
+				<h4 id="cluster-launch-options-">Cluster.launch(options)</h4>
+				<ul>
+					<li><code>options</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" title="Object">Object</a>&gt; Set of configurable options for the cluster. Can have the following fields:<ul>
+							<li><code>concurrency</code> &lt;<em>Cluster.CONCURRENCY_PAGE</em>|<em>Cluster.CONCURRENCY_CONTEXT</em>|<em>Cluster.CONCURRENCY_BROWSER</em>|ConcurrencyImplementation&gt; The chosen concurrency model. See <a href="#concurreny-models">Concurreny models</a> for more information. Defaults to <code>Cluster.CONCURRENCY_CONTEXT</code>. Alternatively you can provide a class implementing <code>ConcurrencyImplementation</code>.</li>
+							<li><code>maxConcurrency</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" title="Number">number</a>&gt; Maximal number of parallel workers. Defaults to <code>1</code>.</li>
+							<li><code>puppeteerOptions</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" title="Object">Object</a>&gt; Object passed to <a href="https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#puppeteerlaunchoptions" title="puppeteer.launch">puppeteer.launch</a>. See puppeteer documentation for more information. Defaults to <code>{}</code>.</li>
+							<li><code>retryLimit</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" title="Number">number</a>&gt; How often do you want to retry a job before marking it as failed. Defaults to <code>0</code>.</li>
+							<li><code>retryDelay</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" title="Number">number</a>&gt; How much time should pass at minimum between the job execution and its retry. Defaults to <code>0</code>.</li>
+							<li><code>sameDomainDelay</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" title="Number">number</a>&gt; How much time should pass at minimum between two requests to the same domain. If you use this field, the queued <code>data</code> must be your URL or <code>data</code> must be an object containing a field called <code>url</code>.</li>
+							<li><code>skipDuplicateUrls</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" title="Boolean">boolean</a>&gt; If set to <code>true</code>, will skip URLs which were already crawled by the cluster. Defaults to <code>false</code>. If you use this field, the queued <code>data</code> must be your URL or <code>data</code> must be an object containing a field called <code>url</code>.</li>
+							<li><code>timeout</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" title="Number">number</a>&gt; Specify a timeout for all tasks. Defaults to <code>30000</code> (30 seconds).</li>
+							<li><code>monitor</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" title="Boolean">boolean</a>&gt; If set to <code>true</code>, will provide a small command line output to provide information about the crawling process. Defaults to <code>false</code>.</li>
+							<li><code>workerCreationDelay</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" title="Number">number</a>&gt; Time between creation of two workers. Set this to a value like <code>100</code> (0.1 seconds) in case you want some time to pass before another worker is created. You can use this to prevent a network peak right at the start. Defaults to <code>0</code> (no delay).</li>
+							<li><code>puppeteer</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" title="Object">Object</a>&gt; In case you want to use a different puppeteer library (like <a href="https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#puppeteer-vs-puppeteer-core">puppeteer-core</a> or <a href="https://github.com/berstend/puppeteer-extra">puppeteer-extra</a>), pass the object here. If not set, will default to using puppeteer. When using <code>puppeteer-core</code>, make sure to also provide <code>puppeteerOptions.executablePath</code>.</li>
+						</ul>
+					</li>
+					<li>returns: &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" title="Promise">Promise</a>&lt;<a href="#class-cluster" title="Cluster">Cluster</a>&gt;&gt;</li>
+				</ul>
+				<p>The method launches a cluster instance.</p>
+				<h4 id="cluster-task-taskfunction-">cluster.task(taskFunction)</h4>
+				<ul>
+					<li><code>taskFunction</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" title="Function">function</a>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" title="String">string</a>|<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" title="Object">Object</a>, <a href="https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#class-page" title="Page">Page</a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" title="Object">Object</a>)&gt; Sets the function, which will be called for each job. The function will be called with an object having the following fields:<ul>
+							<li><code>page</code> &lt;<a href="https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#class-page" title="Page">Page</a>&gt; The page given by puppeteer, which provides methods to interact with a single tab in Chromium.</li>
+							<li><code>data</code> <any> The data of the job you provided to <a href="#clusterqueuedata--taskfunction" title="Cluster.queue">Cluster.queue</a>.</li>
+							<li><code>worker</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" title="Object">Object</a>&gt; An object containing information about the worker executing the current job.<ul>
+									<li><code>id</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" title="Number">number</a>&gt; ID of the worker. Worker IDs start at 0.</li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+					<li>returns: &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" title="Promise">Promise</a>&gt;</li>
+				</ul>
+				<p>Specifies a task for the cluster. A task is called for each job you queue via <a href="#clusterqueuedata--taskfunction" title="Cluster.queue">Cluster.queue</a>. Alternatively you can directly queue the function that you want to be executed. See <a href="#clusterqueuedata--taskfunction" title="Cluster.queue">Cluster.queue</a> for an example.</p>
+				<h4 id="cluster-queue-data-taskfunction-">cluster.queue([data] [, taskFunction])</h4>
+				<ul>
+					<li><code>data</code> <any> Data to be queued. This might be your URL (a string) or a more complex object containing data. The data given will be provided to your task function(s). See [examples] for a more complex usage of this argument.</li>
+					<li><code>taskFunction</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" title="Function">function</a>&gt; Function like the one given to <a href="#clustertasktaskfunction" title="Cluster.task">Cluster.task</a>. If a function is provided, this function will be called (only for this job) instead of the function provided to <a href="#clustertasktaskfunction" title="Cluster.task">Cluster.task</a>. The function will be called with an object having the following fields:<ul>
+							<li><code>page</code> &lt;<a href="https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#class-page" title="Page">Page</a>&gt; The page given by puppeteer, which provides methods to interact with a single tab in Chromium.</li>
+							<li><code>data</code> <any> The data of the job you provided as first argument to <a href="#clusterqueuedata--taskfunction" title="Cluster.queue">Cluster.queue</a>. This might be <code>undefined</code> in case you only specified a function.</li>
+							<li><code>worker</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" title="Object">Object</a>&gt; An object containing information about the worker executing the current job.<ul>
+									<li><code>id</code> &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" title="Number">number</a>&gt; ID of the worker. Worker IDs start at 0.</li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+					<li>returns: &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" title="Promise">Promise</a>&gt;</li>
+				</ul>
+				<p>Puts a URL or data into the queue. Alternatively (or even additionally) you can queue functions to be executed. See the examples about function queuing for more information: (<a href="examples/function-queuing-simple.js">Simple function queuing</a>, <a href="examples/function-queuing-complex.js">complex function queuing</a>)</p>
+				<h4 id="cluster-idle-">cluster.idle()</h4>
+				<ul>
+					<li>returns: &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" title="Promise">Promise</a>&gt;</li>
+				</ul>
+				<p>Promise is resolved when the queue becomes empty.</p>
+				<h4 id="cluster-close-">cluster.close()</h4>
+				<ul>
+					<li>returns: &lt;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" title="Promise">Promise</a>&gt;</li>
+				</ul>
+				<p>Closes the cluster and all opened Chromium instances including all open pages (if any were opened). It is recommended to run <a href="#clusteridle">Cluster.idle</a> before calling this function. The <a href="#class-cluster" title="Cluster">Cluster</a> object itself is considered to be disposed and cannot be used anymore.</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_cluster_.html">"<wbr>Cluster"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_display_.html">"<wbr>Display"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_job_.html">"<wbr>Job"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_queue_.html">"<wbr>Queue"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_systemmonitor_.html">"<wbr>System<wbr>Monitor"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_worker_.html">"<wbr>Worker"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_concurrency_concurrencyimplementation_.html">"concurrency/<wbr>Concurrency<wbr>Implementation"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_concurrency_singlebrowserimplementation_.html">"concurrency/<wbr>Single<wbr>Browser<wbr>Implementation"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_concurrency_built_in_browser_.html">"concurrency/built-<wbr>in/<wbr>Browser"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_concurrency_built_in_context_.html">"concurrency/built-<wbr>in/<wbr>Context"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_concurrency_built_in_page_.html">"concurrency/built-<wbr>in/<wbr>Page"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_concurrency_builtinconcurrency_.html">"concurrency/built<wbr>InConcurrency"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_index_.html">"index"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_util_.html">"util"</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+</body>
+</html>
