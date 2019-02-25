@@ -3,18 +3,30 @@ import { URL } from 'url';
 import { TaskFunction } from './Cluster';
 
 export type JobData = any;
+export type ExecuteResolve = (value?: any) => void;
+export type ExecuteReject = (reason?: any) => void;
+export interface ExecuteCallbacks {
+    resolve: (value?: any) => void;
+    reject: ExecuteReject;
+}
 
 export default class Job {
 
     public data: JobData;
     public taskFunction: TaskFunction | undefined;
+    public executeCallbacks: ExecuteCallbacks | undefined;
 
     private lastError: Error | null = null;
     public tries: number = 0;
 
-    public constructor(data: JobData, taskFunction?: TaskFunction) {
+    public constructor(
+        data: JobData,
+        taskFunction?: TaskFunction,
+        executeCallbacks?: ExecuteCallbacks,
+    ) {
         this.data = data;
         this.taskFunction = taskFunction;
+        this.executeCallbacks = executeCallbacks;
     }
 
     public getUrl(): string | undefined {

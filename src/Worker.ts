@@ -21,6 +21,18 @@ interface WorkerOptions {
 
 const BROWSER_INSTANCE_TRIES = 10;
 
+export interface WorkError {
+    type: 'error';
+    error: Error;
+}
+
+export interface WorkData {
+    type: 'success';
+    data: any;
+}
+
+export type WorkResult = WorkError | WorkData;
+
 export default class Worker implements WorkerOptions {
 
     cluster: Cluster;
@@ -43,7 +55,7 @@ export default class Worker implements WorkerOptions {
             task: TaskFunction,
             job: Job,
             timeout: number,
-        ): Promise<Error | null> {
+        ): Promise<WorkResult> {
         this.activeTarget = job;
 
         let jobInstance: JobInstance | null = null;
@@ -77,8 +89,9 @@ export default class Worker implements WorkerOptions {
 
         debug(`Executing task on worker #${this.id} with data: ${inspect(job.data)}`);
 
+        let result: any;
         try {
-            await timeoutExecute(
+            result = await timeoutExecute(
                 timeout,
                 task({
                     page,
@@ -104,7 +117,16 @@ export default class Worker implements WorkerOptions {
 
         this.activeTarget = null;
 
-        return errorState;
+        if (errorState) {
+            return {
+                type: 'error',
+                error: errorState || new Error('asf'),
+            };
+        }
+        return {
+            data: result,
+            type: 'success',
+        };
     }
 
     public async close(): Promise<void> {

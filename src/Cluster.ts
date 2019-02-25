@@ -1,8 +1,8 @@
 
-import Job, { JobData } from './Job';
+import Job, { JobData, ExecuteResolve, ExecuteReject } from './Job';
 import Display from './Display';
 import * as util from './util';
-import Worker from './Worker';
+import Worker, { WorkResult } from './Worker';
 
 import * as builtInConcurrency from './concurrency/builtInConcurrency';
 
@@ -59,7 +59,7 @@ interface TaskFunctionArguments {
     };
 }
 
-export type TaskFunction = (arg: TaskFunctionArguments) => Promise<void>;
+export type TaskFunction = (arg: TaskFunctionArguments) => Promise<any>;
 
 const MONITORING_DISPLAY_INTERVAL = 500;
 const CHECK_FOR_WORK_INTERVAL = 100;
@@ -295,29 +295,35 @@ export default class Cluster extends EventEmitter {
             throw new Error('No task function defined!');
         }
 
-        const resultError: Error | null = await worker.handle(
+        const result: WorkResult = await worker.handle(
             (jobFunction as TaskFunction),
             job,
             this.options.timeout,
         );
 
-        if (resultError !== null) {
-            // error during execution
-            job.addError(resultError);
-            this.emit('taskerror', resultError, job.data);
-
-            if (job.tries <= this.options.retryLimit) {
-                let delayUntil = undefined;
-                if (this.options.retryDelay !== 0) {
-                    delayUntil = Date.now() + this.options.retryDelay;
-                }
-                this.jobQueue.push(job, {
-                    delayUntil,
-                });
-            } else {
+        if (result.type === 'error') {
+            if (job.executeCallbacks) {
+                job.executeCallbacks.reject(result.error);
                 this.errorCount += 1;
+            } else { // ignore retryLimits in case of executeCallbacks
+                job.addError(result.error);
+                this.emit('taskerror', result, job.data);
+                if (job.tries <= this.options.retryLimit) {
+                    let delayUntil = undefined;
+                    if (this.options.retryDelay !== 0) {
+                        delayUntil = Date.now() + this.options.retryDelay;
+                    }
+                    this.jobQueue.push(job, {
+                        delayUntil,
+                    });
+                } else {
+                    this.errorCount += 1;
+                }
             }
+        } else if (result.type === 'success' && job.executeCallbacks) {
+            job.executeCallbacks.resolve(result.data);
         }
+
         this.waitForOneResolvers.forEach(resolve => resolve(job.data));
 
         // add worker to available workers again
@@ -358,6 +364,26 @@ export default class Cluster extends EventEmitter {
         this.allTargetCount += 1;
         this.jobQueue.push(job);
         this.work();
+    }
+
+    public execute(data: JobData, taskFunction?: TaskFunction): Promise<void>;
+    public execute(taskFunction: TaskFunction): Promise<void>;
+    public execute(
+        data: JobData | TaskFunction,
+        taskFunction?: TaskFunction,
+    ): Promise<void> {
+        return new Promise<any>((resolve: ExecuteResolve, reject: ExecuteReject) => {
+            let job;
+            const callbacks = { resolve, reject };
+            if (typeof data === 'function') {
+                job = new Job(undefined, data, callbacks);
+            } else {
+                job = new Job(data, taskFunction, callbacks);
+            }
+            this.allTargetCount += 1;
+            this.jobQueue.push(job);
+            this.work();
+        });
     }
 
     public idle(): Promise<void> {
