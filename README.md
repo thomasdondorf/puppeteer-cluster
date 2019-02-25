@@ -69,6 +69,7 @@ const { Cluster } = require('puppeteer-cluster');
 ## Examples
 * [Simple example](examples/minimal.js)
 * [Wait for a task to be executed](examples/execute.js)
+* [Minimal screenshot server with express](examples/express-screenshot.js)
 * [Deep crawling the Google search results](examples/deep-google-crawler.js)
 * [Crawling the Alexa Top 1 Million](examples/alexa-1m.js)
 * [Queuing functions (simple)](examples/function-queuing-simple.js)
