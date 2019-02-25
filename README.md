@@ -68,6 +68,7 @@ const { Cluster } = require('puppeteer-cluster');
 
 ## Examples
 * [Simple example](examples/minimal.js)
+* [Wait for a task to be executed](examples/execute.js)
 * [Deep crawling the Google search results](examples/deep-google-crawler.js)
 * [Crawling the Alexa Top 1 Million](examples/alexa-1m.js)
 * [Queuing functions (simple)](examples/function-queuing-simple.js)
@@ -103,6 +104,7 @@ $env:DEBUG='puppeteer-cluster:*';node examples/minimal
   * [Cluster.launch(options)](#clusterlaunchoptions)
   * [cluster.task(taskFunction)](#clustertasktaskfunction)
   * [cluster.queue([data] [, taskFunction])](#clusterqueuedata--taskfunction)
+  * [cluster.execute([data] [, taskFunction])](#clusterexecutedata--taskfunction)
   * [cluster.idle()](#clusteridle)
   * [cluster.close()](#clusterclose)
 
@@ -114,7 +116,7 @@ Cluster module provides a method to launch a cluster of Chromium instances.
 - <[Error]>
 - <[string]|[Object]>
 
-Emitted when the task ends in an error for some reason. Reasons might be a network error, your code throwing an error, timeout hit, etc. The first argument will the error itself. The second argument is the URL or data of the job (as given to [Cluster.queue]). If retryLimit is set to a value greater than `0`, the cluster will automatically requeue the job and retry it again later.
+Emitted when a queued task ends in an error for some reason. Reasons might be a network error, your code throwing an error, timeout hit, etc. The first argument will the error itself. The second argument is the URL or data of the job (as given to [Cluster.queue]). If retryLimit is set to a value greater than `0`, the cluster will automatically requeue the job and retry it again later. In case the task was queued via [Cluster.execute] there will be no event fired.
 
 ```js
   cluster.on('taskerror', (err, data) => {
@@ -127,8 +129,8 @@ Emitted when the task ends in an error for some reason. Reasons might be a netwo
   - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*|ConcurrencyImplementation> The chosen concurrency model. See [Concurreny models](#concurreny-models) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`. Alternatively you can provide a class implementing `ConcurrencyImplementation`.
   - `maxConcurrency` <[number]> Maximal number of parallel workers. Defaults to `1`.
   - `puppeteerOptions` <[Object]> Object passed to [puppeteer.launch]. See puppeteer documentation for more information. Defaults to `{}`.
-  - `retryLimit` <[number]> How often do you want to retry a job before marking it as failed. Defaults to `0`.
-  - `retryDelay` <[number]> How much time should pass at minimum between the job execution and its retry. Defaults to `0`.
+  - `retryLimit` <[number]> How often do you want to retry a job before marking it as failed. Ignored by tasks queued via [Cluster.execute]. Defaults to `0`.
+  - `retryDelay` <[number]> How much time should pass at minimum between the job execution and its retry. Ignored by tasks queued via [Cluster.execute]. Defaults to `0`.
   - `sameDomainDelay` <[number]> How much time should pass at minimum between two requests to the same domain. If you use this field, the queued `data` must be your URL or `data` must be an object containing a field called `url`.
   - `skipDuplicateUrls` <[boolean]> If set to `true`, will skip URLs which were already crawled by the cluster. Defaults to `false`. If you use this field, the queued `data` must be your URL or `data` must be an object containing a field called `url`.
   - `timeout` <[number]> Specify a timeout for all tasks. Defaults to `30000` (30 seconds).
@@ -158,7 +160,18 @@ Specifies a task for the cluster. A task is called for each job you queue via [C
     - `id` <[number]> ID of the worker. Worker IDs start at 0.
 - returns: <[Promise]>
 
-Puts a URL or data into the queue. Alternatively (or even additionally) you can queue functions to be executed. See the examples about function queuing for more information: ([Simple function queuing](examples/function-queuing-simple.js), [complex function queuing](examples/function-queuing-complex.js))
+Puts a URL or data into the queue. Alternatively (or even additionally) you can queue functions. See the examples about function queuing for more information: ([Simple function queuing](examples/function-queuing-simple.js), [complex function queuing](examples/function-queuing-complex.js))
+
+#### cluster.execute([data] [, taskFunction])
+- `data` <any> Data to be queued. This might be your URL (a string) or a more complex object containing data. The data given will be provided to your task function(s). See [examples] for a more complex usage of this argument.
+- `taskFunction` <[function]> Function like the one given to [Cluster.task]. If a function is provided, this function will be called (only for this job) instead of the function provided to [Cluster.task]. The function will be called with an object having the following fields:
+  - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
+  - `data` <any> The data of the job you provided as first argument to [Cluster.queue]. This might be `undefined` in case you only specified a function.
+  - `worker` <[Object]> An object containing information about the worker executing the current job.
+    - `id` <[number]> ID of the worker. Worker IDs start at 0.
+- returns: <[Promise]>
+
+Works like [Cluster.queue], just that this function returns a Promise which will be resolved after the task is executed. In case an error happens during the execution, this function will reject the Promise with the thrown error. There will be no "taskerror" event fired. In addition, tasks queued via execute will ignore "retryLimit" and "retryDelay". For an example see the [Execute example](examples/execute.js).
 
 #### cluster.idle()
 - returns: <[Promise]>
@@ -173,6 +186,7 @@ Closes the cluster and all opened Chromium instances including all open pages (i
 
 
 [Cluster.queue]: #clusterqueuedata--taskfunction "Cluster.queue"
+[Cluster.execute]: #clusterexecutedata--taskfunction "Cluster.execute"
 [Cluster.task]: #clustertasktaskfunction "Cluster.task"
 [Cluster]: #class-cluster "Cluster"
 
