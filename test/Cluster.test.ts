@@ -413,6 +413,31 @@ describe('options', () => {
                 await cluster.close();
             });
 
+            test('execute a function', async () => {
+                expect.assertions(2);
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
+                    maxConcurrency: 2,
+                });
+                cluster.on('taskerror', (err) => {
+                    // should never throw as errors are given directly to await try-catch block
+                    throw err;
+                });
+
+                const value1 = await cluster.execute(async () => {
+                    return 'some value';
+                });
+                expect(value1).toBe('some value');
+                const value2 = await cluster.execute('world', async ({ data }) => {
+                    return `hello ${data}`;
+                });
+                expect(value2).toBe('hello world');
+
+                await cluster.idle();
+                await cluster.close();
+            });
+
             test('execute/queue errors', async () => {
                 expect.assertions(2);
 
