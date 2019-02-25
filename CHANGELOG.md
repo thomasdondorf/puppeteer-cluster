@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.13.0] - ...
+### Added
+- Cluster.execute function added
+
 ## [0.12.1] - 2018-11-08
 ### Fixed
 - Fixed support for custom concurrency implementations
