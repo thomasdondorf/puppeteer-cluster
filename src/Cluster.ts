@@ -1,5 +1,5 @@
 
-import Job, { JobData, ExecuteResolve, ExecuteReject } from './Job';
+import Job, { JobData, ExecuteResolve, ExecuteReject, ExecuteCallbacks } from './Job';
 import Display from './Display';
 import * as util from './util';
 import Worker, { WorkResult } from './Worker';
@@ -350,21 +350,31 @@ export default class Cluster extends EventEmitter {
         );
     }
 
+    public queueJob(data: JobData, taskFunction?: TaskFunction, callbacks?: ExecuteCallbacks): void;
+    public queueJob(taskFunction: TaskFunction, _: undefined, callbacks?: ExecuteCallbacks): void;
+    public queueJob(
+        data: JobData | TaskFunction,
+        taskFunction?: TaskFunction,
+        callbacks?: ExecuteCallbacks,
+    ): void {
+        let job;
+        if (typeof data === 'function') {
+            job = new Job(undefined, data, callbacks);
+        } else {
+            job = new Job(data, taskFunction, callbacks);
+        }
+        this.allTargetCount += 1;
+        this.jobQueue.push(job);
+        this.work();
+    }
+
     public async queue(data: JobData, taskFunction?: TaskFunction): Promise<void>;
     public async queue(taskFunction: TaskFunction): Promise<void>;
     public async queue(
         data: JobData | TaskFunction,
         taskFunction?: TaskFunction,
     ): Promise<void> {
-        let job;
-        if (typeof data === 'function') {
-            job = new Job(undefined, data);
-        } else {
-            job = new Job(data, taskFunction);
-        }
-        this.allTargetCount += 1;
-        this.jobQueue.push(job);
-        this.work();
+        this.queueJob(data, taskFunction);
     }
 
     public execute(data: JobData, taskFunction?: TaskFunction): Promise<void>;
@@ -374,16 +384,8 @@ export default class Cluster extends EventEmitter {
         taskFunction?: TaskFunction,
     ): Promise<void> {
         return new Promise<any>((resolve: ExecuteResolve, reject: ExecuteReject) => {
-            let job;
             const callbacks = { resolve, reject };
-            if (typeof data === 'function') {
-                job = new Job(undefined, data, callbacks);
-            } else {
-                job = new Job(data, taskFunction, callbacks);
-            }
-            this.allTargetCount += 1;
-            this.jobQueue.push(job);
-            this.work();
+            this.queueJob(data, taskFunction, callbacks);
         });
     }
 
