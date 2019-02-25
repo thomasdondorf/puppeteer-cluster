@@ -389,7 +389,60 @@ describe('options', () => {
                 await cluster.close();
             });
 
-            // TODO test('throws when no task function given');
+            test('execute', async () => {
+                expect.assertions(2);
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
+                    maxConcurrency: 2,
+                });
+                cluster.on('taskerror', (err) => {
+                    // should never throw as errors are given directly to await try-catch block
+                    throw err;
+                });
+
+                await cluster.task(async ({ page, data }) => {
+                    return data;
+                });
+                const value1 = await cluster.execute(1);
+                const value2 = await cluster.execute('something');
+                expect(value1).toBe(1);
+                expect(value2).toBe('something');
+
+                await cluster.idle();
+                await cluster.close();
+            });
+
+            test('execute/queue errors', async () => {
+                expect.assertions(2);
+
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
+                    maxConcurrency: 1,
+                });
+                cluster.on('taskerror', (err) => {
+                    // queue is catched in here
+                    expect(err.message).toBe('queued');
+                });
+
+                await cluster.task(async ({ page, data }) => {
+                    await new Promise(resolve => setTimeout(resolve, 0)); // make sure its async
+                    throw new Error(data);
+                });
+                try {
+                    const value1 = await cluster.execute('executed');
+                    expect(1).toBe(2); // fail, should never reach this point
+                } catch (e) {
+                    // execute is catched in here
+                    expect(e.message).toBe('executed');
+                }
+                cluster.queue('queued');
+
+                await cluster.idle();
+                await cluster.close();
+            });
+
         });
     });
     // end of tests for all concurrency options
