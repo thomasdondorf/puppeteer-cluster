@@ -307,7 +307,7 @@ export default class Cluster extends EventEmitter {
                 this.errorCount += 1;
             } else { // ignore retryLimits in case of executeCallbacks
                 job.addError(result.error);
-                this.emit('taskerror', result, job.data);
+                this.emit('taskerror', result.error, job.data);
                 if (job.tries <= this.options.retryLimit) {
                     let delayUntil = undefined;
                     if (this.options.retryDelay !== 0) {
