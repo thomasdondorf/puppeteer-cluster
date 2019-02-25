@@ -325,6 +325,7 @@ export default class Cluster extends EventEmitter {
         }
 
         this.waitForOneResolvers.forEach(resolve => resolve(job.data));
+        this.waitForOneResolvers = [];
 
         // add worker to available workers again
         const workerIndex = this.workersBusy.indexOf(worker);
