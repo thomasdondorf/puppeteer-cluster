@@ -30,24 +30,26 @@
     "puppeteer": "^1.5.0"
   },
   "devDependencies": {
-    "@types/debug": "0.0.31",
-    "@types/jest": "^23.3.1",
-    "@types/node": "^10.9.4",
-    "@types/puppeteer": "^1.6.3",
+    "@types/debug": "^4.1.1",
+    "@types/jest": "^24.0.6",
+    "@types/node": "^11.9.5",
+    "@types/puppeteer": "^1.12.1",
     "@types/puppeteer-core": "^1.9.0",
-    "coveralls": "^3.0.2",
+    "coveralls": "^3.0.3",
     "express": "^4.16.4",
-    "jest": "^23.5.0",
-    "puppeteer": "^1.8.0",
-    "puppeteer-core": "^1.10.0",
+    "jest": "^24.1.0",
+    "puppeteer": "^1.12.2",
+    "puppeteer-core": "^1.12.2",
     "tree-kill": "^1.2.0",
-    "ts-jest": "^23.1.4",
-    "tslint": "^5.11.0",
+    "ts-jest": "^24.0.0",
+    "tslint": "^5.13.0",
     "tslint-config-airbnb": "^5.11.0",
-    "typescript": "^3.0.3"
+    "typescript": "^3.3.3333"
   },
   "jest": {
-    "setupTestFrameworkScriptFile": "<rootDir>/test/_setup.js",
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/_setup.js"
+    ],
     "collectCoverageFrom": [
       "src/**/*.{ts}"
     ],

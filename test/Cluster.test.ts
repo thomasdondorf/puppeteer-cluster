@@ -286,7 +286,7 @@ describe('options', () => {
                     concurrency,
                     puppeteerOptions: { args: ['--no-sandbox'] },
                     maxConcurrency: 2,
-                    sameDomainDelay: 1000,
+                    sameDomainDelay: 5000,
                 });
                 cluster.on('taskerror', (err) => {
                     throw err;
@@ -302,10 +302,10 @@ describe('options', () => {
                     expect(counter).toBe(counterShouldBe);
                 });
 
-                await cluster.queue({ url: FIRST_URL, counterShouldBe: 1 });
-                await cluster.queue({ url: FIRST_URL, counterShouldBe: 3 });
+                cluster.queue({ url: FIRST_URL, counterShouldBe: 1 });
+                cluster.queue({ url: FIRST_URL, counterShouldBe: 3 });
                 await cluster.waitForOne();
-                await cluster.queue({ url: SECOND_URL, counterShouldBe: 2 });
+                cluster.queue({ url: SECOND_URL, counterShouldBe: 2 });
 
                 await cluster.idle();
                 await cluster.close();
@@ -666,7 +666,7 @@ describe('Repair', () => {
                 cluster.queue(async ({ page }: { page: puppeteer.Page }) => {
                     // kill process
                     await new Promise((resolve) => {
-                        kill(page.browser().process().pid, 'SIGKILL', resolve);
+                        kill(page.browser().process()!.pid, 'SIGKILL', resolve);
                     });
 
                     // check if its actually crashed
