@@ -9,3 +9,4 @@ test/
 examples/
 
 .travis.yml
+.editorconfig
