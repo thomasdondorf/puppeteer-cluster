@@ -350,9 +350,17 @@ export default class Cluster extends EventEmitter {
         );
     }
 
-    public queueJob(data: JobData, taskFunction?: TaskFunction, callbacks?: ExecuteCallbacks): void;
-    public queueJob(taskFunction: TaskFunction, _: undefined, callbacks?: ExecuteCallbacks): void;
-    public queueJob(
+    private queueJob(
+        data: JobData,
+        taskFunction?: TaskFunction,
+        callbacks?: ExecuteCallbacks,
+    ): void;
+    private queueJob(
+        taskFunction: TaskFunction,
+        _: undefined,
+        callbacks?: ExecuteCallbacks,
+    ): void;
+    private queueJob(
         data: JobData | TaskFunction,
         taskFunction?: TaskFunction,
         callbacks?: ExecuteCallbacks,

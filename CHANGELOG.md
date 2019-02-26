@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.13.1] - 2019-02-26
+### Fixed
+- Internal helper function was accidentally set to public
+
 ## [0.13.0] - 2019-02-25
 ### Added
 - Cluster.execute function added
