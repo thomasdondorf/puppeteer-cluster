@@ -1,13 +1,18 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.13.2] - 2019-02-26
+### Fixed
+- `package-lock.json` file was not updated
+
 ## [0.13.1] - 2019-02-26
 ### Fixed
 - Internal helper function was accidentally set to public
 
 ## [0.13.0] - 2019-02-25
 ### Added
-- Cluster.execute function added
+- `Cluster.execute` function added
+- Examples for `Cluster.execute` added
 
 ## [0.12.1] - 2018-11-08
 ### Fixed
@@ -26,7 +31,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.11.1] - 2018-09-06
 ### Fixed
-- Fixed sameDomainDelay bug (issue #11)
+- Fixed `sameDomainDelay` bug (issue #11)
 
 ## [0.11.0] - 2018-09-05
 ### Fixed
