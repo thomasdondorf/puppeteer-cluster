@@ -51,7 +51,7 @@
       "<rootDir>/test/_setup.js"
     ],
     "collectCoverageFrom": [
-      "src/**/*.{ts}"
+      "src/**/*.ts"
     ],
     "coverageReporters": [
       "lcov",
