@@ -1,4 +1,5 @@
 language: node_js
+node_js: '10'
 
 matrix:
   include:
@@ -39,7 +40,6 @@ jobs:
         - npm run coverage
       after_success: '[ "$SUBMIT_COVERAGE" -eq "1" ] && echo "Submitting coverage report" && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js'
     - stage: deploy
-      node_js: '10'
       install: npm install
       script: npm run build
       deploy:
