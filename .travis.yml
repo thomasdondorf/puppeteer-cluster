@@ -15,7 +15,7 @@ node_js:
   - '8'
   - '9'
   - '10'
-  - '11'
+  #- '11'
 
 stages:
   - test
@@ -30,8 +30,10 @@ script:
 jobs:
   include:
     - stage: test
+      node_js: '11'
       after_success: 'echo "Submitting (fake) coverage for Node Version $TRAVIS_NODE_VERSION"'
     - stage: deploy
+      node_js: '11'
       script: skip
       after_success: skip
       after_script:
