@@ -1,5 +1,4 @@
 language: node_js
-node_js: '10'
 
 addons:
   apt:
@@ -10,20 +9,16 @@ cache:
   directories:
     - node_modules
 
-matrix:
-  include:
-    - node_js: '11'
-      env: SUBMIT_COVERAGE=0
-    - node_js: '10'
-      env: SUBMIT_COVERAGE=1
-    - node_js: '9'
-      env: SUBMIT_COVERAGE=0
-    - node_js: '8'
-      env: SUBMIT_COVERAGE=0
-    - node_js: '7'
-      env: SUBMIT_COVERAGE=0
-    - node_js: '6'
-      env: SUBMIT_COVERAGE=0
+node_js:
+  - '11'
+  - '10'
+  - '9'
+  - '8'
+  - '7'
+  - '6'
+
+env:
+  - NODE_VERSION_TO_SUBMIT=10
 
 stages:
   - test
@@ -34,12 +29,17 @@ before_script: npm run build
 script:
   - npm run lint
   - npm run coverage
-after_success: '[ "$SUBMIT_COVERAGE" -eq "1" ] && echo "Submitting coverage report" && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js'
+after_success:
+  - echo "$TRAVIS_NODE_VERSION"
+  - 'if [ "$TRAVIS_NODE_VERSION" = "10" ]; then echo "yes"; else echo "nope"; fi'
+  - 'if [ "$TRAVIS_NODE_VERSION" = "$NODE_VERSION_TO_SUBMIT" ]; then echo "yes"; else echo "nope"; fi'
+  - '[ "$SUBMIT_COVERAGE" -eq "1" ] && echo "Submitting coverage report" && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js'
 
 jobs:
   include:
     - stage: test
     - stage: deploy
+      node_js: '10'
       script: skip
       after_success: skip
       deploy:
