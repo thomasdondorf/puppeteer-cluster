@@ -147,6 +147,12 @@ Emitted when a queued task ends in an error for some reason. Reasons might be a 
   });
 ```
 
+#### event: 'queue'
+- <[Object]|undefined>
+- <[function]|undefined>
+
+Emitted when a task is queued via [Cluster.queue] or [Cluster.execute]. The first argument is the object containing the data (if any data is provided). The second argument is the queued function (if any). In case only a function is provided via [Cluster.queue] or [Cluster.execute], the first argument will be undefined. If only data is provided, the second argument will be undefined.
+
 #### Cluster.launch(options)
 - `options` <[Object]> Set of configurable options for the cluster. Can have the following fields:
   - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*|ConcurrencyImplementation> The chosen concurrency model. See [Concurreny models](#concurreny-models) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`. Alternatively you can provide a class implementing `ConcurrencyImplementation`.

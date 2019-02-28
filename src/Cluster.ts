@@ -366,12 +366,17 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         taskFunction?: TaskFunction<JobData, ReturnData>,
         callbacks?: ExecuteCallbacks,
     ): void {
-        let job;
+        let realData: JobData | undefined;
+        let realFunction: TaskFunction<JobData, ReturnData> | undefined;
         if (this.isTaskFunction(data)) {
-            job = new Job<JobData, ReturnData>(undefined, data, callbacks);
+            realFunction = data;
         } else {
-            job = new Job<JobData, ReturnData>(data, taskFunction, callbacks);
+            realData = data;
+            realFunction = taskFunction;
         }
+        const job = new Job<JobData, ReturnData>(realData, realFunction, callbacks);
+        this.emit('queue', realData, realFunction);
+
         this.allTargetCount += 1;
         this.jobQueue.push(job);
         this.work();
