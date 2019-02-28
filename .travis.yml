@@ -30,10 +30,7 @@ jobs:
       after_success: 'cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js'
     - stage: deploy
       node_js: '11'
-      script:
-        - 'echo "$TRAVIS_EVENT_TYPE"'
-        - 'echo "$TRAVIS_TAG"'
-        - 'echo "$TRAVIS_BRANCH"'
+      script: skip
       deploy:
         provider: npm
         skip_cleanup: true
@@ -47,4 +44,4 @@ jobs:
 stages:
   - test
   - name: deploy
-    if: type = push
+    if: tag IS present AND type = push
