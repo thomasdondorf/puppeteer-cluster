@@ -10,15 +10,12 @@ cache:
     - node_modules
 
 node_js:
-  - '11'
-  - '10'
-  - '9'
+  #- '6'
+  #- '7'
   - '8'
-  - '7'
-  - '6'
-
-env:
-  - NODE_VERSION_TO_SUBMIT=10
+  - '9'
+  - '10'
+  - '11'
 
 stages:
   - test
@@ -29,18 +26,14 @@ before_script: npm run build
 script:
   - npm run lint
   - npm run coverage
-after_success:
-  - echo "$TRAVIS_NODE_VERSION"
-  - 'if [ "$TRAVIS_NODE_VERSION" = "10" ]; then echo "yes"; else echo "nope"; fi'
-  - 'if [ "$TRAVIS_NODE_VERSION" = "$NODE_VERSION_TO_SUBMIT" ]; then echo "yes"; else echo "nope"; fi'
-  - '[ "$SUBMIT_COVERAGE" -eq "1" ] && echo "Submitting coverage report" && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js'
 
 jobs:
   include:
+    - stage: test
+      after_success: 'echo "Submitting (fake) coverage for Node Version $TRAVIS_NODE_VERSION"'
     - stage: deploy
-      node_js: '10'
       script: skip
       after_success: skip
       after_script:
-        - echo "kind of working..."
+        - echo "would normally deploy now..."
         - echo "$NODE_VERSION_TO_SUBMIT"
