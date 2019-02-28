@@ -34,7 +34,17 @@ jobs:
         - 'echo "$TRAVIS_EVENT_TYPE"'
         - 'echo "$TRAVIS_TAG"'
         - 'echo "$TRAVIS_BRANCH"'
+      deploy:
+        provider: npm
+        skip_cleanup: true
+        email: thomasdondorf@gmail.com
+        api_key:
+          secure: gKsvGl7Yk0PmXNB58/Y9g+AQ/FnvIsJCdX3sAJd73JjF7oTN+cHvP+NcoC7UDc6vEbhsA2apchGJx0YRYw8kbqbZ43o1H+l3NeVlq3P2aj6uzcvYCg4Pvo/N9TwlBTRrIhkex6F5mIKqsL3sXn1v4RtN8RlMBFdCzTATM/uryNkErjIKiAQ+AvDoNNFBtefRMxf0b6QETTA3IfKjbcED48FqzD9Wfjzb4D5sgneUl6N2KRNc4ID5uZvpdBQLmgmaWcvw5yzYOM6JMPXvTtFM3XjwVjtLOCWqYqAuKN0jWDRwG3c4STlgP/9LJfbn1oEDWT7vCqXBKuA4+9GLFrQfSDrn8BQGSPOKmbY5kxgm/H2aeO4HiD8sZVeKCwHA8YCl/dpnwu5TWSs2G60pvmra4qO+aSwmjZQZbGAT6XjSqs9j6jts9THhdoklmZex7TlQ/7njPnTJBnR8wC1/o9gXME0t2hAYHErHrYluRPIufTjjvLu55OUiIGfWfjB698T9/qIOwFUkAB6slC9Ox0aw/nPdyC/wFBbxPB0iZB3sbMyYSXhB1oUHyBmyWN8MbgqjrLLMmDQbBrflJ8z73VDjoHnsMgamxXwqoVFj8MqADQSz7YPMzrTVOmtqe9FfAdsGy+pVp5ppangGK0UujKJprP4pHChy/RT+FEXblhSVz2A=
+        on:
+          tags: true
+          branch: master
 
 stages:
   - test
-  - deploy
+  - name: deploy
+    if: type = push
