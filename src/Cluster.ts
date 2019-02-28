@@ -1,5 +1,5 @@
 
-import Job, { JobData, ExecuteResolve, ExecuteReject, ExecuteCallbacks } from './Job';
+import Job, { ExecuteResolve, ExecuteReject, ExecuteCallbacks } from './Job';
 import Display from './Display';
 import * as util from './util';
 import Worker, { WorkResult } from './Worker';
@@ -51,7 +51,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     puppeteer: undefined,
 };
 
-interface TaskFunctionArguments {
+interface TaskFunctionArguments<JobData> {
     page: Page;
     data: JobData;
     worker: {
@@ -59,29 +59,31 @@ interface TaskFunctionArguments {
     };
 }
 
-export type TaskFunction = (arg: TaskFunctionArguments) => Promise<any>;
+export type TaskFunction<JobData, ReturnData> = (
+    arg: TaskFunctionArguments<JobData>,
+) => Promise<ReturnData>;
 
 const MONITORING_DISPLAY_INTERVAL = 500;
 const CHECK_FOR_WORK_INTERVAL = 100;
 const WORK_CALL_INTERVAL_LIMIT = 10;
 
-export default class Cluster extends EventEmitter {
+export default class Cluster<JobData = any, ReturnData = any> extends EventEmitter {
 
     static CONCURRENCY_PAGE = 1; // shares cookies, etc.
     static CONCURRENCY_CONTEXT = 2; // no cookie sharing (uses contexts)
     static CONCURRENCY_BROWSER = 3; // no cookie sharing and individual processes (uses contexts)
 
     private options: ClusterOptions;
-    private workers: Worker[] = [];
-    private workersAvail: Worker[] = [];
-    private workersBusy: Worker[] = [];
+    private workers: Worker<JobData, ReturnData>[] = [];
+    private workersAvail: Worker<JobData, ReturnData>[] = [];
+    private workersBusy: Worker<JobData, ReturnData>[] = [];
     private workersStarting = 0;
 
     private allTargetCount = 0;
-    private jobQueue: Queue<Job> = new Queue<Job>();
+    private jobQueue: Queue<Job<JobData, ReturnData>> = new Queue<Job<JobData, ReturnData>>();
     private errorCount = 0;
 
-    private taskFunction: TaskFunction | null = null;
+    private taskFunction: TaskFunction<JobData, ReturnData> | null = null;
     private idleResolvers: (() => void)[] = [];
     private waitForOneResolvers: ((data:JobData) => void)[] = [];
     private browser: ConcurrencyImplementation | null = null;
@@ -175,7 +177,7 @@ export default class Cluster extends EventEmitter {
             throw new Error(`Unable to launch browser for worker, error message: ${err.message}`);
         }
 
-        const worker = new Worker({
+        const worker = new Worker<JobData, ReturnData>({
             cluster: this,
             args: [''], // this.options.args,
             browser: workerBrowserInstance,
@@ -192,7 +194,7 @@ export default class Cluster extends EventEmitter {
         }
     }
 
-    public async task(taskFunction: TaskFunction) {
+    public async task(taskFunction: TaskFunction<JobData, ReturnData>) {
         this.taskFunction = taskFunction;
     }
 
@@ -278,7 +280,7 @@ export default class Cluster extends EventEmitter {
             this.lastDomainAccesses.set(domain, Date.now());
         }
 
-        const worker = <Worker>this.workersAvail.shift();
+        const worker = this.workersAvail.shift() as Worker<JobData, ReturnData>;
         this.workersBusy.push(worker);
 
         if (this.workersAvail.length !== 0 || this.allowedToStartWorker()) {
@@ -296,7 +298,7 @@ export default class Cluster extends EventEmitter {
         }
 
         const result: WorkResult = await worker.handle(
-            (jobFunction as TaskFunction),
+            (jobFunction as TaskFunction<JobData, ReturnData>),
             job,
             this.options.timeout,
         );
@@ -324,7 +326,9 @@ export default class Cluster extends EventEmitter {
             job.executeCallbacks.resolve(result.data);
         }
 
-        this.waitForOneResolvers.forEach(resolve => resolve(job.data));
+        this.waitForOneResolvers.forEach(
+            resolve => resolve(job.data as JobData),
+        );
         this.waitForOneResolvers = [];
 
         // add worker to available workers again
@@ -350,48 +354,55 @@ export default class Cluster extends EventEmitter {
         );
     }
 
+    // Type Guard for TypeScript
+    private isTaskFunction(
+        data: JobData | TaskFunction<JobData, ReturnData>,
+    ) : data is TaskFunction<JobData, ReturnData> {
+        return (typeof data === 'function');
+    }
+
     private queueJob(
-        data: JobData,
-        taskFunction?: TaskFunction,
-        callbacks?: ExecuteCallbacks,
-    ): void;
-    private queueJob(
-        taskFunction: TaskFunction,
-        _: undefined,
-        callbacks?: ExecuteCallbacks,
-    ): void;
-    private queueJob(
-        data: JobData | TaskFunction,
-        taskFunction?: TaskFunction,
+        data: JobData | TaskFunction<JobData, ReturnData>,
+        taskFunction?: TaskFunction<JobData, ReturnData>,
         callbacks?: ExecuteCallbacks,
     ): void {
         let job;
-        if (typeof data === 'function') {
-            job = new Job(undefined, data, callbacks);
+        if (this.isTaskFunction(data)) {
+            job = new Job<JobData, ReturnData>(undefined, data, callbacks);
         } else {
-            job = new Job(data, taskFunction, callbacks);
+            job = new Job<JobData, ReturnData>(data, taskFunction, callbacks);
         }
         this.allTargetCount += 1;
         this.jobQueue.push(job);
         this.work();
     }
 
-    public async queue(data: JobData, taskFunction?: TaskFunction): Promise<void>;
-    public async queue(taskFunction: TaskFunction): Promise<void>;
     public async queue(
-        data: JobData | TaskFunction,
-        taskFunction?: TaskFunction,
+        data: JobData,
+        taskFunction?: TaskFunction<JobData, ReturnData>,
+    ): Promise<void>;
+    public async queue(
+        taskFunction: TaskFunction<JobData, ReturnData>,
+    ): Promise<void>;
+    public async queue(
+        data: JobData | TaskFunction<JobData, ReturnData>,
+        taskFunction?: TaskFunction<JobData, ReturnData>,
     ): Promise<void> {
         this.queueJob(data, taskFunction);
     }
 
-    public execute(data: JobData, taskFunction?: TaskFunction): Promise<void>;
-    public execute(taskFunction: TaskFunction): Promise<void>;
     public execute(
-        data: JobData | TaskFunction,
-        taskFunction?: TaskFunction,
-    ): Promise<void> {
-        return new Promise<any>((resolve: ExecuteResolve, reject: ExecuteReject) => {
+        data: JobData,
+        taskFunction?: TaskFunction<JobData, ReturnData>,
+    ): Promise<ReturnData>;
+    public execute(
+        taskFunction: TaskFunction<JobData, ReturnData>,
+    ): Promise<ReturnData>;
+    public execute(
+        data: JobData | TaskFunction<JobData, ReturnData>,
+        taskFunction?: TaskFunction<JobData, ReturnData>,
+    ): Promise<ReturnData> {
+        return new Promise<ReturnData>((resolve: ExecuteResolve, reject: ExecuteReject) => {
             const callbacks = { resolve, reject };
             this.queueJob(data, taskFunction, callbacks);
         });

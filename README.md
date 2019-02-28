@@ -12,6 +12,7 @@ Create a cluster of puppeteer workers. This library spawns a pool of Chromium in
 - [Usage](#usage)
 - [Examples](#examples)
 - [Concurrency implementations](#concurrency-implementations)
+- [Typings for input/output (via TypeScript Generics)](#typings-for-inputoutput-via-typescript-generics)
 - [Debugging](#debugging)
 - [API](#api)
 
@@ -76,6 +77,7 @@ const { Cluster } = require('puppeteer-cluster');
 * [Queuing functions (complex)](examples/function-queuing-complex.js)
 * [Error handling](examples/error-handling.js)
 * [Using a different puppeteer library (like puppeteer-core)](examples/different-puppeteer-library.js)
+* [Provide types for input/output with TypeScript generics](examples/typings.ts)
 
 ## Concurrency implementations
 
@@ -87,6 +89,26 @@ There are different concurrency models, which define how isolated each job is ru
 | `CONCURRENCY_CONTEXT` | Incognito page (see [IncognitoBrowserContext](https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#browsercreateincognitobrowsercontext)) for each URL  | No shared data. |
 | `CONCURRENCY_BROWSER` | One browser (using an incognito page) per URL. If one browser instance crashes for any reason, this will not affect other jobs. | No shared data.  |
 | Custom concurrency (**experimental**) | You can create your own concurrency implementation. Copy one of the files of the `concurrency/built-in` directory and implement `ConcurrencyImplementation`. Then provide the class to the option `concurrency`. This part of the library is currently experimental and might break in the future, even in a minor version upgrade while the version has not reached 1.0. | Depends on your implementation |
+
+## Typings for input/output (via TypeScript Generics)
+
+To allow proper type checks with TypeScript you can provide generics. In case no types are provided, `any` is assumed for input and output. See the following minimal example or check out the more complex [typings example](examples/typings.ts) for more information.
+
+```ts
+  const cluster: Cluster<string, number> = await Cluster.launch(/* ... */);
+
+  await cluster.task(async ({ page, data }) => {
+    // TypeScript knows that data is a string and expects this function to return a number
+    return 123;
+  });
+
+  // Typescript expects a string as argument ...
+  cluster.queue('http://...');
+
+  // ... and will return a number when execute is called.
+  const result = await cluster.execute('https://www.google.com');
+```
+
 
 ## Debugging
 

@@ -33,14 +33,14 @@ export interface WorkData {
 
 export type WorkResult = WorkError | WorkData;
 
-export default class Worker implements WorkerOptions {
+export default class Worker<JobData, ReturnData> implements WorkerOptions {
 
     cluster: Cluster;
     args: string[];
     id: number;
     browser: WorkerInstance;
 
-    activeTarget: Job | null = null;
+    activeTarget: Job<JobData, ReturnData> | null = null;
 
     public constructor({ cluster, args, id, browser }: WorkerOptions) {
         this.cluster = cluster;
@@ -52,8 +52,8 @@ export default class Worker implements WorkerOptions {
     }
 
     public async handle(
-            task: TaskFunction,
-            job: Job,
+            task: TaskFunction<JobData, ReturnData>,
+            job: Job<JobData, ReturnData>,
             timeout: number,
         ): Promise<WorkResult> {
         this.activeTarget = job;
@@ -95,7 +95,10 @@ export default class Worker implements WorkerOptions {
                 timeout,
                 task({
                     page,
-                    data: job.data,
+                    // data might be undefined if queue is only called with a function
+                    // we ignore that case, as the user should use Cluster<undefined> in that case
+                    // to get correct typings
+                    data: job.data as JobData,
                     worker: {
                         id: this.id,
                     },
