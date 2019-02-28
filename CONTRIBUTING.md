@@ -19,4 +19,4 @@ To create a new release, follow these steps (my publishing TODO list).
 1. `npm version [patch|minor|major]`
 2. `git push --follow-tags`
 
-After 2-30min, a new version should be published on npm. To check which files are being published, check [unpkg.com](https://unpkg.com/puppeteer-cluster/).
+After 2-30min, a new version should be published on npm. To check which files are being published, check Travis log or [unpkg.com](https://unpkg.com/puppeteer-cluster/).

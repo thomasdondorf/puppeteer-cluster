@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.14.0] - 2019-02-28
+### Added
+- Support for generics via `Cluster<InType, OutType>`
+
 ## [0.13.2] - 2019-02-26
 ### Fixed
 - `package-lock.json` file was not updated
