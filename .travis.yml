@@ -15,7 +15,7 @@ node_js:
   - '8'
   - '9'
   - '10'
-  #- '11' # Runs the coverage report (see below)
+  #- '11' # Runs the coverage report (added below)
 
 before_script: npm run build
 script:
@@ -26,12 +26,11 @@ jobs:
   include:
     - stage: test
       node_js: '11'
-      env: 'SUBMIT_COVERAGE_REPORT=1' # Not really necessary, just for the Travis UI
-      after_success: 'echo "Submitting (fake) coverage for Node Version $TRAVIS_NODE_VERSION"'
+      env: 'SUBMIT_COVERAGE_REPORT=1' # Just for the Travis UI
+      after_success: 'cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js'
     - stage: deploy
       node_js: '11'
       script: skip
-      after_success: skip
       after_script:
         - echo "would normally deploy now..."
         - echo "$NODE_VERSION_TO_SUBMIT"
