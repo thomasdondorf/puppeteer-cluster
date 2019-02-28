@@ -11,7 +11,7 @@ Create a cluster of puppeteer workers. This library spawns a pool of Chromium in
 - [Installation](#installation)
 - [Usage](#usage)
 - [Examples](#examples)
-- [Concurreny implementations](#concurreny-implementations)
+- [Concurrency implementations](#concurrency-implementations)
 - [Debugging](#debugging)
 - [API](#api)
 
@@ -77,7 +77,7 @@ const { Cluster } = require('puppeteer-cluster');
 * [Error handling](examples/error-handling.js)
 * [Using a different puppeteer library (like puppeteer-core)](examples/different-puppeteer-library.js)
 
-## Concurreny implementations
+## Concurrency implementations
 
 There are different concurrency models, which define how isolated each job is run. You can set it in the `options` when calling [Cluster.launch](#Clusterlaunchoptions). The default option is `Cluster.CONCURRENCY_CONTEXT`, but it is recommended to always specify which one you want to use.
 
