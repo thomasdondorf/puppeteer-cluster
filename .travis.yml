@@ -1,20 +1,4 @@
 language: node_js
-node_js: '10'
-
-matrix:
-  include:
-    - node_js: '11'
-      env: SUBMIT_COVERAGE=0
-    - node_js: '10'
-      env: SUBMIT_COVERAGE=1
-    - node_js: '9'
-      env: SUBMIT_COVERAGE=0
-    - node_js: '8'
-      env: SUBMIT_COVERAGE=0
-    - node_js: '7'
-      env: SUBMIT_COVERAGE=0
-    - node_js: '6'
-      env: SUBMIT_COVERAGE=0
 
 addons:
   apt:
@@ -25,26 +9,36 @@ cache:
   directories:
     - node_modules
 
-stages:
-  - test
-  - name: deploy
-    if: branch = master AND tag IS present AND type = push
+node_js:
+  - '6'
+  - '7'
+  - '8'
+  - '9'
+  - '10'
+  #- '11' # Runs the coverage report (added below)
+
+before_script: npm run build
+script:
+  - npm run lint
+  - npm run coverage
 
 jobs:
   include:
     - stage: test
-      install: npm install
-      before_script: npm run build
-      script:
-        - npm run lint
-        - npm run coverage
-      after_success: '[ "$SUBMIT_COVERAGE" -eq "1" ] && echo "Submitting coverage report" && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js'
+      node_js: '11'
+      env: 'SUBMIT_COVERAGE_REPORT=1' # Just for the Travis UI
+      after_success: 'cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js'
     - stage: deploy
-      install: npm install
-      script: npm run build
+      node_js: '11'
+      script: skip
       deploy:
         provider: npm
         skip_cleanup: true
         email: thomasdondorf@gmail.com
         api_key:
           secure: gKsvGl7Yk0PmXNB58/Y9g+AQ/FnvIsJCdX3sAJd73JjF7oTN+cHvP+NcoC7UDc6vEbhsA2apchGJx0YRYw8kbqbZ43o1H+l3NeVlq3P2aj6uzcvYCg4Pvo/N9TwlBTRrIhkex6F5mIKqsL3sXn1v4RtN8RlMBFdCzTATM/uryNkErjIKiAQ+AvDoNNFBtefRMxf0b6QETTA3IfKjbcED48FqzD9Wfjzb4D5sgneUl6N2KRNc4ID5uZvpdBQLmgmaWcvw5yzYOM6JMPXvTtFM3XjwVjtLOCWqYqAuKN0jWDRwG3c4STlgP/9LJfbn1oEDWT7vCqXBKuA4+9GLFrQfSDrn8BQGSPOKmbY5kxgm/H2aeO4HiD8sZVeKCwHA8YCl/dpnwu5TWSs2G60pvmra4qO+aSwmjZQZbGAT6XjSqs9j6jts9THhdoklmZex7TlQ/7njPnTJBnR8wC1/o9gXME0t2hAYHErHrYluRPIufTjjvLu55OUiIGfWfjB698T9/qIOwFUkAB6slC9Ox0aw/nPdyC/wFBbxPB0iZB3sbMyYSXhB1oUHyBmyWN8MbgqjrLLMmDQbBrflJ8z73VDjoHnsMgamxXwqoVFj8MqADQSz7YPMzrTVOmtqe9FfAdsGy+pVp5ppangGK0UujKJprP4pHChy/RT+FEXblhSVz2A=
+
+stages:
+  - test
+  - name: deploy
+    if: branch = master AND tag IS present AND type = push
