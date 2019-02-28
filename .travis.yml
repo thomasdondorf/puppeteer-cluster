@@ -1,6 +1,15 @@
 language: node_js
 node_js: '10'
 
+addons:
+  apt:
+    packages:
+      - chromium-browser
+
+cache:
+  directories:
+    - node_modules
+
 matrix:
   include:
     - node_js: '11'
@@ -16,32 +25,23 @@ matrix:
     - node_js: '6'
       env: SUBMIT_COVERAGE=0
 
-addons:
-  apt:
-    packages:
-      - chromium-browser
-
-cache:
-  directories:
-    - node_modules
-
 stages:
   - test
   - name: deploy
     if: branch = master AND tag IS present AND type = push
 
+before_script: npm run build
+script:
+  - npm run lint
+  - npm run coverage
+after_success: '[ "$SUBMIT_COVERAGE" -eq "1" ] && echo "Submitting coverage report" && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js'
+
 jobs:
   include:
     - stage: test
-      install: npm install
-      before_script: npm run build
-      script:
-        - npm run lint
-        - npm run coverage
-      after_success: '[ "$SUBMIT_COVERAGE" -eq "1" ] && echo "Submitting coverage report" && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js'
     - stage: deploy
-      install: npm install
-      script: npm run build
+      script: skip
+      after_success: skip
       deploy:
         provider: npm
         skip_cleanup: true
