@@ -10,17 +10,12 @@ cache:
     - node_modules
 
 node_js:
-  #- '6'
-  #- '7'
+  - '6'
+  - '7'
   - '8'
   - '9'
   - '10'
-  #- '11'
-
-stages:
-  - test
-  - name: deploy
-    if: branch = travis-test AND type = push
+  #- '11' # Runs the coverage report (see below)
 
 before_script: npm run build
 script:
@@ -31,6 +26,7 @@ jobs:
   include:
     - stage: test
       node_js: '11'
+      env: 'SUBMIT_COVERAGE_REPORT=1' # Not really necessary, just for the Travis UI
       after_success: 'echo "Submitting (fake) coverage for Node Version $TRAVIS_NODE_VERSION"'
     - stage: deploy
       node_js: '11'
@@ -39,3 +35,8 @@ jobs:
       after_script:
         - echo "would normally deploy now..."
         - echo "$NODE_VERSION_TO_SUBMIT"
+
+stages:
+  - test
+  - name: deploy
+    if: branch = travis-test AND type = push
