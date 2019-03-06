@@ -27,11 +27,11 @@ const { Cluster } = require('../dist');
         // ...
     });
 
-    await cluster.queue('https://www.google.com/');
-    await cluster.queue('https://www.wikipedia.org/'); // error (see task function)
-    await cluster.queue('https://github.com/');
+    cluster.queue('https://www.google.com/');
+    cluster.queue('https://www.wikipedia.org/'); // error (see task function)
+    cluster.queue('https://github.com/');
 
-    await cluster.queue('https://domain.invalid/'); // error: ERR_NAME_NOT_RESOLVED
+    cluster.queue('https://domain.invalid/'); // error: ERR_NAME_NOT_RESOLVED
 
     await cluster.idle();
     await cluster.close();

@@ -272,10 +272,10 @@ describe('options', () => {
                     expect(counter).toBe(counterShouldBe);
                 });
 
-                await cluster.queue({ url: FIRST_URL, counterShouldBe: 1 });
-                await cluster.queue({ url: FIRST_URL, counterShouldBe: 3 });
+                cluster.queue({ url: FIRST_URL, counterShouldBe: 1 });
+                cluster.queue({ url: FIRST_URL, counterShouldBe: 3 });
                 await cluster.waitForOne();
-                await cluster.queue({ url: SECOND_URL, counterShouldBe: 2 });
+                cluster.queue({ url: SECOND_URL, counterShouldBe: 2 });
 
                 await cluster.idle();
                 await cluster.close();
@@ -323,12 +323,12 @@ describe('options', () => {
                     throw err;
                 });
 
-                await cluster.queue(async ({ page, data }: { page: any, data: any}) => {
+                cluster.queue(async ({ page, data }: { page: any, data: any}) => {
                     expect(page).toBeDefined();
                     expect(data).toBeUndefined();
                 });
 
-                await cluster.queue('something', async ({ page, data: url }) => {
+                cluster.queue('something', async ({ page, data: url }) => {
                     expect(page).toBeDefined();
                     expect(url).toBe('something');
                 });
@@ -355,12 +355,12 @@ describe('options', () => {
                     expect(url).toBe('works');
                 });
 
-                await cluster.queue('works too', async ({ page, data: url }) => {
+                cluster.queue('works too', async ({ page, data: url }) => {
                     expect(page).toBeDefined();
                     expect(url).toBe('works too');
                 });
                 cluster.queue('works');
-                await cluster.queue(async ({ page, data }: { page: any, data: any}) => {
+                cluster.queue(async ({ page, data }: { page: any, data: any}) => {
                     expect(page).toBeDefined();
                     expect(data).toBeUndefined();
                 });

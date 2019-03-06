@@ -20,15 +20,15 @@ const { Cluster } = require('../dist');
     };
 
     // Make screenshots
-    await cluster.queue('https://www.google.com/', screenshot);
-    await cluster.queue('https://github.com/', screenshot);
+    cluster.queue('https://www.google.com/', screenshot);
+    cluster.queue('https://github.com/', screenshot);
 
     // But also do some other stuff
-    await cluster.queue('https://reddit.com/', extractTitle);
-    await cluster.queue('https://twitter.com/', extractTitle);
+    cluster.queue('https://reddit.com/', extractTitle);
+    cluster.queue('https://twitter.com/', extractTitle);
 
     // We can still define single functions
-    await cluster.queue(async ({ page }) => {
+    cluster.queue(async ({ page }) => {
         await page.goto('https://www.google.com/');
         // ...
         console.log('Went to google.com');

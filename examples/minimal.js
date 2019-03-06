@@ -17,9 +17,9 @@ const { Cluster } = require('../dist');
     });
 
     // Add some pages to queue
-    await cluster.queue('https://www.google.com');
-    await cluster.queue('https://www.wikipedia.org');
-    await cluster.queue('https://github.com/');
+    cluster.queue('https://www.google.com');
+    cluster.queue('https://www.wikipedia.org');
+    cluster.queue('https://github.com/');
 
     // Shutdown after everything is done
     await cluster.idle();

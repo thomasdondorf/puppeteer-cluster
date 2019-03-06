@@ -36,7 +36,7 @@ const readFile = util.promisify(fs.readFile);
         if (splitterIndex !== -1) {
             const domain = line.substr(splitterIndex + 1);
             // queue the domain
-            await cluster.queue('http://www.' + domain);
+            cluster.queue('http://www.' + domain);
         }
     }
 

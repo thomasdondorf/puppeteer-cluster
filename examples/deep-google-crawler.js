@@ -38,8 +38,8 @@ const { Cluster } = require('../dist');
         });
     });
 
-    await cluster.queue({ searchTerm: 'puppeteer-cluster', offset: 0 });
-    await cluster.queue({ searchTerm: 'puppeteer-cluster', offset: 10 });
+    cluster.queue({ searchTerm: 'puppeteer-cluster', offset: 0 });
+    cluster.queue({ searchTerm: 'puppeteer-cluster', offset: 10 });
 
     await cluster.idle();
     await cluster.close();

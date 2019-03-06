@@ -33,9 +33,9 @@ import { Cluster } from '../dist';
         await page.goto(url);
     });
 
-    await cluster2.queue('https://www.google.com');
-    await cluster2.queue('https://www.wikipedia.org');
-    await cluster2.queue('https://github.com/');
+    cluster2.queue('https://www.google.com');
+    cluster2.queue('https://www.wikipedia.org');
+    cluster2.queue('https://github.com/');
 
     await cluster2.idle();
     await cluster2.close();
@@ -57,9 +57,9 @@ import { Cluster } from '../dist';
         console.log(`some value: ${data.someValue}`);
     });
 
-    await cluster3.queue({ url: 'https://www.google.com', someValue: 1 });
-    await cluster3.queue({ url: 'https://www.wikipedia.org', someValue: 2 });
-    await cluster3.queue({ url: 'https://github.com/', someValue: 3 });
+    cluster3.queue({ url: 'https://www.google.com', someValue: 1 });
+    cluster3.queue({ url: 'https://www.wikipedia.org', someValue: 2 });
+    cluster3.queue({ url: 'https://github.com/', someValue: 3 });
 
     await cluster3.idle();
     await cluster3.close();

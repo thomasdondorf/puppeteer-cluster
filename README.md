@@ -58,8 +58,8 @@ const { Cluster } = require('puppeteer-cluster');
     // Store screenshot, do something else
   });
 
-  await cluster.queue('http://www.google.com/');
-  await cluster.queue('http://www.wikipedia.org/');
+  cluster.queue('http://www.google.com/');
+  cluster.queue('http://www.wikipedia.org/');
   // many more pages
 
   await cluster.idle();
@@ -189,7 +189,9 @@ Specifies a task for the cluster. A task is called for each job you queue via [C
     - `id` <[number]> ID of the worker. Worker IDs start at 0.
 - returns: <[Promise]>
 
-Puts a URL or data into the queue. Alternatively (or even additionally) you can queue functions. See the examples about function queuing for more information: ([Simple function queuing](examples/function-queuing-simple.js), [complex function queuing](examples/function-queuing-complex.js))
+Puts a URL or data into the queue. Alternatively (or even additionally) you can queue functions. See the examples about function queuing for more information: ([Simple function queuing](examples/function-queuing-simple.js), [complex function queuing](examples/function-queuing-complex.js)).
+
+Be aware that this function only returns a Promise for backward compatibility reasons. This function does not run asynchronously and will immediately return.
 
 #### cluster.execute([data] [, taskFunction])
 - `data` <any> Data to be queued. This might be your URL (a string) or a more complex object containing data. The data given will be provided to your task function(s). See [examples] for a more complex usage of this argument.

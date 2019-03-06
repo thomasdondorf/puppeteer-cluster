@@ -20,9 +20,9 @@ const puppeteer = require('puppeteer-core'); // use puppeteer-core instead of pu
         console.log('went to: ' + url);
     });
 
-    await cluster.queue('https://www.google.com');
-    await cluster.queue('https://www.wikipedia.org');
-    await cluster.queue('https://github.com/');
+    cluster.queue('https://www.google.com');
+    cluster.queue('https://www.wikipedia.org');
+    cluster.queue('https://github.com/');
 
     await cluster.idle();
     await cluster.close();
