@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.15.0] - 2019-03-06
+### Added
+- Event `queue` added
+
 ## [0.14.0] - 2019-02-28
 ### Added
 - Support for generics via `Cluster<InType, OutType>`

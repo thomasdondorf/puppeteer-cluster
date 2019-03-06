@@ -76,7 +76,7 @@ const { Cluster } = require('puppeteer-cluster');
 * [Queuing functions (simple)](examples/function-queuing-simple.js)
 * [Queuing functions (complex)](examples/function-queuing-complex.js)
 * [Error handling](examples/error-handling.js)
-* [Using a different puppeteer library (like puppeteer-core)](examples/different-puppeteer-library.js)
+* [Using a different puppeteer library (like puppeteer-core or puppeteer-firefox)](examples/different-puppeteer-library.js)
 * [Provide types for input/output with TypeScript generics](examples/typings.ts)
 
 ## Concurrency implementations
@@ -88,7 +88,7 @@ There are different concurrency models, which define how isolated each job is ru
 | `CONCURRENCY_PAGE` | One [Page] for each URL | Shares everything (cookies, localStorage, etc.) between jobs. |
 | `CONCURRENCY_CONTEXT` | Incognito page (see [IncognitoBrowserContext](https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#browsercreateincognitobrowsercontext)) for each URL  | No shared data. |
 | `CONCURRENCY_BROWSER` | One browser (using an incognito page) per URL. If one browser instance crashes for any reason, this will not affect other jobs. | No shared data.  |
-| Custom concurrency (**experimental**) | You can create your own concurrency implementation. Copy one of the files of the `concurrency/built-in` directory and implement `ConcurrencyImplementation`. Then provide the class to the option `concurrency`. This part of the library is currently experimental and might break in the future, even in a minor version upgrade while the version has not reached 1.0. | Depends on your implementation |
+| Custom concurrency (**experimental**) | You can create your own concurrency implementation. Copy one of the files of the `concurrency/built-in` directory and implement `ConcurrencyImplementation`. Then provide the class to the option `concurrency`. **This part of the library is currently experimental and might break in the future, even in a minor version upgrade while the version has not reached 1.0.** | Depends on your implementation |
 
 ## Typings for input/output (via TypeScript Generics)
 
@@ -148,8 +148,8 @@ Emitted when a queued task ends in an error for some reason. Reasons might be a 
 ```
 
 #### event: 'queue'
-- <?[Object]>
-- <?[function]>
+- <\?[Object]>
+- <\?[function]>
 
 Emitted when a task is queued via [Cluster.queue] or [Cluster.execute]. The first argument is the object containing the data (if any data is provided). The second argument is the queued function (if any). In case only a function is provided via [Cluster.queue] or [Cluster.execute], the first argument will be undefined. If only data is provided, the second argument will be undefined.
 
