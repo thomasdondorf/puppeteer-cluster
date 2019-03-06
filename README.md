@@ -148,8 +148,8 @@ Emitted when a queued task ends in an error for some reason. Reasons might be a 
 ```
 
 #### event: 'queue'
-- <[Object]|undefined>
-- <[function]|undefined>
+- <?[Object]>
+- <?[function]>
 
 Emitted when a task is queued via [Cluster.queue] or [Cluster.execute]. The first argument is the object containing the data (if any data is provided). The second argument is the queued function (if any). In case only a function is provided via [Cluster.queue] or [Cluster.execute], the first argument will be undefined. If only data is provided, the second argument will be undefined.
 
