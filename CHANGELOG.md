@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.15.1] - 2019-03-06
+### Changed
+- Changed when the `queue` event is emitted (after the job is queued into the internal queue).
+
 ## [0.15.0] - 2019-03-06
 ### Added
 - Event `queue` added
