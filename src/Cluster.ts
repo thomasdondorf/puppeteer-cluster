@@ -154,7 +154,9 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             throw new Error(`Unable to launch browser, error message: ${err.message}`);
         }
 
-        await this.systemMonitor.init();
+        if (this.options.monitor) {
+            await this.systemMonitor.init();
+        }
 
         // needed in case resources are getting free (like CPU/memory) to check if
         // can launch workers

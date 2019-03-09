@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.15.2] - 2019-03-09
+### Fixed
+- Fixed bug, which crashed the cluster in some environments (#113)
+
 ## [0.15.1] - 2019-03-06
 ### Changed
 - Changed when the `queue` event is emitted (after the job is queued into the internal queue).
