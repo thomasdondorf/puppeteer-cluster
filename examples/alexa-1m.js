@@ -3,10 +3,7 @@
 
 const { Cluster } = require('../dist');
 
-const fs = require('fs');
-const util = require('util');
-
-const readFile = util.promisify(fs.readFile);
+const fs = require('fs').promises;
 
 (async () => {
     const cluster = await Cluster.launch({
@@ -28,7 +25,7 @@ const readFile = util.promisify(fs.readFile);
     });
 
     // Read the top-1m.csv file from the current directory
-    const csvFile = await readFile(__dirname + '/top-1m.csv', 'utf8');
+    const csvFile = await fs.readFile(__dirname + '/top-1m.csv', 'utf8');
     const lines = csvFile.split('\n');
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
