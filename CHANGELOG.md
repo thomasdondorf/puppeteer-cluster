@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.16.0] - TODO
+### Changed
+- Updated dependencies to their latest versions
+
 ## [0.15.2] - 2019-03-09
 ### Fixed
 - Fixed bug, which crashed the cluster in some environments (#113)
