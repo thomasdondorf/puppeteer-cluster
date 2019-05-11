@@ -22,7 +22,7 @@
     "cluster",
     "pool"
   ],
-  "license": "GPL-3.0",
+  "license": "MIT",
   "dependencies": {
     "debug": "^4.1.1"
   },

@@ -214,6 +214,10 @@ Promise is resolved when the queue becomes empty.
 
 Closes the cluster and all opened Chromium instances including all open pages (if any were opened). It is recommended to run [Cluster.idle](#clusteridle) before calling this function. The [Cluster] object itself is considered to be disposed and cannot be used anymore.
 
+## License
+
+[MIT license](./LICENSE).
+
 
 
 [Cluster.queue]: #clusterqueuedata--taskfunction "Cluster.queue"
