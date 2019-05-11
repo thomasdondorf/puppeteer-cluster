@@ -1,8 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.16.0] - TODO
+## [0.16.0] - 2019-05-11
 ### Changed
+- License changed to MIT
 - Updated dependencies to their latest versions
 
 ## [0.15.2] - 2019-03-09
