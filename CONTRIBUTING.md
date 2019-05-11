@@ -2,7 +2,7 @@
 
 Feel free to open issues or submit pull requests. :)
 
-## Releases
+## Release Process
 
 Releases are automatically published to npm by Travis CI. To successfully create a release the following preconditions have to be met:
 - The commit has to be on the master.
@@ -36,3 +36,25 @@ Sometimes a test fails on Travis and a new version is not published. In that cas
     - `git push --tags`
 
 Now Travis will run again, hopefully succeeding this time.
+
+## Dependency Upgrades
+
+The repository has [dependabot](https://github.com/dependabot) enabled. At the start of each month, the bot will open one pull request for each dependency which needs to be upgraded. Most dependencies are uncritical and used for testing. If the tests succeed they can be merged.
+
+### Manually upgrading dependencies
+
+If there are a lot of dependencies with updates available it might be easier to upgrade them all at once manually:
+
+1. Check which dependencies are outdated (this will return nothing if all dependencies are up-to-date)
+    - `npm outdated`
+2. Update all dependencies to their latest version (according to `package.json`). This should do all minor updates.
+    - `npm update`
+3. Test if everything went okay, all tests should pass.
+    - `npm run test`
+4. Check again if there are any outdated dependencies. This might be major upgrades which are not performed automatically.
+    - `npm outdated`
+5. Manually decide for each package if it should be upgraded and upgrade them:
+    - `npm install PACKAGE_NAME@latest --save`
+6. Rerun tests.
+    - `npm run test`
+7. If everything worked, the changes can be pushed, probably followed by a new release.
