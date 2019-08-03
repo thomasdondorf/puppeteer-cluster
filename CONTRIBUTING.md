@@ -49,12 +49,14 @@ If there are a lot of dependencies with updates available it might be easier to 
     - `npm outdated`
 2. Update all dependencies to their latest version (according to `package.json`). This should do all minor updates.
     - `npm update`
-3. Test if everything went okay, all tests should pass.
+3. In case there are any vulnerabilities (`found ... high severity vulnerabilities`), fix them so that people installing this library, don't get warnings.
+    - `npm audit fix`
+4. Test if everything went okay, all tests should pass.
     - `npm run test`
-4. Check again if there are any outdated dependencies. This might be major upgrades which are not performed automatically.
+5. Check again if there are any outdated dependencies. This might be major upgrades which are not performed automatically.
     - `npm outdated`
-5. Manually decide for each package if it should be upgraded and upgrade them:
+6. Manually decide for each package if it should be upgraded and upgrade them:
     - `npm install PACKAGE_NAME@latest --save`
-6. Rerun tests.
+7. Rerun tests.
     - `npm run test`
-7. If everything worked, the changes can be pushed, probably followed by a new release.
+8. If everything worked, the changes can be pushed, probably followed by a new release.
