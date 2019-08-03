@@ -389,6 +389,25 @@ describe('options', () => {
                 await cluster.close();
             });
 
+            test('works with null', async () => {
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
+                    maxConcurrency: 1,
+                });
+                cluster.on('taskerror', (err) => {
+                    throw err;
+                });
+
+                await cluster.task(async ({ page, data }) => {
+                    expect(data).toBe(null);
+                });
+                cluster.queue(null);
+
+                await cluster.idle();
+                await cluster.close();
+            });
+
             test('execute', async () => {
                 expect.assertions(2);
                 const cluster = await Cluster.launch({

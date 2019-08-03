@@ -29,13 +29,13 @@ export default class Job<JobData, ReturnData> {
     }
 
     public getUrl(): string | undefined {
-        if (this.data === undefined) {
+        if (!this.data) {
             return undefined;
         }
         if (typeof this.data === 'string') {
             return this.data;
         }
-        if (this.data !== undefined && typeof (this.data as any).url === 'string') {
+        if (typeof (this.data as any).url === 'string') {
             return (this.data as any).url;
         }
         return undefined;
