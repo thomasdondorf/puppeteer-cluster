@@ -15,6 +15,7 @@ Create a cluster of puppeteer workers. This library spawns a pool of Chromium in
 - [Typings for input/output (via TypeScript Generics)](#typings-for-inputoutput-via-typescript-generics)
 - [Debugging](#debugging)
 - [API](#api)
+- [License](#license)
 
 ###### What does this library do?
 
@@ -202,7 +203,7 @@ Be aware that this function only returns a Promise for backward compatibility re
     - `id` <[number]> ID of the worker. Worker IDs start at 0.
 - returns: <[Promise]>
 
-Works like [Cluster.queue], just that this function returns a Promise which will be resolved after the task is executed. In case an error happens during the execution, this function will reject the Promise with the thrown error. There will be no "taskerror" event fired. In addition, tasks queued via execute will ignore "retryLimit" and "retryDelay". For an example see the [Execute example](examples/execute.js).
+Works like [Cluster.queue], but this function returns a Promise which will be resolved after the task is executed. That means, that the job is still queued, but the script will wait for it to be finished. In case an error happens during the execution, this function will reject the Promise with the thrown error. There will be no "taskerror" event fired. In addition, tasks queued via execute will ignore "retryLimit" and "retryDelay". For an example see the [Execute example](examples/execute.js).
 
 #### cluster.idle()
 - returns: <[Promise]>
