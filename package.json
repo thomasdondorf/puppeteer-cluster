@@ -30,21 +30,21 @@
     "puppeteer": "^1.5.0 || ^2.0.0"
   },
   "devDependencies": {
-    "@types/debug": "^4.1.4",
-    "@types/jest": "^24.0.16",
-    "@types/node": "^12.6.9",
-    "@types/puppeteer": "^1.19.0",
-    "@types/puppeteer-core": "^1.9.0",
-    "coveralls": "^3.0.5",
+    "@types/debug": "^4.1.5",
+    "@types/jest": "^24.0.23",
+    "@types/node": "^12.12.14",
+    "@types/puppeteer": "^2.0.0",
+    "@types/puppeteer-core": "^2.0.0",
+    "coveralls": "^3.0.9",
     "express": "^4.17.1",
-    "jest": "^24.8.0",
+    "jest": "^24.9.0",
     "puppeteer": "^2.0.0",
     "puppeteer-core": "^2.0.0",
     "tree-kill": "^1.2.0",
-    "ts-jest": "^24.0.2",
-    "tslint": "^5.18.0",
-    "tslint-config-airbnb": "^5.11.0",
-    "typescript": "^3.5.3"
+    "ts-jest": "^24.2.0",
+    "tslint": "^5.20.1",
+    "tslint-config-airbnb": "^5.11.2",
+    "typescript": "^3.7.3"
   },
   "jest": {
     "setupFilesAfterEnv": [
