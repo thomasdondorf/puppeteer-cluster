@@ -10,13 +10,13 @@ cache:
     - node_modules
 
 node_js:
-  - '6'
   - '7'
   - '8'
   - '9'
   - '10'
   - '11'
-  #- '12' # Runs the coverage report (added below)
+  - '12'
+  #- '13' # Runs the coverage report (added below)
 
 before_script: npm run build
 script:
@@ -26,11 +26,11 @@ script:
 jobs:
   include:
     - stage: test
-      node_js: '12'
+      node_js: '13'
       env: 'SUBMIT_COVERAGE_REPORT=1' # Just for the Travis UI
       after_success: 'cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js'
     - stage: deploy
-      node_js: '12'
+      node_js: '13'
       script: skip
       deploy:
         provider: npm
