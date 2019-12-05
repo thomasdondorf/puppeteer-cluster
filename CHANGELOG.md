@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 - Updated dependencies to their latest versions
   - In particular the devDependencies  `puppeteer` and `puppeteer-core` received a major upgrade (to version `2`)
 - `peerDependencies` was changed to `^1.5.0 || ^2.0.0` as there were no changes regarding the API that this library uses.
+- Removed support for Node.js version 6 as puppeteer [dropped support](https://github.com/puppeteer/puppeteer/pull/5045) for it.
 
 ## [0.17.0] - 2019-08-03
 ### Changed
