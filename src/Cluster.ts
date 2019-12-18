@@ -144,18 +144,18 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         } else if (this.options.concurrency === Cluster.CONCURRENCY_CONTEXT) {
             this.browser = new builtInConcurrency.Context(browserOptions, puppeteer);
         } else if (this.options.concurrency === Cluster.CONCURRENCY_BROWSER) {
-
-            if (this.options.perBrowserOptions && this.options.perBrowserOptions.length !== this.options.maxConcurrency) {
-                throw new Error('Not enough perBrowserOptions items. perBrowserOptions.length must equal maxConcurrency');
-            }
-            if(this.options.perBrowserOptions){
-                this.perBrowserOptions = [...this.options.perBrowserOptions];
-            }
             this.browser = new builtInConcurrency.Browser(browserOptions, puppeteer);
         } else if (typeof this.options.concurrency === 'function') {
             this.browser = new this.options.concurrency(browserOptions, puppeteer);
         } else {
             throw new Error(`Unknown concurrency option: ${this.options.concurrency}`);
+        }
+
+        if (this.options.perBrowserOptions && this.options.perBrowserOptions.length !== this.options.maxConcurrency) {
+            throw new Error('Not enough perBrowserOptions items. perBrowserOptions.length must equal maxConcurrency');
+        }
+        if (this.options.perBrowserOptions) {
+            this.perBrowserOptions = [...this.options.perBrowserOptions];
         }
 
         try {
