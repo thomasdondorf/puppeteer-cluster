@@ -151,8 +151,9 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             throw new Error(`Unknown concurrency option: ${this.options.concurrency}`);
         }
 
-        if (this.options.perBrowserOptions && this.options.perBrowserOptions.length !== this.options.maxConcurrency) {
-            throw new Error('Not enough perBrowserOptions items. perBrowserOptions.length must equal maxConcurrency');
+        if (this.options.perBrowserOptions
+            && this.options.perBrowserOptions.length !== this.options.maxConcurrency) {
+            throw new Error('perBrowserOptions length must equal maxConcurrency');
         }
         if (this.options.perBrowserOptions) {
             this.perBrowserOptions = [...this.options.perBrowserOptions];

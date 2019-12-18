@@ -670,16 +670,16 @@ describe('options', () => {
         test('Throw when maxConcurrency not equal perBrowserOptions length', async () => {
             expect.assertions(1);
             await expect(Cluster.launch({
-                    concurrency: Cluster.CONCURRENCY_BROWSER,
-                    perBrowserOptions: [{args: ['--no-sandbox']}],
-                    maxConcurrency: 5,
-                })).rejects.toHaveProperty('message', 'Not enough perBrowserOptions items. perBrowserOptions.length must equal maxConcurrency');
+                concurrency: Cluster.CONCURRENCY_BROWSER,
+                perBrowserOptions: [{ args: ['--no-sandbox'] }],
+                maxConcurrency: 5,
+            })).rejects.toHaveProperty('message', 'perBrowserOptions length must equal maxConcurrency');
         });
         test('Dispatch option accross worker', async () => {
             expect.assertions(3);
 
             const perBrowserOptions = [
-                { args: ['--test1'] }
+                { args: ['--test1'] },
             ];
             class TestConcurrency extends ConcurrencyImplementation {
                 private browser: puppeteer.Browser | undefined = undefined;
@@ -719,8 +719,8 @@ describe('options', () => {
             }
 
             const cluster = await Cluster.launch({
-                concurrency: TestConcurrency,
                 perBrowserOptions,
+                concurrency: TestConcurrency,
                 maxConcurrency: 1,
             });
             cluster.on('taskerror', (err) => {
@@ -740,7 +740,6 @@ describe('options', () => {
             await cluster.close();
         });
     });
-
 
     describe('monitoring', () => {
         // setup and cleanup are copied from Display.test.ts
