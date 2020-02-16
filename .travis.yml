@@ -34,6 +34,7 @@ jobs:
       script: skip
       deploy:
         provider: npm
+        edge: true
         skip_cleanup: true
         email: thomasdondorf@gmail.com
         api_key:
