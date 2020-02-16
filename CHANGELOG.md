@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.19.0] - 2019-02-11
+## [0.19.0] - ...
 ### Changed
 - Added the parameter `jobWillRetry` to the `'taskerror'` Event
 
