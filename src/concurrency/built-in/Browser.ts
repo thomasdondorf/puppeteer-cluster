@@ -11,8 +11,11 @@ export default class Browser extends ConcurrencyImplementation {
     public async init() {}
     public async close() {}
 
-    public async workerInstance(): Promise<WorkerInstance> {
-        let chrome = await this.puppeteer.launch(this.options) as puppeteer.Browser;
+    public async workerInstance(perBrowserOptions: puppeteer.LaunchOptions | undefined):
+        Promise<WorkerInstance> {
+
+        const options = perBrowserOptions || this.options;
+        let chrome = await this.puppeteer.launch(options) as puppeteer.Browser;
         let page: puppeteer.Page;
         let context: any; // puppeteer typings are old...
 

@@ -17,9 +17,8 @@
         "noImplicitReturns": true,
 
         "declaration": true,
-        "skipLibCheck": true,
+        "skipLibCheck": true
     },
-
     "include": [
         "./src/**/*"
     ]
