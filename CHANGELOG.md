@@ -1,11 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-
-## [0.19.0] - 2019-12-17
+## [0.20.0] - TODO
 ### Changed
 - Add a new option `perBrowserOptions` for using different args for each puppeteer instance
   - Allowing to use a different proxy for each worker
+
+## [0.19.0] - 2020-02-16
+### Changed
+- Added the parameter `jobWillRetry` to the `'taskerror'` Event
 
 ## [0.18.0] - 2019-12-05
 ### Changed

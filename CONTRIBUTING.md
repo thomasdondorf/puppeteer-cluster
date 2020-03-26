@@ -1,8 +1,22 @@
 # Contributing
 
-Feel free to open issues or submit pull requests. :)
+## Pull requests are welcome
+
+Feel free to open a pull request. Just be aware that it might take some time for me to review your request.
+
+#### How to make a good pull request
+- Make sure you do not break the API.
+- Make sure the tests succeed.
+- If you added functionality, add a test case if possible.
+- If you added a function or modified the API, change the documentation accordingly.
+- Don't change the `package.json` or `package-lock.json` files to bump the version number of this library.
+- Feel free to change the `CHANGELOG.md` to include your change. You don't need to add a date though. I'll do it, when I publish the next version.
+
+Thank you very much for contributing :)
 
 ## Release Process
+
+**There is no need to read the following guide if you want to make a pull request. This is basically my TODO list for publishing.**
 
 Releases are automatically published to npm by Travis CI. To successfully create a release the following preconditions have to be met:
 - The commit has to be on the master.
