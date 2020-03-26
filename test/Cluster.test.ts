@@ -666,6 +666,81 @@ describe('options', () => {
         });
     });
 
+    describe('perBrowserOptions', () => {
+        test('Throw when maxConcurrency not equal perBrowserOptions length', async () => {
+            expect.assertions(1);
+            await expect(Cluster.launch({
+                concurrency: Cluster.CONCURRENCY_BROWSER,
+                perBrowserOptions: [{ args: ['--no-sandbox'] }],
+                maxConcurrency: 5,
+            })).rejects.toHaveProperty('message', 'perBrowserOptions length must equal maxConcurrency');
+        });
+        test('Dispatch option accross worker', async () => {
+            expect.assertions(3);
+
+            const perBrowserOptions = [
+                { args: ['--test1'] },
+            ];
+            class TestConcurrency extends ConcurrencyImplementation {
+                private browser: puppeteer.Browser | undefined = undefined;
+                public async init() {
+                    this.browser = await this.puppeteer.launch(this.options);
+                }
+                public async close() {
+                    await (this.browser as puppeteer.Browser).close();
+                }
+                public async workerInstance(puppeteerOptions: puppeteer.LaunchOptions) {
+                    expect(puppeteerOptions).toBe(perBrowserOptions[0]);
+                    return {
+                        jobInstance: async () => {
+                            const page = await (this.browser as puppeteer.Browser).newPage();
+
+                            // make sure this is really the page created by this implementation
+                            (page as any).TESTING = 123;
+
+                            return {
+                                resources: { page },
+
+                                close: async () => {
+                                    await page.close();
+                                },
+                            };
+                        },
+                        close: async () => {
+                            await (this.browser as puppeteer.Browser).close();
+                        },
+
+                        // no repair for this tests, but you should really implement this (!!!)
+                        // have a look at Browser, Context or Page in built-in directory for a
+                        // full implementation
+                        repair: async () => {},
+                    };
+                }
+            }
+
+            const cluster = await Cluster.launch({
+                perBrowserOptions,
+                concurrency: TestConcurrency,
+                maxConcurrency: 1,
+            });
+            cluster.on('taskerror', (err) => {
+                throw err;
+            });
+
+            cluster.task(async ({ page, data: url }) => {
+                await page.goto(url);
+                expect((page as any).TESTING).toBe(123);
+            });
+
+            // one job sets the cookie, the other page reads the cookie
+            cluster.queue(TEST_URL);
+            cluster.queue(TEST_URL);
+
+            await cluster.idle();
+            await cluster.close();
+        });
+    });
+
     describe('monitoring', () => {
         // setup and cleanup are copied from Display.test.ts
         let write: any;
