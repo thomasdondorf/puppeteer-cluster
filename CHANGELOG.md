@@ -1,10 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.20.0] - TODO
-### Changed
+## [0.20.0] - 2020-03-26
+### Added
 - Add a new option `perBrowserOptions` for using different args for each puppeteer instance
   - Allowing to use a different proxy for each worker
+### Changed
+- Updated dev dependencies to their latest versions
 
 ## [0.19.0] - 2020-02-16
 ### Changed
