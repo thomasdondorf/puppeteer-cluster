@@ -9,7 +9,9 @@
     "test": "./node_modules/.bin/jest",
     "coverage": "./node_modules/.bin/jest --coverage",
     "dev": "./node_modules/.bin/tsc --watch",
-    "lint": "./node_modules/.bin/tslint -c tslint.json --project test/_config/tsconfig.json \"src/**/*.ts\" \"test/**/*.ts\""
+    "lint": "./node_modules/.bin/tslint -c tslint.json --project test/_config/tsconfig.json \"src/**/*.ts\" \"test/**/*.ts\"",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "author": "Thomas Dondorf",
   "repository": {
@@ -24,7 +26,8 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "debug": "^4.1.1"
+    "debug": "^4.1.1",
+    "snyk": "^1.316.1"
   },
   "peerDependencies": {
     "puppeteer": "^1.5.0 || ^2.0.0"
@@ -67,5 +70,6 @@
       "js",
       "json"
     ]
-  }
+  },
+  "snyk": true
 }
