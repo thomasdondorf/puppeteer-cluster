@@ -39,7 +39,7 @@
     "express": "^4.17.1",
     "jest": "^24.9.0",
     "puppeteer": "^2.1.1",
-    "puppeteer-core": "^2.1.1",
+    "puppeteer-core": "^3.0.2",
     "tree-kill": "^1.2.2",
     "ts-jest": "^24.2.0",
     "tslint": "^6.1.0",
