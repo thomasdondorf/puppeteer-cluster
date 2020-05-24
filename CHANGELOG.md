@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
   - In particular the devDependencies  `puppeteer` and `puppeteer-core` received a major upgrade (to version `3`)
 - `peerDependencies` was changed to `^1.5.0 || ^2.0.0 || ^3.0.0` as there were no changes regarding the API that this library uses.
 - Removed support for Node.js version 8 as puppeteer [dropped support](https://github.com/puppeteer/puppeteer/releases/tag/v3.0.0) for it.
+- Added check to ensure `maxConcurrency` is set (#243)
 
 ## [0.20.0] - 2020-03-26
 ### Added
