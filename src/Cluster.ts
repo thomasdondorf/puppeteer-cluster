@@ -472,6 +472,10 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         debug('Closed');
     }
 
+    public requestRestart() {
+        this.browser?.requestRestart();
+    }
+
     private monitor(): void {
         if (!this.display) {
             this.display = new Display();

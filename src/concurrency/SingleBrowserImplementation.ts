@@ -60,6 +60,10 @@ export default abstract class SingleBrowserImplementation extends ConcurrencyImp
 
     protected abstract async freeResources(resources: ResourceData): Promise<void>;
 
+    requestRestart(): void {
+        this.repairRequested = true;
+    }
+
     public async workerInstance() {
         let resources: ResourceData;
 
