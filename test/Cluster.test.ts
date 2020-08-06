@@ -617,6 +617,9 @@ describe('options', () => {
                         repair: async () => {},
                     };
                 }
+
+                requestRestart(): void {
+                }
             }
 
             const cluster = await Cluster.launch({
@@ -715,6 +718,9 @@ describe('options', () => {
                         // full implementation
                         repair: async () => {},
                     };
+                }
+
+                requestRestart(): void {
                 }
             }
 

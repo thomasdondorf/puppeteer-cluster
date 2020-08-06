@@ -54,4 +54,6 @@ export default class Browser extends ConcurrencyImplementation {
         };
     }
 
+    requestRestart(): void {}
+
 }
