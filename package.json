@@ -38,7 +38,7 @@
     "coveralls": "^3.1.0",
     "express": "^4.17.1",
     "jest": "^24.9.0",
-    "puppeteer": "^3.1.0",
+    "puppeteer": "^5.2.1",
     "puppeteer-core": "^3.1.0",
     "tree-kill": "^1.2.2",
     "ts-jest": "^24.2.0",
