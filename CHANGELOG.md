@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.22.0] - 2020-08-06
+### Changed
+- Updated dependencies to their latest versions
+  - In particular the devDependencies  `puppeteer` and `puppeteer-core` received a major upgrade (to version `5`)
+  - `peerDependencies` was changed accordingly.
+
 ## [0.21.0] - 2020-05-24
 ### Changed
 - Updated dependencies to their latest versions
