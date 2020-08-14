@@ -160,7 +160,7 @@ describe('options', () => {
             });
 
             test('retries stop after close called', async () => {
-                expect.assertions(1); // 3 retries -> 4 times called
+                expect.assertions(1); // 3 retries will be 4 times called (just like test above), unless we actually close the cluster and cancel retries
 
                 const cluster = await Cluster.launch({
                     concurrency,
