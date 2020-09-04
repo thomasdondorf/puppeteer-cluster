@@ -27,6 +27,7 @@ interface ClusterOptions {
     retryDelay: number;
     skipDuplicateUrls: boolean;
     sameDomainDelay: number;
+    sameDomainRandomness: number;
     puppeteer: any;
 }
 
@@ -50,6 +51,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     retryDelay: 0,
     skipDuplicateUrls: false,
     sameDomainDelay: 0,
+    sameDomainRandomness:0,
     puppeteer: undefined,
 };
 
@@ -286,7 +288,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             if (lastDomainAccess !== undefined
                 && lastDomainAccess + this.options.sameDomainDelay > Date.now()) {
                 this.jobQueue.push(job, {
-                    delayUntil: lastDomainAccess + this.options.sameDomainDelay,
+                    delayUntil: lastDomainAccess + this.options.sameDomainDelay + (Math.random() * this.options.sameDomainRandomness * 2) - this.options.sameDomainRandomness),
                 });
                 this.work();
                 return;
