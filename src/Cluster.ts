@@ -163,6 +163,10 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         if (this.options.perBrowserOptions) {
             this.perBrowserOptions = [...this.options.perBrowserOptions];
         }
+        
+        if (this.options.sameDomainDelay < this.options.sameDomainRandomness) {
+            this.options.sameDomainRandomness = 0;
+        }
 
         try {
             await this.browser.init();
