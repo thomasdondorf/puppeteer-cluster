@@ -169,6 +169,7 @@ Emitted when a task is queued via [Cluster.queue] or [Cluster.execute]. The firs
   - `retryLimit` <[number]> How often do you want to retry a job before marking it as failed. Ignored by tasks queued via [Cluster.execute]. Defaults to `0`.
   - `retryDelay` <[number]> How much time should pass at minimum between the job execution and its retry. Ignored by tasks queued via [Cluster.execute]. Defaults to `0`.
   - `sameDomainDelay` <[number]> How much time should pass at minimum between two requests to the same domain. If you use this field, the queued `data` must be your URL or `data` must be an object containing a field called `url`.
+  - `sameDomainRandomness` <[number]> How much time should be added/subtracted to the `sameDomainDelay`. It will pick a random number between `-sameDomainRandomness` and `+sameDomainRandomness`. This option is ignored if `sameDomainDelay` is not set.
   - `skipDuplicateUrls` <[boolean]> If set to `true`, will skip URLs which were already crawled by the cluster. Defaults to `false`. If you use this field, the queued `data` must be your URL or `data` must be an object containing a field called `url`.
   - `timeout` <[number]> Specify a timeout for all tasks. Defaults to `30000` (30 seconds).
   - `monitor` <[boolean]> If set to `true`, will provide a small command line output to provide information about the crawling process. Defaults to `false`.
