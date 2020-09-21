@@ -292,7 +292,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             if (lastDomainAccess !== undefined
                 && lastDomainAccess + this.options.sameDomainDelay > Date.now()) {
                 this.jobQueue.push(job, {
-                    delayUntil: lastDomainAccess + this.options.sameDomainDelay + (Math.random() * this.options.sameDomainRandomness * 2) - this.options.sameDomainRandomness),
+                    delayUntil: lastDomainAccess + this.options.sameDomainDelay + (Math.random() * this.options.sameDomainRandomness * 2) - this.options.sameDomainRandomness,
                 });
                 this.work();
                 return;
