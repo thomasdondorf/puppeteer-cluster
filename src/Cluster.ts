@@ -199,8 +199,6 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         }
 
         const worker = new Worker<JobData, ReturnData>({
-            cluster: this,
-            args: [''], // this.options.args,
             browser: workerBrowserInstance,
             id: workerId,
         });
