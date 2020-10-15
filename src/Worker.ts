@@ -1,20 +1,12 @@
-
 import Job from './Job';
-import Cluster, { TaskFunction } from './Cluster';
-import { Page } from 'puppeteer';
-import { timeoutExecute, debugGenerator, log } from './util';
+import { TaskFunction } from './Cluster';
+import { debugGenerator, log, timeoutExecute } from './util';
 import { inspect } from 'util';
-import { WorkerInstance, JobInstance } from './concurrency/ConcurrencyImplementation';
+import { WorkerInstance } from './concurrency/ConcurrencyImplementation';
 
 const debug = debugGenerator('Worker');
 
-const DEFAULT_OPTIONS = {
-    args: [],
-};
-
 interface WorkerOptions {
-    cluster: Cluster;
-    args: string[];
     id: number;
     browser: WorkerInstance;
 }
@@ -33,18 +25,23 @@ export interface WorkData {
 
 export type WorkResult = WorkError | WorkData;
 
-export default class Worker<JobData, ReturnData> implements WorkerOptions {
+const success = (data: any): WorkData => ({
+    data,
+    type: 'success',
+});
 
-    cluster: Cluster;
-    args: string[];
+const error = (errorState?: Error): WorkError => ({
+    type: 'error',
+    error: errorState || new Error(),
+});
+
+export default class Worker<JobData, ReturnData> {
     id: number;
     browser: WorkerInstance;
 
     activeTarget: Job<JobData, ReturnData> | null = null;
 
-    public constructor({ cluster, args, id, browser }: WorkerOptions) {
-        this.cluster = cluster;
-        this.args = args;
+    public constructor({ id, browser }: WorkerOptions) {
         this.id = id;
         this.browser = browser;
 
@@ -58,27 +55,8 @@ export default class Worker<JobData, ReturnData> implements WorkerOptions {
         ): Promise<WorkResult> {
         this.activeTarget = job;
 
-        let jobInstance: JobInstance | null = null;
-        let page: Page | null = null;
-
-        let tries = 0;
-
-        while (jobInstance === null) {
-            try {
-                jobInstance = await this.browser.jobInstance();
-                page = jobInstance.resources.page;
-            } catch (err) {
-                debug(`Error getting browser page (try: ${tries}), message: ${err.message}`);
-                await this.browser.repair();
-                tries += 1;
-                if (tries >= BROWSER_INSTANCE_TRIES) {
-                    throw new Error('Unable to get browser page');
-                }
-            }
-        }
-
-         // We can be sure that page is set now, otherwise an exception would've been thrown
-        page = page as Page; // this is just for TypeScript
+        const jobInstance = await this.getJobInstance();
+        const page = jobInstance.resources.page;
 
         let errorState: Error | null = null;
 
@@ -119,17 +97,20 @@ export default class Worker<JobData, ReturnData> implements WorkerOptions {
         }
 
         this.activeTarget = null;
+        return errorState ? error(errorState) : success(result);
+    }
 
-        if (errorState) {
-            return {
-                type: 'error',
-                error: errorState || new Error('asf'),
-            };
+    private async getJobInstance() {
+        for (let attempt = 0; attempt < BROWSER_INSTANCE_TRIES; attempt += 1) {
+            try {
+                return await this.browser.jobInstance();
+            } catch (err) {
+                debug(`Error getting browser page (try: ${attempt}), message: ${err.message}`);
+                await this.browser.repair();
+            }
         }
-        return {
-            data: result,
-            type: 'success',
-        };
+
+        throw new Error('Unable to get browser page');
     }
 
     public async close(): Promise<void> {
