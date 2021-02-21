@@ -472,6 +472,65 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         debug('Closed');
     }
 
+    public getMonitorObject(): object {
+        const monitorObject = {
+            now: Date.now(),
+            timeDiff: 0,
+            doneTargets: 0,
+            donePercentage: '',
+            errorPerc: '',
+            timeRunning: '',
+            timeRemaining: '',
+            cpuUsage : '',
+            memoryUsage: '',
+            pagesPerSecond: '',
+            worker: [] as string[],
+        };
+
+        monitorObject.timeDiff = monitorObject.now - this.startTime;
+        monitorObject.doneTargets = this.allTargetCount - this.jobQueue.size() -
+            this.workersBusy.length;
+        const donePercentage = this.allTargetCount === 0
+            ? 1 : (monitorObject.doneTargets / this.allTargetCount);
+
+        monitorObject.donePercentage = (100 * donePercentage).toFixed(2);
+        monitorObject.errorPerc = monitorObject.doneTargets === 0 ?
+            '0.00' : (100 * this.errorCount / monitorObject.doneTargets).toFixed(2);
+
+        monitorObject.timeRunning = util.formatDuration(monitorObject.timeDiff);
+
+        let timeRemainingMillis = -1;
+        if (donePercentage !== 0) {
+            timeRemainingMillis = ((monitorObject.timeDiff) / donePercentage)
+                - monitorObject.timeDiff;
+        }
+        monitorObject.timeRemaining = util.formatDuration(timeRemainingMillis);
+
+        monitorObject.cpuUsage = this.systemMonitor.getCpuUsage().toFixed(1);
+        monitorObject.memoryUsage = this.systemMonitor.getMemoryUsage().toFixed(1);
+
+        monitorObject.pagesPerSecond = monitorObject.doneTargets === 0 ?
+            '0' : (monitorObject.doneTargets * 1000 / monitorObject.timeDiff).toFixed(2);
+
+        this.workers.forEach((worker, i) => {
+            const isIdle = this.workersAvail.indexOf(worker) !== -1;
+            let workOrIdle;
+            let workerUrl = '';
+            if (isIdle) {
+                workOrIdle = 'IDLE';
+            } else {
+                workOrIdle = 'WORK';
+                if (worker.activeTarget) {
+                    workerUrl = worker.activeTarget.getUrl() || 'UNKNOWN TARGET';
+                } else {
+                    workerUrl = 'NO TARGET (should not be happening)';
+                }
+            }
+            monitorObject.worker.push(`#${i} ${workOrIdle} ${workerUrl}`);
+        });
+        return monitorObject;
+    }
+
     private monitor(): void {
         if (!this.display) {
             this.display = new Display();
