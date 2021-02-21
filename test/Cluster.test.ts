@@ -794,6 +794,35 @@ describe('options', () => {
             await cluster.idle();
             await cluster.close();
         });
+
+        test('monitorObject enabled', async () => {
+            const cluster = await Cluster.launch({
+                concurrency: Cluster.CONCURRENCY_CONTEXT,
+                puppeteerOptions: { args: ['--no-sandbox'] },
+                maxConcurrency: 1,
+                monitor: false,
+                monitorObject: true,
+            });
+            cluster.on('taskerror', (err) => {
+                throw err;
+            });
+
+            cluster.task(async () => {
+                await new Promise(resolve => setTimeout(resolve, 550));
+            });
+
+            cluster.queue(TEST_URL);
+
+            // there should be at least one logging call in a 500ms interval
+            output = '';
+            await new Promise(resolve => setTimeout(resolve, 510));
+            const monitorObject = cluster.getMonitorObject();
+            expect(monitorObject.workerCount).toBeGreaterThan(0);
+            expect(monitorObject.cpuUsage.length).toBeGreaterThan(0);
+
+            await cluster.idle();
+            await cluster.close();
+        });
     });
 
 });

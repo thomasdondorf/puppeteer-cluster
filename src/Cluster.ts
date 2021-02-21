@@ -22,12 +22,28 @@ interface ClusterOptions {
     puppeteerOptions: LaunchOptions;
     perBrowserOptions: LaunchOptions[] | undefined;
     monitor: boolean;
+    monitorObject: boolean;
     timeout: number;
     retryLimit: number;
     retryDelay: number;
     skipDuplicateUrls: boolean;
     sameDomainDelay: number;
     puppeteer: any;
+}
+
+interface MonitorObject {
+    now: number;
+    timeDiff: number;
+    doneTargets: number;
+    donePercentage: string;
+    errorPerc: string;
+    timeRunning: string;
+    timeRemaining: string;
+    cpuUsage : string;
+    memoryUsage: string;
+    pagesPerSecond: string;
+    workerCount: number;
+    worker: string[];
 }
 
 type Partial<T> = {
@@ -45,6 +61,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     },
     perBrowserOptions: undefined,
     monitor: false,
+    monitorObject: false,
     timeout: 30 * 1000,
     retryLimit: 0,
     retryDelay: 0,
@@ -168,7 +185,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             throw new Error(`Unable to launch browser, error message: ${err.message}`);
         }
 
-        if (this.options.monitor) {
+        if (this.options.monitor || this.options.monitorObject) {
             await this.systemMonitor.init();
         }
 
@@ -472,8 +489,8 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         debug('Closed');
     }
 
-    public getMonitorObject(): object {
-        const monitorObject = {
+    public getMonitorObject(): MonitorObject {
+        const monitorObject: MonitorObject = {
             now: Date.now(),
             timeDiff: 0,
             doneTargets: 0,
@@ -484,8 +501,11 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             cpuUsage : '',
             memoryUsage: '',
             pagesPerSecond: '',
+            workerCount: this.workers.length + this.workersStarting,
             worker: [] as string[],
         };
+
+        if (!this.options.monitorObject) return monitorObject;
 
         monitorObject.timeDiff = monitorObject.now - this.startTime;
         monitorObject.doneTargets = this.allTargetCount - this.jobQueue.size() -

@@ -129,6 +129,7 @@ $env:DEBUG='puppeteer-cluster:*';node examples/minimal
   * [cluster.task(taskFunction)](#clustertasktaskfunction)
   * [cluster.queue([data] [, taskFunction])](#clusterqueuedata--taskfunction)
   * [cluster.execute([data] [, taskFunction])](#clusterexecutedata--taskfunction)
+  * [cluster.getMonitorObject()](#clustergetmonitorobject)
   * [cluster.idle()](#clusteridle)
   * [cluster.close()](#clusterclose)
 
@@ -172,6 +173,7 @@ Emitted when a task is queued via [Cluster.queue] or [Cluster.execute]. The firs
   - `skipDuplicateUrls` <[boolean]> If set to `true`, will skip URLs which were already crawled by the cluster. Defaults to `false`. If you use this field, the queued `data` must be your URL or `data` must be an object containing a field called `url`.
   - `timeout` <[number]> Specify a timeout for all tasks. Defaults to `30000` (30 seconds).
   - `monitor` <[boolean]> If set to `true`, will provide a small command line output to provide information about the crawling process. Defaults to `false`.
+  - `monitor` <[boolean]> If set to `true`, will provide a method that provides an object with information about the crawling process. Default `false`.
   - `workerCreationDelay` <[number]> Time between creation of two workers. Set this to a value like `100` (0.1 seconds) in case you want some time to pass before another worker is created. You can use this to prevent a network peak right at the start. Defaults to `0` (no delay).
   - `puppeteer` <[Object]> In case you want to use a different puppeteer library (like [puppeteer-core](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#puppeteer-vs-puppeteer-core) or [puppeteer-extra](https://github.com/berstend/puppeteer-extra)), pass the object here. If not set, will default to using puppeteer. When using `puppeteer-core`, make sure to also provide `puppeteerOptions.executablePath`.
 - returns: <[Promise]<[Cluster]>>
@@ -211,6 +213,10 @@ Be aware that this function only returns a Promise for backward compatibility re
 - returns: <[Promise]>
 
 Works like [Cluster.queue], but this function returns a Promise which will be resolved after the task is executed. That means, that the job is still queued, but the script will wait for it to be finished. In case an error happens during the execution, this function will reject the Promise with the thrown error. There will be no "taskerror" event fired. In addition, tasks queued via execute will ignore "retryLimit" and "retryDelay". For an example see the [Execute example](examples/execute.js).
+
+### cluster.getMonitorObject()
+- if in the cluster options the option `monitorObject` is set to `true` this method will provide an object with all information of the `monitor` functionality. Maybe used for API-Calls or other use cases.
+- returns: object
 
 #### cluster.idle()
 - returns: <[Promise]>
