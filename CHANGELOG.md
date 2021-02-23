@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.23.0] - 2021-02-23
+### Added
+- Add a new option `queueLimit` setting tasks limit in queue
+
 ## [0.22.0] - 2020-08-06
 ### Changed
 - Updated dependencies to their latest versions
