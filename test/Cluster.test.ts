@@ -323,7 +323,7 @@ describe('options', () => {
                     throw err;
                 });
 
-                cluster.queue(async ({ page, data }: { page: any, data: any}) => {
+                cluster.queue(async ({ page, data }: { page: any, data: any }) => {
                     expect(page).toBeDefined();
                     expect(data).toBeUndefined();
                 });
@@ -360,7 +360,7 @@ describe('options', () => {
                     expect(url).toBe('works too');
                 });
                 cluster.queue('works');
-                cluster.queue(async ({ page, data }: { page: any, data: any}) => {
+                cluster.queue(async ({ page, data }: { page: any, data: any }) => {
                     expect(page).toBeDefined();
                     expect(data).toBeUndefined();
                 });
@@ -499,8 +499,8 @@ describe('options', () => {
                     throw err;
                 });
 
-                const func2 = async () => {};
-                const func3 = async () => {};
+                const func2 = async () => { };
+                const func3 = async () => { };
 
                 let i = 0;
                 cluster.on('queue', (data, func) => {
@@ -614,7 +614,7 @@ describe('options', () => {
                         // no repair for this tests, but you should really implement this (!!!)
                         // have a look at Browser, Context or Page in built-in directory for a
                         // full implementation
-                        repair: async () => {},
+                        repair: async () => { },
                     };
                 }
             }
@@ -713,7 +713,7 @@ describe('options', () => {
                         // no repair for this tests, but you should really implement this (!!!)
                         // have a look at Browser, Context or Page in built-in directory for a
                         // full implementation
-                        repair: async () => {},
+                        repair: async () => { },
                     };
                 }
             }
@@ -796,6 +796,81 @@ describe('options', () => {
         });
     });
 
+    describe('queueLimit', () => {
+        it('works correctly ', async () => {
+            expect.assertions(2);
+            const cluster = await Cluster.launch({
+                queueLimit: 2,
+                maxConcurrency: 2,
+                puppeteerOptions: { args: ['--no-sandbox'] },
+            });
+            cluster.on('taskerror', (err) => {
+                // should never throw as errors are given directly to await try-catch block
+                throw err;
+            });
+
+            await cluster.task(async ({ page, data }) => {
+                return data;
+            });
+            
+            const promise1 = cluster.execute(1);
+            const promise2 = cluster.execute('something');
+            const promise3 = cluster.execute(3);
+            const promise4 = cluster.execute('something 2');
+
+            const [value1, value2, value3, value4 ] = await Promise.all([promise1, promise2, promise3, promise4,] as const)
+
+            expect(value1).toBe(1);
+            expect(value2).toBe('something');
+            expect(value3).toBe(3);
+            expect(value4).toBe('something 3');
+
+            await cluster.idle();
+            await cluster.close();
+        });
+
+        it('throws error ', async () => {
+            expect.assertions(2);
+            const cluster = await Cluster.launch({
+                queueLimit: 2,
+                maxConcurrency: 2,
+                puppeteerOptions: { args: ['--no-sandbox'] },
+            });
+            cluster.on('taskerror', (err) => {
+                // should never throw as errors are given directly to await try-catch block
+                throw err;
+            });
+
+            await cluster.task(async ({ page, data }) => {
+                return data;
+            });
+            
+            const promise1 = cluster.execute(1);
+            const promise2 = cluster.execute('something');
+            const promise3 = cluster.execute(3);
+            const promise4 = cluster.execute('something 2');
+
+            try {
+                await cluster.execute('error');
+
+                throw new Error('Queue limit should be reached');
+            } catch (err) {
+                expect(err).toBeInstanceOf(Error)
+                expect(err.message).toBe('Queue limit reached')
+            }
+
+
+            const [value1, value2, value3, value4 ] = await Promise.all([promise1, promise2, promise3, promise4,] as const)
+
+            expect(value1).toBe(1);
+            expect(value2).toBe('something');
+            expect(value3).toBe(3);
+            expect(value4).toBe('something 3');
+
+            await cluster.idle();
+            await cluster.close();
+        });
+    });
 });
 
 describe('Repair', () => {

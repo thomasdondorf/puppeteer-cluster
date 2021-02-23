@@ -28,6 +28,7 @@ interface ClusterOptions {
     skipDuplicateUrls: boolean;
     sameDomainDelay: number;
     puppeteer: any;
+    queueLimit: number;
 }
 
 type Partial<T> = {
@@ -51,6 +52,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     skipDuplicateUrls: false,
     sameDomainDelay: 0,
     puppeteer: undefined,
+    queueLimit: Infinity
 };
 
 interface TaskFunctionArguments<JobData> {
@@ -388,6 +390,10 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         taskFunction?: TaskFunction<JobData, ReturnData>,
         callbacks?: ExecuteCallbacks,
     ): void {
+        if (this.jobQueue.size() + 1 > this.options.queueLimit) {
+            throw new Error('Queue limit reached')
+        }
+
         let realData: JobData | undefined;
         let realFunction: TaskFunction<JobData, ReturnData> | undefined;
         if (this.isTaskFunction(data)) {
