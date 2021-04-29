@@ -1,0 +1,30 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: monthly
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: jest
+    versions:
+    - "> 24.9.0"
+  - dependency-name: ts-jest
+    versions:
+    - "> 24.3.0"
+  - dependency-name: "@types/jest"
+    versions:
+    - "> 24.9.1"
+  - dependency-name: "@types/node"
+    versions:
+    - 14.14.17
+    - 14.14.22
+  - dependency-name: "@types/puppeteer"
+    versions:
+    - 5.4.2
+  - dependency-name: puppeteer-core
+    versions:
+    - 5.5.0
+  - dependency-name: bl
+    versions:
+    - 4.0.3
