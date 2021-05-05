@@ -6,7 +6,6 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "prepack": "npm i && npm run build",
     "test": "./node_modules/.bin/jest",
     "coverage": "./node_modules/.bin/jest --coverage",
     "dev": "./node_modules/.bin/tsc --watch",
