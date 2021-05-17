@@ -3,10 +3,8 @@ import Job, { ExecuteResolve, ExecuteReject, ExecuteCallbacks } from './Job';
 import Display from './Display';
 import * as util from './util';
 import Worker, { WorkResult } from './Worker';
-
 import * as builtInConcurrency from './concurrency/builtInConcurrency';
-
-import { LaunchOptions, Page } from 'puppeteer';
+import { Page, PuppeteerNodeLaunchOptions,  } from 'puppeteer';
 import Queue from './Queue';
 import SystemMonitor from './SystemMonitor';
 import { EventEmitter } from 'events';
@@ -19,8 +17,8 @@ interface ClusterOptions {
     concurrency: number | ConcurrencyImplementationClassType;
     maxConcurrency: number;
     workerCreationDelay: number;
-    puppeteerOptions: LaunchOptions;
-    perBrowserOptions: LaunchOptions[] | undefined;
+    puppeteerOptions: PuppeteerNodeLaunchOptions;
+    perBrowserOptions: PuppeteerNodeLaunchOptions[] | undefined;
     monitor: boolean;
     timeout: number;
     retryLimit: number;
@@ -76,7 +74,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     static CONCURRENCY_BROWSER = 3; // no cookie sharing and individual processes (uses contexts)
 
     private options: ClusterOptions;
-    private perBrowserOptions: LaunchOptions[] | null = null;
+    private perBrowserOptions: PuppeteerNodeLaunchOptions[] | null = null;
     private workers: Worker<JobData, ReturnData>[] = [];
     private workersAvail: Worker<JobData, ReturnData>[] = [];
     private workersBusy: Worker<JobData, ReturnData>[] = [];
