@@ -4,7 +4,7 @@ import Display from './Display';
 import * as util from './util';
 import Worker, { WorkResult } from './Worker';
 import * as builtInConcurrency from './concurrency/builtInConcurrency';
-import { Page, PuppeteerNodeLaunchOptions,  } from 'puppeteer';
+import { Page, PuppeteerNodeLaunchOptions  } from 'puppeteer';
 import Queue from './Queue';
 import SystemMonitor from './SystemMonitor';
 import { EventEmitter } from 'events';
