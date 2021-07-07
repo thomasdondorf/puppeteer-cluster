@@ -17,15 +17,16 @@ export default class Job<JobData, ReturnData> {
 
     private lastError: Error | null = null;
     public tries: number = 0;
-
+    public url: string;
     public constructor(
-        data?: JobData,
+        data?: any,
         taskFunction?: TaskFunction<JobData, ReturnData>,
         executeCallbacks?: ExecuteCallbacks,
     ) {
         this.data = data;
         this.taskFunction = taskFunction;
         this.executeCallbacks = executeCallbacks;
+        this.url = data.url;
     }
 
     public getUrl(): string | undefined {
