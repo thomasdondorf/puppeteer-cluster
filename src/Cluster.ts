@@ -12,6 +12,7 @@ import SystemMonitor from './SystemMonitor';
 import { EventEmitter } from 'events';
 import ConcurrencyImplementation, { WorkerInstance, ConcurrencyImplementationClassType }
     from './concurrency/ConcurrencyImplementation';
+import * as _ from 'underscore';
 
 const debug = util.debugGenerator('Cluster');
 
@@ -404,6 +405,15 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         this.work();
     }
 
+    private removeTask(id: any) {
+        try {
+            const findIndex = this.jobQueue.list.lastIndexOf(id)
+            findIndex !== -1 && this.jobQueue.list.splice(findIndex , 1)
+        } catch (error) {
+            console.log('error while removing task from queue >>>', JSON.stringify(error))
+        }
+    }
+
     public async queue(
         data: JobData,
         taskFunction?: TaskFunction<JobData, ReturnData>,
@@ -416,6 +426,10 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         taskFunction?: TaskFunction<JobData, ReturnData>,
     ): Promise<void> {
         this.queueJob(data, taskFunction);
+    }
+
+    public removeTaskFromQueue(id: string) {
+        this.removeTask(id);
     }
 
     public execute(
