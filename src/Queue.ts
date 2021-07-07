@@ -6,7 +6,7 @@ interface QueueOptions {
 
 export default class Queue<T> {
 
-    private list: T[] = [];
+    public list: T[] = [];
     private delayedItems: number = 0;
 
     public size(): number {
