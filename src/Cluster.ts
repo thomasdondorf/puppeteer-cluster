@@ -322,7 +322,9 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             (jobFunction as TaskFunction<JobData, ReturnData>),
             job,
             this.options.timeout,
-        );
+        ).catch((err) => {
+            return { type: 'error', error: err };
+        });
 
         if (result.type === 'error') {
             if (job.executeCallbacks) {
