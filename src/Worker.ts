@@ -1,10 +1,9 @@
-
 import Job from './Job';
-import Cluster, { TaskFunction } from './Cluster';
-import { Page } from 'puppeteer';
-import { timeoutExecute, debugGenerator, log } from './util';
-import { inspect } from 'util';
-import { WorkerInstance, JobInstance } from './concurrency/ConcurrencyImplementation';
+import Cluster, {TaskFunction} from './Cluster';
+import {Page} from 'puppeteer';
+import {debugGenerator, log, timeoutExecute} from './util';
+import {inspect} from 'util';
+import {JobInstance, WorkerInstance} from './concurrency/ConcurrencyImplementation';
 
 const debug = debugGenerator('Worker');
 

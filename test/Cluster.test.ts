@@ -1,6 +1,6 @@
 import Cluster from '../src/Cluster';
 import * as http from 'http';
-import { timeoutExecute } from '../src/util';
+import {timeoutExecute} from '../src/util';
 import * as puppeteer from 'puppeteer';
 import * as puppeteerCore from 'puppeteer-core';
 import ConcurrencyImplementation from '../src/concurrency/ConcurrencyImplementation';

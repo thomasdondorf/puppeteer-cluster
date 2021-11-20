@@ -1,4 +1,3 @@
-
 import * as Debug from 'debug';
 
 interface TimeUnit {

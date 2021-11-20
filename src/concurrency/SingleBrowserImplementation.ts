@@ -1,8 +1,8 @@
-
 import * as puppeteer from 'puppeteer';
-import ConcurrencyImplementation, { ResourceData } from './ConcurrencyImplementation';
+import ConcurrencyImplementation, {ResourceData} from './ConcurrencyImplementation';
 
-import { debugGenerator, timeoutExecute } from '../util';
+import {debugGenerator, timeoutExecute} from '../util';
+
 const debug = debugGenerator('SingleBrowserImpl');
 
 const BROWSER_TIMEOUT = 5000;

@@ -1,5 +1,4 @@
-
-import { formatDateTime, formatDuration, timeoutExecute } from '../src/util';
+import {formatDateTime, formatDuration, timeoutExecute} from '../src/util';
 
 describe('formatDateTime', () => {
 

@@ -1,4 +1,4 @@
-import { Cluster } from '../dist';
+import {Cluster} from '../dist';
 
 (async () => {
     /******************************* STRING -> NUMBER **********************/

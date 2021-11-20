@@ -1,19 +1,27 @@
-
-import Job, { ExecuteResolve, ExecuteReject, ExecuteCallbacks } from './Job';
+import Job, {ExecuteCallbacks, ExecuteReject, ExecuteResolve} from './Job';
 import Display from './Display';
 import * as util from './util';
-import Worker, { WorkResult } from './Worker';
+import Worker, {WorkResult} from './Worker';
 
 import * as builtInConcurrency from './concurrency/builtInConcurrency';
 
-import { LaunchOptions, Page } from 'puppeteer';
+import {LaunchOptions, Page} from 'puppeteer';
 import Queue from './Queue';
 import SystemMonitor from './SystemMonitor';
-import { EventEmitter } from 'events';
-import ConcurrencyImplementation, { WorkerInstance, ConcurrencyImplementationClassType }
-    from './concurrency/ConcurrencyImplementation';
+import {EventEmitter} from 'events';
+import ConcurrencyImplementation, {
+    ConcurrencyImplementationClassType,
+    WorkerInstance
+} from './concurrency/ConcurrencyImplementation';
+import any = jasmine.any;
 
 const debug = util.debugGenerator('Cluster');
+
+interface WorkerMetric {
+    id: number;
+    url: string;
+    status: string
+}
 
 interface ClusterOptions {
     concurrency: number | ConcurrencyImplementationClassType;
@@ -22,6 +30,7 @@ interface ClusterOptions {
     puppeteerOptions: LaunchOptions;
     perBrowserOptions: LaunchOptions[] | undefined;
     monitor: boolean;
+    monitorFormat: string;
     timeout: number;
     retryLimit: number;
     retryDelay: number;
@@ -45,6 +54,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     },
     perBrowserOptions: undefined,
     monitor: false,
+    monitorFormat: "json",
     timeout: 30 * 1000,
     retryLimit: 0,
     retryDelay: 0,
@@ -503,13 +513,22 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         const pagesPerSecond = doneTargets === 0 ?
             '0' : (doneTargets * 1000 / timeDiff).toFixed(2);
 
-        display.log(`== Start:     ${util.formatDateTime(this.startTime)}`);
-        display.log(`== Now:       ${util.formatDateTime(now)} (running for ${timeRunning})`);
-        display.log(`== Progress:  ${doneTargets} / ${this.allTargetCount} (${donePercStr}%)`
-            + `, errors: ${this.errorCount} (${errorPerc}%)`);
-        display.log(`== Remaining: ${timeRemining} (@ ${pagesPerSecond} pages/second)`);
-        display.log(`== Sys. load: ${cpuUsage}% CPU / ${memoryUsage}% memory`);
-        display.log(`== Workers:   ${this.workers.length + this.workersStarting}`);
+        const results = {
+            startTime: this.startTime,
+            timeRunning: timeRunning,
+            allTargetCount: this.allTargetCount,
+            doneTargets: doneTargets,
+            donePercStr: donePercStr,
+            errorPerc: errorPerc,
+            timeRemining: timeRemining,
+            pagesPerSecond: pagesPerSecond,
+            cpuUsage: cpuUsage,
+            memoryUsage: memoryUsage,
+            worker: this.workers.length + this.workersStarting,
+            workersIdleCount: 0,
+            workerActiveCount: 0,
+            workersMetric: []
+        }
 
         this.workers.forEach((worker, i) => {
             const isIdle = this.workersAvail.indexOf(worker) !== -1;
@@ -517,19 +536,39 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             let workerUrl = '';
             if (isIdle) {
                 workOrIdle = 'IDLE';
+                results.workersIdleCount+=1;
             } else {
                 workOrIdle = 'WORK';
+                results.workerActiveCount+=1;
                 if (worker.activeTarget) {
                     workerUrl = worker.activeTarget.getUrl() || 'UNKNOWN TARGET';
                 } else {
                     workerUrl = 'NO TARGET (should not be happening)';
                 }
             }
-
-            display.log(`   #${i} ${workOrIdle} ${workerUrl}`);
+            // @ts-ignore
+            results.workersMetric.push({id: i, url: workerUrl, status: workOrIdle});
         });
-        for (let i = 0; i < this.workersStarting; i += 1) {
-            display.log(`   #${this.workers.length + i} STARTING...`);
+
+        if(this.options.monitorFormat == "json") {
+            console.log(JSON.stringify(results));
+        }else {
+            results["startTime"] = this.startTime;
+            display.log(`== Start:     ${util.formatDateTime(this.startTime)}`);
+            display.log(`== Now:       ${util.formatDateTime(now)} (running for ${timeRunning})`);
+            display.log(`== Progress:  ${doneTargets} / ${this.allTargetCount} (${donePercStr}%)`
+                + `, errors: ${this.errorCount} (${errorPerc}%)`);
+            display.log(`== Remaining: ${results} (@ ${pagesPerSecond} pages/second)`);
+            display.log(`== Sys. load: ${cpuUsage}% CPU / ${memoryUsage}% memory`);
+            display.log(`== Workers:   ${this.workers.length + this.workersStarting}`);
+
+            results.workersMetric.forEach(({id, status, url}, i) => {
+                display.log(`   #${id} ${status} ${url}`);
+            });
+
+            for (let i = 0; i < this.workersStarting; i += 1) {
+                display.log(`   #${this.workers.length + i} STARTING...`);
+            }
         }
 
         display.resetCursor();

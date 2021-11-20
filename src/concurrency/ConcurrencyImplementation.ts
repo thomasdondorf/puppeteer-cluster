@@ -1,5 +1,4 @@
-
-import { Page, LaunchOptions } from 'puppeteer';
+import {LaunchOptions, Page} from 'puppeteer';
 
 /**
  * ABSTRACT CLASS Needs to be implemented to manage one or more browsers via puppeteer instances

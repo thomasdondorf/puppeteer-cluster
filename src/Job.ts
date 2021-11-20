@@ -1,6 +1,5 @@
-
-import { URL } from 'url';
-import { TaskFunction } from './Cluster';
+import {URL} from 'url';
+import {TaskFunction} from './Cluster';
 
 export type ExecuteResolve = (value?: any) => void;
 export type ExecuteReject = (reason?: any) => void;
