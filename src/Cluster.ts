@@ -2,6 +2,7 @@ import Job, {ExecuteCallbacks, ExecuteReject, ExecuteResolve} from './Job';
 import Display from './Display';
 import * as util from './util';
 import Worker, {WorkResult} from './Worker';
+import { v4 as uuidv4 } from 'uuid';
 
 import * as builtInConcurrency from './concurrency/builtInConcurrency';
 
@@ -75,7 +76,7 @@ export type TaskFunction<JobData, ReturnData> = (
     arg: TaskFunctionArguments<JobData>,
 ) => Promise<ReturnData>;
 
-const MONITORING_DISPLAY_INTERVAL = 500;
+const MONITORING_DISPLAY_INTERVAL = 5000;
 const CHECK_FOR_WORK_INTERVAL = 100;
 const WORK_CALL_INTERVAL_LIMIT = 10;
 
@@ -84,7 +85,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     static CONCURRENCY_PAGE = 1; // shares cookies, etc.
     static CONCURRENCY_CONTEXT = 2; // no cookie sharing (uses contexts)
     static CONCURRENCY_BROWSER = 3; // no cookie sharing and individual processes (uses contexts)
-
+    private id: string;
     private options: ClusterOptions;
     private perBrowserOptions: LaunchOptions[] | null = null;
     private workers: Worker<JobData, ReturnData>[] = [];
@@ -125,7 +126,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
     private constructor(options: ClusterOptionsArgument) {
         super();
-
+        this.id = uuidv4()
         this.options = {
             ...DEFAULT_OPTIONS,
             ...options,
@@ -514,6 +515,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             '0' : (doneTargets * 1000 / timeDiff).toFixed(2);
 
         const results = {
+            clusterId: this.id,
             startTime: this.startTime,
             timeRunning: timeRunning,
             allTargetCount: this.allTargetCount,
