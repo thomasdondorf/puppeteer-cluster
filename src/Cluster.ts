@@ -230,6 +230,10 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         this.taskFunction = taskFunction;
     }
 
+    public hasAvailableWorkers() {
+        return this.workersAvail.length !== 0;
+    }
+
     private nextWorkCall: number = 0;
     private workCallTimeout: NodeJS.Timer|null = null;
 
