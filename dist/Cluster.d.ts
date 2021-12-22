@@ -61,6 +61,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     private init;
     private launchWorker;
     task(taskFunction: TaskFunction<JobData, ReturnData>): Promise<void>;
+    hasAvailableWorkers(): boolean;
     private nextWorkCall;
     private workCallTimeout;
     private work;
