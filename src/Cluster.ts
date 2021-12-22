@@ -231,7 +231,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     }
 
     public hasAvailableWorkers() {
-        return this.workersAvail.length !== 0;
+        return this.workersAvail.length + this.workersBusy.length < this.options.maxConcurrency;
     }
 
     private nextWorkCall: number = 0;
