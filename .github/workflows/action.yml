@@ -41,12 +41,13 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-      - run: npm ci
+      - name: npm ci
+        run: bahmutov/npm-install@v1 # basically npm ci with a cache
       - run: npm install puppeteer@${{ matrix.puppeteer_version }}
       - run: npm test
 
   publish:
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' # && contains(github.ref, 'refs/tags/v')
     needs: test
     runs-on: ubuntu-latest
     steps:
