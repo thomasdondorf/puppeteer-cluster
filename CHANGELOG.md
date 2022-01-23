@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 - Updated dependencies which haven't been updated for more than one year
 - Moved from Travis to Github Actions
 - Remove the linter for now, but will probably add it back later after having a look at the pull requests.
+### Fixed
+- Fixed bug #395 not using `perBrowserOptions`
 
 ## [0.22.0] - 2020-08-06
 ### Changed
