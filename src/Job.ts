@@ -48,7 +48,7 @@ export default class Job<JobData, ReturnData> {
             try {
                 const url = new URL(urlStr);
                 return url.hostname || undefined;
-            } catch (e) {
+            } catch (e: any) {
                 // if urlStr is not a valid URL this might throw
                 // but we leave this to the user
                 return undefined;

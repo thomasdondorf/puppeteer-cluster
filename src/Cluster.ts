@@ -6,7 +6,7 @@ import Worker, { WorkResult } from './Worker';
 
 import * as builtInConcurrency from './concurrency/builtInConcurrency';
 
-import { LaunchOptions, Page } from 'puppeteer';
+import { LaunchOptions, Page, PuppeteerNodeLaunchOptions } from 'puppeteer';
 import Queue from './Queue';
 import SystemMonitor from './SystemMonitor';
 import { EventEmitter } from 'events';
@@ -19,8 +19,8 @@ interface ClusterOptions {
     concurrency: number | ConcurrencyImplementationClassType;
     maxConcurrency: number;
     workerCreationDelay: number;
-    puppeteerOptions: LaunchOptions;
-    perBrowserOptions: LaunchOptions[] | undefined;
+    puppeteerOptions: PuppeteerNodeLaunchOptions;
+    perBrowserOptions: PuppeteerNodeLaunchOptions[] | undefined;
     monitor: boolean;
     timeout: number;
     retryLimit: number;
@@ -164,7 +164,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
         try {
             await this.browser.init();
-        } catch (err) {
+        } catch (err: any) {
             throw new Error(`Unable to launch browser, error message: ${err.message}`);
         }
 
@@ -194,7 +194,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         try {
             workerBrowserInstance = await (this.browser as ConcurrencyImplementation)
                 .workerInstance(nextWorkerOption);
-        } catch (err) {
+        } catch (err: any) {
             throw new Error(`Unable to launch browser for worker, error message: ${err.message}`);
         }
 
@@ -454,7 +454,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
         try {
             await (this.browser as ConcurrencyImplementation).close();
-        } catch (err) {
+        } catch (err: any) {
             debug(`Error: Unable to close browser, message: ${err.message}`);
         }
 

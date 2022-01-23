@@ -24,17 +24,17 @@ export default abstract class ConcurrencyImplementation {
     /**
      * Initializes the manager
      */
-    public abstract async init(): Promise<void>;
+    public abstract init(): Promise<void>;
 
     /**
      * Closes the manager (called when cluster is about to shut down)
      */
-    public abstract async close(): Promise<void>;
+    public abstract close(): Promise<void>;
 
     /**
      * Creates a worker and returns it
      */
-    public abstract async workerInstance(perBrowserOptions: LaunchOptions | undefined):
+    public abstract workerInstance(perBrowserOptions: LaunchOptions | undefined):
         Promise<WorkerInstance>;
 
 }
