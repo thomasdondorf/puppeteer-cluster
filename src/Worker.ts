@@ -1,16 +1,12 @@
-
 import Job from './Job';
-import Cluster, { TaskFunction } from './Cluster';
-import { Page } from 'puppeteer';
+import type Cluster from './Cluster';
+import type { TaskFunction } from './Cluster';
+import type { Page } from 'puppeteer';
 import { timeoutExecute, debugGenerator, log } from './util';
 import { inspect } from 'util';
 import { WorkerInstance, JobInstance } from './concurrency/ConcurrencyImplementation';
 
 const debug = debugGenerator('Worker');
-
-const DEFAULT_OPTIONS = {
-    args: [],
-};
 
 interface WorkerOptions {
     cluster: Cluster;
