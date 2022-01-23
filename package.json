@@ -6,9 +6,9 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "./node_modules/.bin/jest",
-    "coverage": "./node_modules/.bin/jest --coverage",
-    "dev": "./node_modules/.bin/tsc --watch"
+    "test": "jest",
+    "coverage": "jest --coverage",
+    "dev": "tsc --watch"
   },
   "author": "Thomas Dondorf",
   "repository": {
@@ -23,17 +23,17 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "debug": "^4.1.1"
+    "debug": "^4.3.3"
   },
   "peerDependencies": {
-    "puppeteer": "^1.5.0 || ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0"
+    "puppeteer": "*"
   },
   "devDependencies": {
-    "@types/debug": "^4.1.5",
+    "@types/debug": "^4.1.7",
     "@types/jest": "^27.4.0",
     "@types/node": "^16.11.21",
-    "coveralls": "^3.1.0",
-    "express": "^4.17.1",
+    "coveralls": "^3.1.1",
+    "express": "^4.17.2",
     "jest": "^27.4.7",
     "puppeteer": "^13.1.1",
     "puppeteer-core": "^13.1.1",
