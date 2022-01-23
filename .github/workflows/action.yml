@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: npm ci
-        run: bahmutov/npm-install@v1 # basically npm ci with a cache
+        uses: bahmutov/npm-install@v1 # basically npm ci with a cache
       - run: npm install puppeteer@${{ matrix.puppeteer_version }}
       - run: npm test
 
