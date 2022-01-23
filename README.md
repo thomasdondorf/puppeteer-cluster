@@ -33,13 +33,17 @@ Create a cluster of puppeteer workers. This library spawns a pool of Chromium in
 
 ## Installation
 
-Install puppeteer (if you don't already have it installed):
+Install using your favorite package manager:
 
-`npm install --save puppeteer`
+```sh
+npm install --save puppeteer # in case you don't already have it installed 
+npm install --save puppeteer-cluster
+```
 
-Install puppeteer-cluster:
-
-`npm install --save puppeteer-cluster`
+Alternatively, use `yarn`:
+```sh
+yarn add puppeteer puppeteer-cluster
+```
 
 ## Usage
 
