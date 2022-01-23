@@ -28,8 +28,9 @@ jobs:
         puppeteer_version:
           - 13.1.0 # 2022-01-17 - Chromium 98.0.4758.0
           # - 10.0.0 # 2021-05-31 - Chromium 92.0.4512.0
-          - 5.5.0 #  2020-07-02 - Chromium 88.0.4298.0
-          - 1.6.2 #  2018-08-01 - Chromium 69.0.3494.0
+          - 7.0.1  # (2021-02-04) - First version to ship TypeScript as part of package
+          # - 5.5.0 #  2020-07-02 - Chromium 88.0.4298.0
+          # - 1.6.2 #  2018-08-01 - Chromium 69.0.3494.0
 
         os:
           - ubuntu-latest
