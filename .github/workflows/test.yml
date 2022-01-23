@@ -44,7 +44,7 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - name: npm install
-        uses: npm install
+        run: npm install
 
       - name: install puppeteer@${{ matrix.puppeteer_version }}
         run: npm install puppeteer@${{ matrix.puppeteer_version }}
