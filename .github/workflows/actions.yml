@@ -64,7 +64,7 @@ jobs:
         parallel-finished: true
 
   publish:
-    if: github.event_name == 'push' # && contains(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/v')
     needs: report-coverage
     runs-on: ubuntu-latest
     steps:
@@ -76,7 +76,6 @@ jobs:
       - name: npm ci
         uses: bahmutov/npm-install@v1
       - run: npm run build
-      - run: echo 'Just simulating for now'
-      # - run: npm publish
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
