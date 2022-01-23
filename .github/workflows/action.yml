@@ -44,10 +44,7 @@ jobs:
       - run: npm test
 
   publish:
-    branches:
-      - master
-    tags:
-      - v*
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/v')
     needs: test
     runs-on: ubuntu-latest
     steps:
