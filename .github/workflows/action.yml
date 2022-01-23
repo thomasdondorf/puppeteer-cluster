@@ -53,7 +53,7 @@ jobs:
           flag-name: run_node-v${{ matrix.node }}_pptr-${{ matrix.puppeteer_version }}_os-${{ matrix.os }}
           parallel: true
 
-  finished:
+  report-coverage:
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -65,7 +65,7 @@ jobs:
 
   publish:
     if: github.event_name == 'push' # && contains(github.ref, 'refs/tags/v')
-    needs: finished
+    needs: report-coverage
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -73,7 +73,8 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
-      - run: npm ci
+      - name: npm ci
+        uses: bahmutov/npm-install@v1
       - run: npm run build
       - run: echo 'Just simulating for now'
       # - run: npm publish
