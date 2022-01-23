@@ -45,10 +45,27 @@ jobs:
         uses: bahmutov/npm-install@v1 # basically npm ci with a cache
       - run: npm install puppeteer@${{ matrix.puppeteer_version }}
       - run: npm test
+      - run: npm run coverage
+      - name: Collect coverage
+        uses: coverallsapp/github-action@v1.1.3
+        with:
+          github-token: ${{ secrets.COVERALLS }}
+          flag-name: run_node-v${{ matrix.node }}_pptr-${{ matrix.puppeteer_version }}_os-${{ matrix.os }}
+          parallel: true
+
+  finished:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Report coverage
+      uses: coverallsapp/github-action@v1.1.3
+      with:
+        github-token: ${{ secrets.COVERALLS }}
+        parallel-finished: true
 
   publish:
     if: github.event_name == 'push' # && contains(github.ref, 'refs/tags/v')
-    needs: test
+    needs: finished
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -58,7 +75,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - run: npm build
-      - run: echo "Just simulating for now"
+      - run: echo 'Just simulating for now'
       # - run: npm publish
       #   env:
       #     NODE_AUTH_TOKEN: ${{secrets.npm_token}}
