@@ -1,0 +1,64 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+      - '*'
+    types:
+      - opened
+      - synchronize
+      - reopened
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: node v${{ matrix.node }}, pptr ${{ matrix.puppeteer_version }}, ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        node:
+          - 16
+          - 14
+          - 12
+          - 10
+        puppeteer_version:
+          - 13.1.0 # 2022-01-17 - Chromium 98.0.4758.0
+          # - 10.0.0 # 2021-05-31 - Chromium 92.0.4512.0
+          - 5.5.0 #  2020-07-02 - Chromium 88.0.4298.0
+          - 1.6.2 #  2018-08-01 - Chromium 69.0.3494.0
+
+        os:
+          - ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm install puppeteer@${{ matrix.puppeteer_version }}
+      - run: npm test
+
+  publish:
+    branches:
+      - master
+    tags:
+      - v*
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: npm build
+      - run: echo "Just simulating for now"
+      # - run: npm publish
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{secrets.npm_token}}
