@@ -1,16 +1,12 @@
-
 import Job from './Job';
-import Cluster, { TaskFunction } from './Cluster';
-import { Page } from 'puppeteer';
+import type Cluster from './Cluster';
+import type { TaskFunction } from './Cluster';
+import type { Page } from 'puppeteer';
 import { timeoutExecute, debugGenerator, log } from './util';
 import { inspect } from 'util';
 import { WorkerInstance, JobInstance } from './concurrency/ConcurrencyImplementation';
 
 const debug = debugGenerator('Worker');
-
-const DEFAULT_OPTIONS = {
-    args: [],
-};
 
 interface WorkerOptions {
     cluster: Cluster;
@@ -67,7 +63,7 @@ export default class Worker<JobData, ReturnData> implements WorkerOptions {
             try {
                 jobInstance = await this.browser.jobInstance();
                 page = jobInstance.resources.page;
-            } catch (err) {
+            } catch (err: any) {
                 debug(`Error getting browser page (try: ${tries}), message: ${err.message}`);
                 await this.browser.repair();
                 tries += 1;
@@ -104,7 +100,7 @@ export default class Worker<JobData, ReturnData> implements WorkerOptions {
                     },
                 }),
             );
-        } catch (err) {
+        } catch (err: any) {
             errorState = err;
             log(`Error crawling ${inspect(job.data)} // message: ${err.message}`);
         }
@@ -113,7 +109,7 @@ export default class Worker<JobData, ReturnData> implements WorkerOptions {
 
         try {
             await jobInstance.close();
-        } catch (e) {
+        } catch (e: any) {
             debug(`Error closing browser instance for ${inspect(job.data)}: ${e.message}`);
             await this.browser.repair();
         }
@@ -135,7 +131,7 @@ export default class Worker<JobData, ReturnData> implements WorkerOptions {
     public async close(): Promise<void> {
         try {
             await this.browser.close();
-        } catch (err) {
+        } catch (err: any) {
             debug(`Unable to close worker browser. Error message: ${err.message}`);
         }
         debug(`Closed #${this.id}`);

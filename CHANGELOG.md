@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - `cluster.close()` will actually close the cluster when `retryLimit !== 0` and the number of tries has not exhausted the retries.
   
+## [0.23.0] - 2022-01-23
+### Changed
+- Updated dependencies which haven't been updated for more than one year
+- Moved from Travis to Github Actions
+- Remove the linter for now, but will probably add it back later after having a look at the pull requests.
+### Fixed
+- Fixed bug #395 not using `perBrowserOptions`
+
 ## [0.22.0] - 2020-08-06
 ### Changed
 - Updated dependencies to their latest versions

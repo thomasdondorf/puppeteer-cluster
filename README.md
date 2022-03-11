@@ -1,10 +1,11 @@
 # Puppeteer Cluster
 
-[![Build Status](https://api.travis-ci.org/thomasdondorf/puppeteer-cluster.svg?branch=master)](https://travis-ci.org/thomasdondorf/puppeteer-cluster)
-[![npm](https://badgen.now.sh/npm/v/puppeteer-cluster)](https://www.npmjs.com/package/puppeteer-cluster)
+[![Build Status](https://github.com/thomasdondorf/puppeteer-cluster/actions/workflows/actions.yml/badge.svg)](https://github.com/thomasdondorf/puppeteer-cluster/actions/workflows/actions.yml)
+[![npm](https://img.shields.io/npm/v/puppeteer-cluster)](https://www.npmjs.com/package/puppeteer-cluster)
+[![npm download count](https://img.shields.io/npm/dm/puppeteer-cluster)](https://www.npmjs.com/package/puppeteer-cluster)
 [![Coverage Status](https://coveralls.io/repos/github/thomasdondorf/puppeteer-cluster/badge.svg?branch=master)](https://coveralls.io/github/thomasdondorf/puppeteer-cluster?branch=master)
 [![Known Vulnerabilities](https://snyk.io/test/github/thomasdondorf/puppeteer-cluster/badge.svg)](https://snyk.io/test/github/thomasdondorf/puppeteer-cluster)
-[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=thomasdondorf/puppeteer-cluster)](https://dependabot.com)
+[![MIT License](https://img.shields.io/npm/l/puppeteer-cluster.svg)](#license)
 
 Create a cluster of puppeteer workers. This library spawns a pool of Chromium instances via [Puppeteer] and helps to keep track of jobs and errors. This is helpful if you want to crawl multiple pages or run tests in parallel. Puppeteer Cluster takes care of reusing Chromium and restarting the browser in case of errors.
 
@@ -32,13 +33,17 @@ Create a cluster of puppeteer workers. This library spawns a pool of Chromium in
 
 ## Installation
 
-Install puppeteer (if you don't already have it installed):
+Install using your favorite package manager:
 
-`npm install --save puppeteer`
+```sh
+npm install --save puppeteer # in case you don't already have it installed 
+npm install --save puppeteer-cluster
+```
 
-Install puppeteer-cluster:
-
-`npm install --save puppeteer-cluster`
+Alternatively, use `yarn`:
+```sh
+yarn add puppeteer puppeteer-cluster
+```
 
 ## Usage
 

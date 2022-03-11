@@ -1,0 +1,83 @@
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - '*'
+    types:
+      - opened
+      - synchronize
+      - reopened
+  push:
+    branches:
+      - master
+  release:
+    types: [created]
+
+jobs:
+  test:
+    name: node v${{ matrix.node }}, pptr ${{ matrix.puppeteer_version }}, ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        node:
+          - 16
+          - 14
+          - 12
+          - 10
+        puppeteer_version:
+          - 13.1.0 # 2022-01-17 - Chromium 98.0.4758.0
+          # - 10.0.0 # 2021-05-31 - Chromium 92.0.4512.0
+          - 9.1.1  # (2021-02-04) - Types: PuppeteerNodeLaunchOptions introduced
+          # - 7.0.1  # (2021-02-04) - First version to ship TypeScript as part of package
+          # - 5.5.0 #  2020-07-02 - Chromium 88.0.4298.0
+          # - 1.6.2 #  2018-08-01 - Chromium 69.0.3494.0
+
+        os:
+          - ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+      - name: npm ci
+        uses: bahmutov/npm-install@v1 # basically npm ci with a cache
+      - run: npm install puppeteer@${{ matrix.puppeteer_version }}
+      # - run: npm test
+      - run: npm run coverage
+      - name: Collect coverage
+        uses: coverallsapp/github-action@1.1.3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          flag-name: run_node-v${{ matrix.node }}_pptr-${{ matrix.puppeteer_version }}_os-${{ matrix.os }}
+          parallel: true
+
+  report-coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Report coverage
+      uses: coverallsapp/github-action@1.1.3
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        parallel-finished: true
+
+  publish:
+    if: github.event_name == 'release' && github.event.action == 'created'
+    needs: report-coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+      - name: npm ci
+        uses: bahmutov/npm-install@v1
+      - run: npm run build
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_GITHUB_TOKEN }}

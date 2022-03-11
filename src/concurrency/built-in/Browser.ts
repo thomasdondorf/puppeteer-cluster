@@ -49,7 +49,7 @@ export default class Browser extends ConcurrencyImplementation {
                 } catch (e) {}
 
                 // just relaunch as there is only one page per browser
-                chrome = await this.puppeteer.launch(this.options);
+                chrome = await this.puppeteer.launch(options);
             },
         };
     }

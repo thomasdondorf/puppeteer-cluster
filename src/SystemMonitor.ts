@@ -26,7 +26,7 @@ export default class SystemMonitor {
     // After init is called there is at least something in the cpuUsage thingy
     public init() {
         this.calcLoad();
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             setTimeout(
                 () => {
                     this.calcLoad();
