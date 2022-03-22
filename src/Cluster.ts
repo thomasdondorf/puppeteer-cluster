@@ -12,6 +12,7 @@ import SystemMonitor from './SystemMonitor';
 import { EventEmitter } from 'events';
 import ConcurrencyImplementation, { WorkerInstance, ConcurrencyImplementationClassType }
     from './concurrency/ConcurrencyImplementation';
+import { BROWSER_TIMEOUT, timeoutExecute } from './util';
 
 const debug = util.debugGenerator('Cluster');
 
@@ -123,6 +124,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
         if (this.options.monitor) {
             this.monitoringInterval = setInterval(
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 () => this.monitor(),
                 MONITORING_DISPLAY_INTERVAL,
             );
@@ -136,7 +138,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         if (this.options.puppeteer == null) { // check for null or undefined
             puppeteer = require('puppeteer');
         } else {
-            debug('Using provided (custom) puppteer object.');
+            debug('Using provided (custom) puppeteer object.');
         }
 
         if (this.options.concurrency === Cluster.CONCURRENCY_PAGE) {
@@ -174,6 +176,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
         // needed in case resources are getting free (like CPU/memory) to check if
         // can launch workers
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises, @typescript-eslint/no-misused-promises
         this.checkForWorkInterval = setInterval(() => this.work(), CHECK_FOR_WORK_INTERVAL);
     }
 
@@ -208,7 +211,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
         if (this.isClosed) {
             // cluster was closed while we created a new worker (should rarely happen)
-            worker.close();
+            await worker.close();
         } else {
             this.workersAvail.push(worker);
             this.workers.push(worker);
@@ -219,7 +222,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         this.taskFunction = taskFunction;
     }
 
-    private nextWorkCall: number = 0;
+    private nextWorkCall = 0;
     private workCallTimeout: NodeJS.Timer|null = null;
 
     // check for new work soon (wait if there will be put more data into the queue, first)
@@ -238,6 +241,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             this.workCallTimeout = setTimeout(
                 () => {
                     this.workCallTimeout = null;
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
                     this.doWork();
                 },
                 timeUntilNextWorkCall,
@@ -256,7 +260,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         if (this.workersAvail.length === 0) { // no workers available
             if (this.allowedToStartWorker()) {
                 await this.launchWorker();
-                this.work();
+                await this.work();
             }
             return;
         }
@@ -276,7 +280,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             && url !== undefined && this.duplicateCheckUrls.has(url)) {
             // already crawled, just ignore
             debug(`Skipping duplicate URL: ${job.getUrl()}`);
-            this.work();
+            await this.work();
             return;
         }
 
@@ -288,7 +292,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
                 this.jobQueue.push(job, {
                     delayUntil: lastDomainAccess + this.options.sameDomainDelay,
                 });
-                this.work();
+                await this.work();
                 return;
             }
         }
@@ -306,7 +310,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
         if (this.workersAvail.length !== 0 || this.allowedToStartWorker()) {
             // we can execute more work in parallel
-            this.work();
+            await this.work();
         }
 
         let jobFunction;
@@ -361,10 +365,10 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
         this.workersAvail.push(worker);
 
-        this.work();
+        await this.work();
     }
 
-    private lastLaunchedWorkerTime: number = 0;
+    private lastLaunchedWorkerTime = 0;
 
     private allowedToStartWorker(): boolean {
         const workerCount = this.workers.length + this.workersStarting;
@@ -403,6 +407,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         this.allTargetCount += 1;
         this.jobQueue.push(job);
         this.emit('queue', realData, realFunction);
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.work();
     }
 
@@ -455,13 +460,13 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         await Promise.all(this.workers.map(worker => worker.close()));
 
         try {
-            await (this.browser as ConcurrencyImplementation).close();
+            await timeoutExecute(BROWSER_TIMEOUT,  (this.browser as ConcurrencyImplementation).close());
         } catch (err: any) {
             debug(`Error: Unable to close browser, message: ${err.message}`);
         }
 
         if (this.monitoringInterval) {
-            this.monitor();
+            await this.monitor();
             clearInterval(this.monitoringInterval);
         }
 
@@ -474,7 +479,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         debug('Closed');
     }
 
-    private monitor(): void {
+    private async monitor(): Promise<void> {
         if (!this.display) {
             this.display = new Display();
         }
@@ -505,13 +510,14 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         const pagesPerSecond = doneTargets === 0 ?
             '0' : (doneTargets * 1000 / timeDiff).toFixed(2);
 
-        display.log(`== Start:     ${util.formatDateTime(this.startTime)}`);
-        display.log(`== Now:       ${util.formatDateTime(now)} (running for ${timeRunning})`);
-        display.log(`== Progress:  ${doneTargets} / ${this.allTargetCount} (${donePercStr}%)`
-            + `, errors: ${this.errorCount} (${errorPerc}%)`);
-        display.log(`== Remaining: ${timeRemining} (@ ${pagesPerSecond} pages/second)`);
-        display.log(`== Sys. load: ${cpuUsage}% CPU / ${memoryUsage}% memory`);
-        display.log(`== Workers:   ${this.workers.length + this.workersStarting}`);
+        const displayPromises = [] as Promise<unknown>[]
+        displayPromises.push(display.log(`== Start:     ${util.formatDateTime(this.startTime)}`));
+        displayPromises.push(display.log(`== Now:       ${util.formatDateTime(now)} (running for ${timeRunning})`));
+        displayPromises.push(display.log(`== Progress:  ${doneTargets} / ${this.allTargetCount} (${donePercStr}%)`
+            + `, errors: ${this.errorCount} (${errorPerc}%)`));
+        displayPromises.push(display.log(`== Remaining: ${timeRemining} (@ ${pagesPerSecond} pages/second)`));
+        displayPromises.push(display.log(`== Sys. load: ${cpuUsage}% CPU / ${memoryUsage}% memory`));
+        displayPromises.push(display.log(`== Workers:   ${this.workers.length + this.workersStarting}`));
 
         this.workers.forEach((worker, i) => {
             const isIdle = this.workersAvail.indexOf(worker) !== -1;
@@ -528,13 +534,14 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
                 }
             }
 
-            display.log(`   #${i} ${workOrIdle} ${workerUrl}`);
+            displayPromises.push(display.log(`   #${i} ${workOrIdle} ${workerUrl}`));
         });
         for (let i = 0; i < this.workersStarting; i += 1) {
-            display.log(`   #${this.workers.length + i} STARTING...`);
+            displayPromises.push(display.log(`   #${this.workers.length + i} STARTING...`));
         }
 
-        display.resetCursor();
+        displayPromises.push(display.resetCursor());
+        await Promise.all(displayPromises);
     }
 
 }

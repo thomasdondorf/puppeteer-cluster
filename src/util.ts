@@ -6,6 +6,8 @@ interface TimeUnit {
     name: string;
 }
 
+export const BROWSER_TIMEOUT = 5000;
+
 function timeUnit(step: number, name: string) : TimeUnit {
     return { step, name };
 }

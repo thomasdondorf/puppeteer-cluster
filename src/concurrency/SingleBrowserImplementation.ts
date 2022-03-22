@@ -2,18 +2,15 @@
 import * as puppeteer from 'puppeteer';
 import ConcurrencyImplementation, { ResourceData } from './ConcurrencyImplementation';
 
-import { debugGenerator, timeoutExecute } from '../util';
+import { BROWSER_TIMEOUT, debugGenerator, timeoutExecute } from '../util';
 const debug = debugGenerator('SingleBrowserImpl');
-
-const BROWSER_TIMEOUT = 5000;
-
 export default abstract class SingleBrowserImplementation extends ConcurrencyImplementation {
 
     protected browser: puppeteer.Browser | null = null;
 
-    private repairing: boolean = false;
-    private repairRequested: boolean = false;
-    private openInstances: number = 0;
+    private repairing = false;
+    private repairRequested = false;
+    private openInstances = 0;
     private waitingForRepairResolvers: (() => void)[] = [];
 
     public constructor(options: puppeteer.LaunchOptions, puppeteer: any) {
@@ -32,7 +29,7 @@ export default abstract class SingleBrowserImplementation extends ConcurrencyImp
 
         try {
             // will probably fail, but just in case the repair was not necessary
-            await (<puppeteer.Browser>this.browser).close();
+            await timeoutExecute(BROWSER_TIMEOUT,  (<puppeteer.Browser>this.browser).close())
         } catch (e) {
             debug('Unable to close browser.');
         }
@@ -53,7 +50,7 @@ export default abstract class SingleBrowserImplementation extends ConcurrencyImp
     }
 
     public async close() {
-        await (this.browser as puppeteer.Browser).close();
+        await timeoutExecute(BROWSER_TIMEOUT,  (this.browser as puppeteer.Browser).close())
     }
 
     protected abstract createResources(): Promise<ResourceData>;
@@ -88,7 +85,9 @@ export default abstract class SingleBrowserImplementation extends ConcurrencyImp
                 };
             },
 
-            close: async () => {},
+            close: async () => {
+                /* No Op */
+            },
 
             repair: async () => {
                 debug('Repair requested');

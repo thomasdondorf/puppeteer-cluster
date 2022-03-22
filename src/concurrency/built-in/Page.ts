@@ -1,8 +1,10 @@
 
 import * as puppeteer from 'puppeteer';
+import { BROWSER_TIMEOUT, timeoutExecute } from '../../util';
 
 import { ResourceData } from '../ConcurrencyImplementation';
 import SingleBrowserImplementation from '../SingleBrowserImplementation';
+
 
 export default class Page extends SingleBrowserImplementation {
 
@@ -13,7 +15,7 @@ export default class Page extends SingleBrowserImplementation {
     }
 
     protected async freeResources(resources: ResourceData): Promise<void> {
-        await resources.page.close();
+        await timeoutExecute(BROWSER_TIMEOUT,  resources.context.close());
     }
 
 }

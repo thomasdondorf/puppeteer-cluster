@@ -16,6 +16,7 @@
   ],
   "rules": {
       "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": "error",
       "@typescript-eslint/no-explicit-any": "off"   // Remove the noise for now
   }
 }
