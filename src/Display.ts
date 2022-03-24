@@ -3,8 +3,8 @@ const CLEAR_LINE = '\x1B[K';
 
 export default class Display {
 
-    private lastLinesCount: number = 0;
-    private linesCount: number = 0;
+    private lastLinesCount = 0;
+    private linesCount = 0;
 
     public async log(str: string) : Promise<void> {
         // We create an empty line at the start so that any console.log calls

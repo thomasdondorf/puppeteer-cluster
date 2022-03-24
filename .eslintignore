@@ -1,0 +1,4 @@
+node_modules
+dist
+examples/typings.ts
+test

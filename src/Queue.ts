@@ -1,5 +1,3 @@
-import { EventEmitter } from 'events';
-
 interface QueueOptions {
     delayUntil?: number;
 }
@@ -7,7 +5,7 @@ interface QueueOptions {
 export default class Queue<T> {
 
     private list: T[] = [];
-    private delayedItems: number = 0;
+    private delayedItems = 0;
 
     public size(): number {
         return this.list.length + this.delayedItems;

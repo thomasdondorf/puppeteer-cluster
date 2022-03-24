@@ -2,7 +2,7 @@ import Job from './Job';
 import type Cluster from './Cluster';
 import type { TaskFunction } from './Cluster';
 import type { Page } from 'puppeteer';
-import { timeoutExecute, debugGenerator, log } from './util';
+import { timeoutExecute, debugGenerator, log, BROWSER_TIMEOUT } from './util';
 import { inspect } from 'util';
 import { WorkerInstance, JobInstance } from './concurrency/ConcurrencyImplementation';
 
@@ -130,7 +130,7 @@ export default class Worker<JobData, ReturnData> implements WorkerOptions {
 
     public async close(): Promise<void> {
         try {
-            await this.browser.close();
+            await timeoutExecute(BROWSER_TIMEOUT, this.browser.close());
         } catch (err: any) {
             debug(`Unable to close worker browser. Error message: ${err.message}`);
         }

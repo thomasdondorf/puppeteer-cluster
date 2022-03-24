@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+### Fixed
+- `cluster.close()` will actually close the cluster when `retryLimit !== 0` and the number of tries has not exhausted the retries.
+  
 ## [0.23.0] - 2022-01-23
 ### Changed
 - Updated dependencies which haven't been updated for more than one year

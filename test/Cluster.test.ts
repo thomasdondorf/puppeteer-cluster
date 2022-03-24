@@ -159,6 +159,30 @@ describe('options', () => {
                 await cluster.close();
             });
 
+            test('retries stop after close called', async () => {
+                // 3 retries will be 4 times called (just like test above),
+                // unless we actually close the cluster and cancel retries
+                expect.assertions(1);
+
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
+                    maxConcurrency: 1,
+                    retryLimit: 3,
+                });
+
+                cluster.task(async ({ page, data: url }) => {
+                    expect(true).toBe(true);
+                    await cluster.close();
+                    throw new Error('testing retryLimit');
+                });
+
+                cluster.queue(TEST_URL);
+
+                await cluster.idle();
+                await cluster.close();
+            });
+
             test('waitForOne', async () => {
                 const cluster = await Cluster.launch({
                     concurrency,

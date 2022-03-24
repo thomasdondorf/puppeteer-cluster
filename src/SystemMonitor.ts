@@ -16,8 +16,8 @@ const loadListSize = MEASURE_TIMESPAN / MEASURE_INTERVAL;
 
 export default class SystemMonitor {
 
-    private cpuUsage: number = 0;
-    private memoryUsage: number = 0;
+    private cpuUsage = 0;
+    private memoryUsage = 0;
 
     private loads: SystemLoad[] = [];
 

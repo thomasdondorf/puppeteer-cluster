@@ -16,7 +16,7 @@ export default class Job<JobData, ReturnData> {
     public executeCallbacks: ExecuteCallbacks | undefined;
 
     private lastError: Error | null = null;
-    public tries: number = 0;
+    public tries = 0;
 
     public constructor(
         data?: JobData,
