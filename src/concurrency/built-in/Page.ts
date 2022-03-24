@@ -1,4 +1,3 @@
-
 import * as puppeteer from 'puppeteer';
 import { BROWSER_TIMEOUT, timeoutExecute } from '../../util';
 
@@ -15,7 +14,7 @@ export default class Page extends SingleBrowserImplementation {
     }
 
     protected async freeResources(resources: ResourceData): Promise<void> {
-        await timeoutExecute(BROWSER_TIMEOUT,  resources.context.close());
+        await timeoutExecute(BROWSER_TIMEOUT,  resources.page.close());
     }
 
 }
