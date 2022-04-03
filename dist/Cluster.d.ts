@@ -1,13 +1,13 @@
 /// <reference types="node" />
-import { LaunchOptions, Page } from 'puppeteer';
+import type { Page, PuppeteerNodeLaunchOptions } from 'puppeteer';
 import { EventEmitter } from 'events';
 import { ConcurrencyImplementationClassType } from './concurrency/ConcurrencyImplementation';
 interface ClusterOptions {
     concurrency: number | ConcurrencyImplementationClassType;
     maxConcurrency: number;
     workerCreationDelay: number;
-    puppeteerOptions: LaunchOptions;
-    perBrowserOptions: LaunchOptions[] | undefined;
+    puppeteerOptions: PuppeteerNodeLaunchOptions;
+    perBrowserOptions: PuppeteerNodeLaunchOptions[] | undefined;
     monitor: boolean;
     monitorFormat: string;
     timeout: number;

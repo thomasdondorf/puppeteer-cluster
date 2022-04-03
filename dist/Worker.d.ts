@@ -1,5 +1,6 @@
 import Job from './Job';
-import Cluster, { TaskFunction } from './Cluster';
+import type Cluster from './Cluster';
+import type { TaskFunction } from './Cluster';
 import { WorkerInstance } from './concurrency/ConcurrencyImplementation';
 interface WorkerOptions {
     cluster: Cluster;
