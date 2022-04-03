@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import * as builtInConcurrency from './concurrency/builtInConcurrency';
 
-import {LaunchOptions, Page} from 'puppeteer';
+import type { Page, PuppeteerNodeLaunchOptions } from 'puppeteer';
 import Queue from './Queue';
 import SystemMonitor from './SystemMonitor';
 import {EventEmitter} from 'events';
@@ -28,8 +28,8 @@ interface ClusterOptions {
     concurrency: number | ConcurrencyImplementationClassType;
     maxConcurrency: number;
     workerCreationDelay: number;
-    puppeteerOptions: LaunchOptions;
-    perBrowserOptions: LaunchOptions[] | undefined;
+    puppeteerOptions: PuppeteerNodeLaunchOptions;
+    perBrowserOptions: PuppeteerNodeLaunchOptions[] | undefined;
     monitor: boolean;
     monitorFormat: string;
     timeout: number;
@@ -87,7 +87,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     static CONCURRENCY_BROWSER = 3; // no cookie sharing and individual processes (uses contexts)
     private id: string;
     private options: ClusterOptions;
-    private perBrowserOptions: LaunchOptions[] | null = null;
+    private perBrowserOptions: PuppeteerNodeLaunchOptions[] | null = null;
     private workers: Worker<JobData, ReturnData>[] = [];
     private workersAvail: Worker<JobData, ReturnData>[] = [];
     private workersBusy: Worker<JobData, ReturnData>[] = [];
@@ -175,7 +175,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
         try {
             await this.browser.init();
-        } catch (err) {
+        } catch (err: any) {
             throw new Error(`Unable to launch browser, error message: ${err.message}`);
         }
 
@@ -205,7 +205,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         try {
             workerBrowserInstance = await (this.browser as ConcurrencyImplementation)
                 .workerInstance(nextWorkerOption);
-        } catch (err) {
+        } catch (err: any) {
             throw new Error(`Unable to launch browser for worker, error message: ${err.message}`);
         }
 
@@ -470,7 +470,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
         try {
             await (this.browser as ConcurrencyImplementation).close();
-        } catch (err) {
+        } catch (err: any) {
             debug(`Error: Unable to close browser, message: ${err.message}`);
         }
 

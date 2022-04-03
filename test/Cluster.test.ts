@@ -20,7 +20,7 @@ const concurrencyTypes = [
 
 beforeAll(async () => {
     // test server
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
         testServer = http.createServer((req, res) => {
             res.writeHead(200, { 'Content-Type': 'text/html' });
             res.end('<html><body>puppeteer-cluster TEST</body></html>');
@@ -241,7 +241,7 @@ describe('options', () => {
                     await timeoutExecute(200, (async () => {
                         await cluster.waitForOne(); // should time out!
                     })());
-                } catch (err) {
+                } catch (err: any) {
                     expect(err.message).toMatch(/Timeout/);
                 }
 
@@ -477,7 +477,7 @@ describe('options', () => {
                 try {
                     const value1 = await cluster.execute('executed');
                     expect(1).toBe(2); // fail, should never reach this point
-                } catch (e) {
+                } catch (e: any) {
                     // execute is catched in here
                     expect(e.message).toBe('executed');
                 }
@@ -551,7 +551,7 @@ describe('options', () => {
     test('other puppeteer objects like puppeteer-core', async () => {
         expect.assertions(2);
 
-        const executablePath = puppeteer.executablePath();
+        const executablePath = (puppeteer as any).executablePath(); // TODO why does this not work anymore?
         const cluster = await Cluster.launch({
             concurrency: Cluster.CONCURRENCY_BROWSER,
             puppeteerOptions: {

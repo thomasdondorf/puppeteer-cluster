@@ -1,0 +1,11 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: monthly
+  open-pull-requests-limit: 5
+  ignore:
+  - dependency-name: "@types/node"
+    versions:
+    - "*"

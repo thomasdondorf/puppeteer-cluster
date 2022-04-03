@@ -74,7 +74,7 @@ export async function timeoutExecute<T>(millis: number, promise: Promise<T>): Pr
         (async () => {
             try {
                 return await promise;
-            } catch (error) {
+            } catch (error: any) {
                 // Cancel timeout in error case
                 clearTimeout(timeout as any as NodeJS.Timer);
                 throw error;
