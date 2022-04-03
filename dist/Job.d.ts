@@ -12,6 +12,7 @@ export default class Job<JobData, ReturnData> {
     private lastError;
     tries: number;
     constructor(data?: JobData, taskFunction?: TaskFunction<JobData, ReturnData>, executeCallbacks?: ExecuteCallbacks);
+    getUserbrowser(): any;
     getUrl(): string | undefined;
     getDomain(): string | undefined;
     addError(error: Error): void;

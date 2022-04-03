@@ -27,6 +27,20 @@ export default class Job<JobData, ReturnData> {
         this.executeCallbacks = executeCallbacks;
     }
 
+    public getUserbrowser() {
+        if (!this.data) {
+            return undefined;
+        }
+        if (typeof this.data === 'string') {
+            return undefined;
+        }
+
+        if (typeof (this.data as any).userbrowser === 'object') {
+            return (this.data as any).userbrowser;
+        }
+        return undefined;
+    }
+
     public getUrl(): string | undefined {
         if (!this.data) {
             return undefined;

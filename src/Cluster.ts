@@ -283,6 +283,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             return;
         }
 
+        const userbrowser = job.getUserbrowser();
         const url = job.getUrl();
         const domain = job.getDomain();
 

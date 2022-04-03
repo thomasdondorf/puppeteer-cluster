@@ -22,8 +22,7 @@ export default class Browser extends ConcurrencyImplementation {
         return {
             jobInstance: async () => {
                 await timeoutExecute(BROWSER_TIMEOUT, (async () => {
-                    context = await chrome.createIncognitoBrowserContext();
-                    page = await context.newPage();
+                    page = await chrome.newPage();
                 })());
 
                 return {
@@ -32,7 +31,7 @@ export default class Browser extends ConcurrencyImplementation {
                     },
 
                     close: async () => {
-                        await timeoutExecute(BROWSER_TIMEOUT, context.close());
+                        await timeoutExecute(BROWSER_TIMEOUT, chrome.close());
                     },
                 };
             },
