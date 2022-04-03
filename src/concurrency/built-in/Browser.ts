@@ -31,7 +31,7 @@ export default class Browser extends ConcurrencyImplementation {
                     },
 
                     close: async () => {
-                        await timeoutExecute(BROWSER_TIMEOUT, chrome.close());
+                        await timeoutExecute(BROWSER_TIMEOUT, page.close());
                     },
                 };
             },
