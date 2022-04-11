@@ -36,6 +36,7 @@ export default abstract class ConcurrencyImplementation {
     public abstract workerInstance(perBrowserOptions: LaunchOptions | undefined):
         Promise<WorkerInstance>;
 
+    public abstract requestRestart(): void;
 }
 
 /**
