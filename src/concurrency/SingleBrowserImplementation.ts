@@ -3,9 +3,8 @@ import * as puppeteer from 'puppeteer';
 import ConcurrencyImplementation, { ResourceData } from './ConcurrencyImplementation';
 
 import { debugGenerator, timeoutExecute } from '../util';
+import {ClusterOptions} from '../Cluster';
 const debug = debugGenerator('SingleBrowserImpl');
-
-const BROWSER_TIMEOUT = 5000;
 
 export default abstract class SingleBrowserImplementation extends ConcurrencyImplementation {
 
@@ -16,8 +15,8 @@ export default abstract class SingleBrowserImplementation extends ConcurrencyImp
     private openInstances: number = 0;
     private waitingForRepairResolvers: (() => void)[] = [];
 
-    public constructor(options: puppeteer.LaunchOptions, puppeteer: any) {
-        super(options, puppeteer);
+    public constructor(options: puppeteer.LaunchOptions, puppeteer: any, clusterOptions: ClusterOptions) {
+        super(options, puppeteer, clusterOptions);
     }
 
     private async repair() {
@@ -73,7 +72,7 @@ export default abstract class SingleBrowserImplementation extends ConcurrencyImp
                     await this.repair();
                 }
 
-                await timeoutExecute(BROWSER_TIMEOUT, (async () => {
+                await timeoutExecute(this.clusterOptions.browserTimeout, (async () => {
                     resources = await this.createResources();
                 })());
                 this.openInstances += 1;
@@ -83,7 +82,7 @@ export default abstract class SingleBrowserImplementation extends ConcurrencyImp
 
                     close: async () => {
                         this.openInstances -= 1; // decrement first in case of error
-                        await timeoutExecute(BROWSER_TIMEOUT, this.freeResources(resources));
+                        await timeoutExecute(this.clusterOptions.browserTimeout, this.freeResources(resources));
 
                         if (this.repairRequested) {
                             await this.repair();
