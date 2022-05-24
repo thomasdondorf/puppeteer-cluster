@@ -68,6 +68,7 @@ export default class Worker<JobData, ReturnData> implements WorkerOptions {
                 await this.browser.repair();
                 tries += 1;
                 if (tries >= BROWSER_INSTANCE_TRIES) {
+                    debug("Maximum tries exceeded in retry for repair")
                     throw new Error('Unable to get browser page');
                 }
             }
