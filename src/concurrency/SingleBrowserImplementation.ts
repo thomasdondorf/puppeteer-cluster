@@ -32,15 +32,18 @@ export default abstract class SingleBrowserImplementation extends ConcurrencyImp
 
         try {
             // will probably fail, but just in case the repair was not necessary
+            debug('Closing existing browser');
             await (<puppeteer.Browser>this.browser).close();
         } catch (e) {
             debug('Unable to close browser.');
         }
-
+        debug('Closed existing browser');
+        
         try {
+            debug('Opening new browser');
             this.browser = await this.puppeteer.launch(this.options) as puppeteer.Browser;
         } catch (err) {
-            debug('Unable to restart chrome');
+            debug(`Unable to launch chrome ${err}`);
             throw new Error('Unable to restart chrome.');
         }
         this.repairRequested = false;
