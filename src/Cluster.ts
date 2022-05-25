@@ -22,7 +22,16 @@ export interface ClusterOptions {
     puppeteerOptions: PuppeteerNodeLaunchOptions;
     perBrowserOptions: PuppeteerNodeLaunchOptions[] | undefined;
     monitor: boolean;
+    /**
+     * This timeout is used when opening/closing a tab/browser
+     * If it is exceeded, browser is considered it needs repair
+     * and restarted, so if your system is slow you may consider 
+     * increasing it.
+     */
     browserTimeout: number;
+    /**
+     * This timeout is used for executing each task
+     */
     timeout: number;
     retryLimit: number;
     retryDelay: number;
