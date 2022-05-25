@@ -15,13 +15,23 @@ import ConcurrencyImplementation, { WorkerInstance, ConcurrencyImplementationCla
 
 const debug = util.debugGenerator('Cluster');
 
-interface ClusterOptions {
+export interface ClusterOptions {
     concurrency: number | ConcurrencyImplementationClassType;
     maxConcurrency: number;
     workerCreationDelay: number;
     puppeteerOptions: PuppeteerNodeLaunchOptions;
     perBrowserOptions: PuppeteerNodeLaunchOptions[] | undefined;
     monitor: boolean;
+    /**
+     * This timeout is used when opening/closing a tab/browser
+     * If it is exceeded, browser is considered it needs repair
+     * and restarted, so if your system is slow you may consider 
+     * increasing it.
+     */
+    browserTimeout: number;
+    /**
+     * This timeout is used for executing each task
+     */
     timeout: number;
     retryLimit: number;
     retryDelay: number;
@@ -34,7 +44,7 @@ type Partial<T> = {
     [P in keyof T]?: T[P];
 };
 
-type ClusterOptionsArgument = Partial<ClusterOptions>;
+export type ClusterOptionsArgument = Partial<ClusterOptions>;
 
 const DEFAULT_OPTIONS: ClusterOptions = {
     concurrency: 2, // CONTEXT
@@ -46,6 +56,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     perBrowserOptions: undefined,
     monitor: false,
     timeout: 30 * 1000,
+    browserTimeout: 5 * 1000,
     retryLimit: 0,
     retryDelay: 0,
     skipDuplicateUrls: false,
@@ -140,13 +151,13 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         }
 
         if (this.options.concurrency === Cluster.CONCURRENCY_PAGE) {
-            this.browser = new builtInConcurrency.Page(browserOptions, puppeteer);
+            this.browser = new builtInConcurrency.Page(browserOptions, puppeteer, this.options);
         } else if (this.options.concurrency === Cluster.CONCURRENCY_CONTEXT) {
-            this.browser = new builtInConcurrency.Context(browserOptions, puppeteer);
+            this.browser = new builtInConcurrency.Context(browserOptions, puppeteer, this.options);
         } else if (this.options.concurrency === Cluster.CONCURRENCY_BROWSER) {
-            this.browser = new builtInConcurrency.Browser(browserOptions, puppeteer);
+            this.browser = new builtInConcurrency.Browser(browserOptions, puppeteer, this.options);
         } else if (typeof this.options.concurrency === 'function') {
-            this.browser = new this.options.concurrency(browserOptions, puppeteer);
+            this.browser = new this.options.concurrency(browserOptions, puppeteer, this.options);
         } else {
             throw new Error(`Unknown concurrency option: ${this.options.concurrency}`);
         }

@@ -1,5 +1,6 @@
 
 import { Page, LaunchOptions } from 'puppeteer';
+import {ClusterOptions} from '../Cluster';
 
 /**
  * ABSTRACT CLASS Needs to be implemented to manage one or more browsers via puppeteer instances
@@ -10,15 +11,17 @@ import { Page, LaunchOptions } from 'puppeteer';
 export default abstract class ConcurrencyImplementation {
 
     protected options: LaunchOptions;
+    protected clusterOptions: ClusterOptions;
     protected puppeteer: any;
 
     /**
      * @param options  Options that should be provided to puppeteer.launch
      * @param puppeteer  puppeteer object (like puppeteer or puppeteer-core)
      */
-    public constructor(options: LaunchOptions, puppeteer: any) {
+    public constructor(options: LaunchOptions, puppeteer: any, clusterOptions: ClusterOptions) {
         this.options = options;
         this.puppeteer = puppeteer;
+        this.clusterOptions = clusterOptions;
     }
 
     /**
@@ -81,4 +84,5 @@ export interface ResourceData {
 export type ConcurrencyImplementationClassType = new (
     options: LaunchOptions,
     puppeteer: any,
+    clusterOptions: ClusterOptions
 ) => ConcurrencyImplementation;

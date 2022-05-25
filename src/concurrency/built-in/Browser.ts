@@ -5,8 +5,6 @@ import { debugGenerator, timeoutExecute } from '../../util';
 import ConcurrencyImplementation, { WorkerInstance } from '../ConcurrencyImplementation';
 const debug = debugGenerator('BrowserConcurrency');
 
-const BROWSER_TIMEOUT = 5000;
-
 export default class Browser extends ConcurrencyImplementation {
     public async init() {}
     public async close() {}
@@ -21,7 +19,7 @@ export default class Browser extends ConcurrencyImplementation {
 
         return {
             jobInstance: async () => {
-                await timeoutExecute(BROWSER_TIMEOUT, (async () => {
+                await timeoutExecute(this.clusterOptions.browserTimeout, (async () => {
                     context = await chrome.createIncognitoBrowserContext();
                     page = await context.newPage();
                 })());
@@ -32,7 +30,7 @@ export default class Browser extends ConcurrencyImplementation {
                     },
 
                     close: async () => {
-                        await timeoutExecute(BROWSER_TIMEOUT, context.close());
+                        await timeoutExecute(this.clusterOptions.browserTimeout, context.close());
                     },
                 };
             },
