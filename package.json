@@ -23,7 +23,11 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "debug": "^4.3.3"
+    "@types/ioredis": "^4.28.10",
+    "debug": "^4.3.3",
+    "dotenv": "^16.0.1",
+    "ioredis": "^5.2.2",
+    "uuid": "^8.3.2"
   },
   "peerDependencies": {
     "puppeteer": ">=1.5.0"

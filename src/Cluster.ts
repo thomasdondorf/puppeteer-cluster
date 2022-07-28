@@ -1,4 +1,4 @@
-
+require('dotenv').config()
 import Job, { ExecuteResolve, ExecuteReject, ExecuteCallbacks } from './Job';
 import Display from './Display';
 import * as util from './util';
@@ -7,7 +7,7 @@ import Worker, { WorkResult } from './Worker';
 import * as builtInConcurrency from './concurrency/builtInConcurrency';
 
 import type { Page, PuppeteerNodeLaunchOptions } from 'puppeteer';
-import Queue from './Queue';
+import Queue from './RedisQueue';
 import SystemMonitor from './SystemMonitor';
 import { EventEmitter } from 'events';
 import ConcurrencyImplementation, { WorkerInstance, ConcurrencyImplementationClassType }
@@ -83,12 +83,13 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     private workersStarting = 0;
 
     private allTargetCount = 0;
-    private jobQueue: Queue<Job<JobData, ReturnData>> = new Queue<Job<JobData, ReturnData>>();
+    private processed = 0;
+    private jobQueue: Queue<Job<JobData, ReturnData>> = new Queue<Job<JobData, ReturnData>>(process.env.REDIS_KEY_PATTERN);
     private errorCount = 0;
 
     private taskFunction: TaskFunction<JobData, ReturnData> | null = null;
     private idleResolvers: (() => void)[] = [];
-    private waitForOneResolvers: ((data:JobData) => void)[] = [];
+    private waitForOneResolvers: ((data: JobData) => void)[] = [];
     private browser: ConcurrencyImplementation | null = null;
 
     private isClosed = false;
@@ -106,6 +107,8 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     private checkForWorkInterval: NodeJS.Timer | null = null;
 
     public static async launch(options: ClusterOptionsArgument) {
+
+
         debug('Launching');
         const cluster = new Cluster(options);
         await cluster.init();
@@ -220,7 +223,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     }
 
     private nextWorkCall: number = 0;
-    private workCallTimeout: NodeJS.Timer|null = null;
+    private workCallTimeout: NodeJS.Timer | null = null;
 
     // check for new work soon (wait if there will be put more data into the queue, first)
     private async work() {
@@ -246,7 +249,8 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     }
 
     private async doWork() {
-        if (this.jobQueue.size() === 0) { // no jobs available
+        //console.log("QUEUE SIZE:::: " + await this.jobQueue.size())
+        if (await this.jobQueue.size() === 0) { // no jobs available
             if (this.workersBusy.length === 0) {
                 this.idleResolvers.forEach(resolve => resolve());
             }
@@ -261,6 +265,8 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             return;
         }
 
+
+
         const job = this.jobQueue.shift();
 
         if (job === undefined) {
@@ -268,6 +274,13 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             return;
         }
 
+        //
+
+        await this.jobQueue.rConn.del('rivalry-headless-' + job.data.uuid)
+        this.processed++;
+
+
+        //console.log(job)
         const url = job.getUrl();
         const domain = job.getDomain();
 
@@ -285,8 +298,10 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             const lastDomainAccess = this.lastDomainAccesses.get(domain);
             if (lastDomainAccess !== undefined
                 && lastDomainAccess + this.options.sameDomainDelay > Date.now()) {
-                this.jobQueue.push(job, {
-                    delayUntil: lastDomainAccess + this.options.sameDomainDelay,
+                this.jobQueue.push({
+                    item: job, options: {
+                        delayUntil: lastDomainAccess + this.options.sameDomainDelay,
+                    }
                 });
                 this.work();
                 return;
@@ -337,8 +352,10 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
                     if (this.options.retryDelay !== 0) {
                         delayUntil = Date.now() + this.options.retryDelay;
                     }
-                    this.jobQueue.push(job, {
-                        delayUntil,
+                    this.jobQueue.push({
+                        item: job, options: {
+                            delayUntil,
+                        }
                     });
                 } else {
                     this.errorCount += 1;
@@ -360,6 +377,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         this.workersAvail.push(worker);
 
         this.work();
+
     }
 
     private lastLaunchedWorkerTime: number = 0;
@@ -379,7 +397,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     // Type Guard for TypeScript
     private isTaskFunction(
         data: JobData | TaskFunction<JobData, ReturnData>,
-    ) : data is TaskFunction<JobData, ReturnData> {
+    ): data is TaskFunction<JobData, ReturnData> {
         return (typeof data === 'function');
     }
 
@@ -399,7 +417,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         const job = new Job<JobData, ReturnData>(realData, realFunction, callbacks);
 
         this.allTargetCount += 1;
-        this.jobQueue.push(job);
+        this.jobQueue.push({ item: job });
         this.emit('queue', realData, realFunction);
         this.work();
     }
@@ -440,7 +458,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     }
 
     public waitForOne(): Promise<JobData> {
-        return new Promise(resolve  => this.waitForOneResolvers.push(resolve));
+        return new Promise(resolve => this.waitForOneResolvers.push(resolve));
     }
 
     public async close(): Promise<void> {
@@ -472,7 +490,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         debug('Closed');
     }
 
-    private monitor(): void {
+    private async monitor(): void {
         if (!this.display) {
             this.display = new Display();
         }
@@ -481,7 +499,10 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         const now = Date.now();
         const timeDiff = now - this.startTime;
 
-        const doneTargets = this.allTargetCount - this.jobQueue.size() - this.workersBusy.length;
+        var qSize = await this.jobQueue.size();
+        //this.allTargetCount = await this.jobQueue.size();
+
+        const doneTargets = this.allTargetCount
         const donePercentage = this.allTargetCount === 0
             ? 1 : (doneTargets / this.allTargetCount);
         const donePercStr = (100 * donePercentage).toFixed(2);
@@ -500,16 +521,17 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         const cpuUsage = this.systemMonitor.getCpuUsage().toFixed(1);
         const memoryUsage = this.systemMonitor.getMemoryUsage().toFixed(1);
 
-        const pagesPerSecond = doneTargets === 0 ?
-            '0' : (doneTargets * 1000 / timeDiff).toFixed(2);
+        const pagesPerSecond = this.processed === 0 ?
+            '0' : (this.processed * 1000 / timeDiff).toFixed(2);
 
         display.log(`== Start:     ${util.formatDateTime(this.startTime)}`);
         display.log(`== Now:       ${util.formatDateTime(now)} (running for ${timeRunning})`);
-        display.log(`== Progress:  ${doneTargets} / ${this.allTargetCount} (${donePercStr}%)`
+        display.log(`== Progress:  ${this.processed} / ${qSize} (${((this.processed / qSize) * 100).toFixed(2)}%)`
             + `, errors: ${this.errorCount} (${errorPerc}%)`);
-        display.log(`== Remaining: ${timeRemining} (@ ${pagesPerSecond} pages/second)`);
+        display.log(`== Per Second: (@ ${pagesPerSecond} pages/second)`);
         display.log(`== Sys. load: ${cpuUsage}% CPU / ${memoryUsage}% memory`);
         display.log(`== Workers:   ${this.workers.length + this.workersStarting}`);
+
 
         this.workers.forEach((worker, i) => {
             const isIdle = this.workersAvail.indexOf(worker) !== -1;
