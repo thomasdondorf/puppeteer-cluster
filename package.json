@@ -1,7 +1,7 @@
 {
-  "name": "puppeteer-cluster",
-  "version": "0.23.0",
-  "description": "Cluster management for puppeteer",
+  "name": "puppeteer-cluster-with-redis-queue",
+  "version": "0.24.0",
+  "description": "Cluster management for puppeteer WITH REDIS QUEUE SUPPORT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -13,9 +13,9 @@
   "author": "Thomas Dondorf",
   "repository": {
     "type": "git",
-    "url": "https://github.com/thomasdondorf/puppeteer-cluster.git"
+    "url": "https://github.com/acgfbr/puppeteer-cluster.git"
   },
-  "homepage": "https://github.com/thomasdondorf/puppeteer-cluster",
+  "homepage": "https://github.com/acgfbr/puppeteer-cluster",
   "keywords": [
     "puppeteer",
     "cluster",
