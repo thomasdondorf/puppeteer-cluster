@@ -276,7 +276,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
         //
 
-        await this.jobQueue.rConn.del('rivalry-headless-' + job.data.uuid)
+        await this.jobQueue.rConn.del(process.env.REDIS_KEY_PATTERN + '-' + job.data.uuid)
         this.processed++;
 
 
