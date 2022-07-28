@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-cluster-with-redis-queue",
-  "version": "0.24.0",
+  "version": "0.26.0",
   "description": "Cluster management for puppeteer WITH REDIS QUEUE SUPPORT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

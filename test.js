@@ -9,7 +9,7 @@ const fs = require('fs');
 
         monitor: true,
         puppeteerOptions: {
-            headless: false
+            headless: true
         }
     });
 
@@ -30,16 +30,16 @@ const fs = require('fs');
 
     var uuidGenerated = uuid.v4()
     //cluster.queue({ uuid: uuidGenerated, url: 'http://www.google.com/' },);
-    for (var i = 0; i < 100; i++) {
+    /*for (var i = 0; i < 100; i++) {
         uuidGenerated = uuid.v4()
         cluster.queue({ uuid: uuidGenerated, url: 'http://www.google.com/' });
         /*uuidGenerated = uuid.v4()
         cluster.queue({ uuid: uuidGenerated, url: 'http://www.google.com/' });
         uuidGenerated = uuid.v4()
-        cluster.queue({ uuid: uuidGenerated, url: 'http://www.google.com/' });*/
-    }
+        cluster.queue({ uuid: uuidGenerated, url: 'http://www.google.com/' });
+    }*/
     // many more pages
 
     await cluster.idle();
-    await cluster.close();
+    //await cluster.close();
 })();

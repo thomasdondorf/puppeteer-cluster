@@ -65,7 +65,7 @@ export type TaskFunction<JobData, ReturnData> = (
     arg: TaskFunctionArguments<JobData>,
 ) => Promise<ReturnData>;
 
-const MONITORING_DISPLAY_INTERVAL = 500;
+const MONITORING_DISPLAY_INTERVAL = 1000;
 const CHECK_FOR_WORK_INTERVAL = 100;
 const WORK_CALL_INTERVAL_LIMIT = 10;
 
@@ -524,9 +524,21 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         const pagesPerSecond = this.processed === 0 ?
             '0' : (this.processed * 1000 / timeDiff).toFixed(2);
 
+        var percentage: string = '0';
+
+        try {
+            percentage = ((this.processed / (qSize + this.processed)) * 100).toFixed(2);
+            if (percentage === 'NaN') {
+                percentage = '0'
+            }
+        } catch (e) {
+            percentage = '0'
+        }
+
+
         display.log(`== Start:     ${util.formatDateTime(this.startTime)}`);
         display.log(`== Now:       ${util.formatDateTime(now)} (running for ${timeRunning})`);
-        display.log(`== Progress:  ${this.processed} / ${qSize} (${((this.processed / qSize) * 100).toFixed(2)}%)`
+        display.log(`== Progress:  ${this.processed} / ${qSize + this.processed} (${percentage}%)`
             + `, errors: ${this.errorCount} (${errorPerc}%)`);
         display.log(`== Per Second: (@ ${pagesPerSecond} pages/second)`);
         display.log(`== Sys. load: ${cpuUsage}% CPU / ${memoryUsage}% memory`);
