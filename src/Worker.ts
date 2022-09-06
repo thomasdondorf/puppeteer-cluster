@@ -78,28 +78,34 @@ export default class Worker<JobData, ReturnData> implements WorkerOptions {
 
         let errorState: Error | null = null;
 
-        page.on('error', (err) => {
-            errorState = err;
-            log(`Error (page error) crawling ${inspect(job.data)} // message: ${err.message}`);
-        });
+        const pageErrorPromise = new Promise((_, reject) => {
+            (page as Page).on('error', (err) => {
+                errorState = err;
+                reject(new Error('some fatal error appear, reject and continue'))
+                log(`Error (page error) crawling ${inspect(job.data)} // message: ${err.message}`);
+            });
+        })
 
         debug(`Executing task on worker #${this.id} with data: ${inspect(job.data)}`);
 
         let result: any;
         try {
-            result = await timeoutExecute(
-                timeout,
-                task({
-                    page,
-                    // data might be undefined if queue is only called with a function
-                    // we ignore that case, as the user should use Cluster<undefined> in that case
-                    // to get correct typings
-                    data: job.data as JobData,
-                    worker: {
-                        id: this.id,
-                    },
-                }),
-            );
+            result = await Promise.race([
+                timeoutExecute(
+                    timeout,
+                    task({
+                        page,
+                        // data might be undefined if queue is only called with a function
+                        // we ignore that case, as the user should use Cluster<undefined> in that case
+                        // to get correct typings
+                        data: job.data as JobData,
+                        worker: {
+                            id: this.id,
+                        },
+                    }),
+                ),
+                pageErrorPromise
+            ]);
         } catch (err: any) {
             errorState = err;
             log(`Error crawling ${inspect(job.data)} // message: ${err.message}`);
