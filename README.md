@@ -167,7 +167,7 @@ Emitted when a task is queued via [Cluster.queue] or [Cluster.execute]. The firs
 
 #### Cluster.launch(options)
 - `options` <[Object]> Set of configurable options for the cluster. Can have the following fields:
-  - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*|ConcurrencyImplementation> The chosen concurrency model. See [Concurreny models](#concurreny-models) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`. Alternatively you can provide a class implementing `ConcurrencyImplementation`.
+  - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*|ConcurrencyImplementation> The chosen concurrency model. See [Concurreny implementations](#concurrency-implementations) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`. Alternatively you can provide a class implementing `ConcurrencyImplementation`.
   - `maxConcurrency` <[number]> Maximal number of parallel workers. Defaults to `1`.
   - `puppeteerOptions` <[Object]> Object passed to [puppeteer.launch]. See puppeteer documentation for more information. Defaults to `{}`.
   - `perBrowserOptions` <[Array]<[Object]>> Object passed to [puppeteer.launch] for each individual browser. If set, `puppeteerOptions` will be ignored. Defaults to `undefined` (meaning that `puppeteerOptions` will be used).
