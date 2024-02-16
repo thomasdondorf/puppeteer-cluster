@@ -92,7 +92,7 @@ There are different concurrency models, which define how isolated each job is ru
 | Concurrency | Description | Shared data |
 | --- | --- | --- |
 | `CONCURRENCY_PAGE` | One [Page] for each URL | Shares everything (cookies, localStorage, etc.) between jobs. |
-| `CONCURRENCY_CONTEXT` | Incognito page (see [IncognitoBrowserContext](https://github.com/GoogleChrome/puppeteer/blob/v1.5.0/docs/api.md#browsercreateincognitobrowsercontext)) for each URL  | No shared data. |
+| `CONCURRENCY_CONTEXT` | Incognito page (see [BrowserContext](https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.browser.createbrowsercontext.md#browsercreatebrowsercontext-method)) for each URL  | No shared data. |
 | `CONCURRENCY_BROWSER` | One browser (using an incognito page) per URL. If one browser instance crashes for any reason, this will not affect other jobs. | No shared data.  |
 | Custom concurrency (**experimental**) | You can create your own concurrency implementation. Copy one of the files of the `concurrency/built-in` directory and implement `ConcurrencyImplementation`. Then provide the class to the option `concurrency`. **This part of the library is currently experimental and might break in the future, even in a minor version upgrade while the version has not reached 1.0.** | Depends on your implementation |
 
