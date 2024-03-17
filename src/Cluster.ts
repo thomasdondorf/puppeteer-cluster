@@ -95,7 +95,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     private startTime = Date.now();
     private nextWorkerId = -1;
 
-    private monitoringInterval: NodeJS.Timer | null = null;
+    private monitoringInterval: NodeJS.Timeout | null = null;
     private display: Display | null = null;
 
     private duplicateCheckUrls: Set<string> = new Set();
@@ -103,7 +103,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
     private systemMonitor: SystemMonitor = new SystemMonitor();
 
-    private checkForWorkInterval: NodeJS.Timer | null = null;
+    private checkForWorkInterval: NodeJS.Timeout | null = null;
 
     public static async launch(options: ClusterOptionsArgument) {
         debug('Launching');
@@ -220,7 +220,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     }
 
     private nextWorkCall: number = 0;
-    private workCallTimeout: NodeJS.Timer|null = null;
+    private workCallTimeout: NodeJS.Timeout | null = null;
 
     // check for new work soon (wait if there will be put more data into the queue, first)
     private async work() {
@@ -446,8 +446,8 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     public async close(): Promise<void> {
         this.isClosed = true;
 
-        clearInterval(this.checkForWorkInterval as NodeJS.Timer);
-        clearTimeout(this.workCallTimeout as NodeJS.Timer);
+        clearInterval(this.checkForWorkInterval as NodeJS.Timeout);
+        clearTimeout(this.workCallTimeout as NodeJS.Timeout);
 
         // close workers
         await Promise.all(this.workers.map(worker => worker.close()));
