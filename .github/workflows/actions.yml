@@ -38,8 +38,8 @@ jobs:
           - ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
       - name: CI Install
@@ -48,7 +48,7 @@ jobs:
       # - run: npm test
       - run: yarn run coverage
       - name: Collect coverage
-        uses: coverallsapp/github-action@1.1.3
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           flag-name: run_node-v${{ matrix.node }}_pptr-${{ matrix.puppeteer_version }}_os-${{ matrix.os }}
@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Report coverage
-      uses: coverallsapp/github-action@1.1.3
+      uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         parallel-finished: true
@@ -69,8 +69,8 @@ jobs:
     needs: report-coverage
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
