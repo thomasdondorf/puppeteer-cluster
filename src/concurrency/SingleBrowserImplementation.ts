@@ -32,7 +32,7 @@ export default abstract class SingleBrowserImplementation extends ConcurrencyImp
 
         try {
             // will probably fail, but just in case the repair was not necessary
-            await (<puppeteer.Browser>this.browser).close();
+            await timeoutExecute(BROWSER_TIMEOUT, (<puppeteer.Browser>this.browser).close());
         } catch (e) {
             debug('Unable to close browser.');
         }
