@@ -39,6 +39,6 @@
     "puppeteer-core": "^22.5.0",
     "tree-kill": "^1.2.2",
     "ts-jest": "^29.1.2",
-    "typescript": "^4.5.5"
+    "typescript": "^5.4.2"
   }
 }
