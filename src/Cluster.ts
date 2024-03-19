@@ -161,6 +161,9 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         if (this.options.perBrowserOptions) {
             this.perBrowserOptions = [...this.options.perBrowserOptions];
         }
+        if (this.options.timeout <= 0) {
+            this.options.timeout = Number.MAX_SAFE_INTEGER;
+        }
 
         try {
             await this.browser.init();
