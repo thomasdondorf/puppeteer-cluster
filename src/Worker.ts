@@ -87,18 +87,19 @@ export default class Worker<JobData, ReturnData> implements WorkerOptions {
 
         let result: any;
         try {
-            result = await timeoutExecute(
+            const taskToLaunch = task({
+                page,
+                // data might be undefined if queue is only called with a function
+                // we ignore that case, as the user should use Cluster<undefined> in that case
+                // to get correct typings
+                data: job.data as JobData,
+                worker: {
+                    id: this.id,
+                },
+            });
+            result = timeout === 0 ? await taskToLaunch : await timeoutExecute(
                 timeout,
-                task({
-                    page,
-                    // data might be undefined if queue is only called with a function
-                    // we ignore that case, as the user should use Cluster<undefined> in that case
-                    // to get correct typings
-                    data: job.data as JobData,
-                    worker: {
-                        id: this.id,
-                    },
-                }),
+                taskToLaunch,
             );
         } catch (err: any) {
             errorState = err;
