@@ -27,6 +27,7 @@ interface ClusterOptions {
     retryDelay: number;
     skipDuplicateUrls: boolean;
     sameDomainDelay: number;
+    sameDomainRandomness: number;
     puppeteer: any;
 }
 
@@ -50,6 +51,7 @@ const DEFAULT_OPTIONS: ClusterOptions = {
     retryDelay: 0,
     skipDuplicateUrls: false,
     sameDomainDelay: 0,
+    sameDomainRandomness:0,
     puppeteer: undefined,
 };
 
@@ -100,6 +102,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
     private duplicateCheckUrls: Set<string> = new Set();
     private lastDomainAccesses: Map<string, number> = new Map();
+    private lastDomainRandomNumber: Map<string, number> = new Map();
 
     private systemMonitor: SystemMonitor = new SystemMonitor();
 
@@ -160,6 +163,9 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         }
         if (this.options.perBrowserOptions) {
             this.perBrowserOptions = [...this.options.perBrowserOptions];
+        }
+        if (this.options.sameDomainDelay < this.options.sameDomainRandomness) {
+            this.options.sameDomainRandomness = 0;
         }
 
         try {
@@ -283,10 +289,13 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         // Check if the job needs to be delayed due to sameDomainDelay
         if (this.options.sameDomainDelay !== 0 && domain !== undefined) {
             const lastDomainAccess = this.lastDomainAccesses.get(domain);
+            const delay = this.options.sameDomainDelay +
+                ((this.lastDomainRandomNumber.get(domain) || 0) *
+                    this.options.sameDomainRandomness * 2) - this.options.sameDomainRandomness;
             if (lastDomainAccess !== undefined
-                && lastDomainAccess + this.options.sameDomainDelay > Date.now()) {
+                && lastDomainAccess + delay > Date.now()) {
                 this.jobQueue.push(job, {
-                    delayUntil: lastDomainAccess + this.options.sameDomainDelay,
+                    delayUntil: lastDomainAccess + delay,
                 });
                 this.work();
                 return;
@@ -298,6 +307,9 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             this.duplicateCheckUrls.add(url);
         }
         if (this.options.sameDomainDelay !== 0 && domain !== undefined) {
+            if (this.options.sameDomainRandomness) {
+                this.lastDomainRandomNumber.set(domain, Math.random());
+            }
             this.lastDomainAccesses.set(domain, Date.now());
         }
 
@@ -370,7 +382,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             // option: maxConcurrency
             (this.options.maxConcurrency === 0
                 || workerCount < this.options.maxConcurrency)
-            // just allow worker creaton every few milliseconds
+            // just allow worker creation every few milliseconds
             && (this.options.workerCreationDelay === 0
                 || this.lastLaunchedWorkerTime + this.options.workerCreationDelay < Date.now())
         );
