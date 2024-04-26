@@ -13,6 +13,7 @@ import { EventEmitter } from 'events';
 import ConcurrencyImplementation, { WorkerInstance, ConcurrencyImplementationClassType }
     from './concurrency/ConcurrencyImplementation';
 
+
 const debug = util.debugGenerator('Cluster');
 
 interface ClusterOptions {
@@ -262,6 +263,9 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         }
 
         const job = this.jobQueue.shift();
+
+        const isCallbackExecution = !!job?.executeCallbacks;
+        this.emit("taskinprogress", job?.data, isCallbackExecution);
 
         if (job === undefined) {
             // skip, there are items in the queue but they are all delayed
