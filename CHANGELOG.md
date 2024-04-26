@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.x.x] - [xxxx-xx-xx]
+### Added
+- Added new event 'taskinprogress'.
+
 ## [0.24.0] - 2024-03-17
 Note: Use a version older than `0.24.0` if you want to use a puppeteer version older than 22.0.0.
 ### Changed

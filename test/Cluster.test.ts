@@ -544,6 +544,65 @@ describe('options', () => {
                 await cluster.close();
             });
 
+            test('event: taskinprogress', async () => {
+                // expect.assertions(12);
+
+                const cluster = await Cluster.launch({
+                    concurrency,
+                    puppeteerOptions: { args: ['--no-sandbox'] },
+                    maxConcurrency: 1,
+                });
+
+                cluster.on('taskerror', (err) => {
+                    throw err;
+                });
+
+                const func2 = async () => {};
+                const func3 = async () => {};
+
+                let i = 0;
+                cluster.on('taskinprogress', (data, isCallbackExecution) => {
+                    i += 1;
+                   
+                    if (i === 1) {
+                        expect(data).toBe('1');
+                        expect(isCallbackExecution).toBe(false);
+                    } else if (i === 2) {
+                        expect(data).toBeUndefined();
+                        expect(isCallbackExecution).toBe(false);
+                    } else if (i === 3) {
+                        expect(data).toBe('3');
+                        expect(isCallbackExecution).toBe(false);
+                    } else if (i === 4) {
+                        expect(data).toBe('4');
+                        expect(isCallbackExecution).toBe(true);
+                    } else if (i === 5) {
+                        expect(data).toBeUndefined();
+                        expect(isCallbackExecution).toBe(true);
+                    } else if (i === 6) {
+                        expect(data).toBe('6');
+                        expect(isCallbackExecution).toBe(true);
+                    } else {
+                        expect(2).toBe(1); // fail
+                    }
+                });
+
+                await cluster.task(async ({ page, data }) => {
+                    // ...
+                });
+
+                cluster.queue('1');
+                cluster.queue(func2);
+                cluster.queue('3', func3);
+
+                await cluster.execute('4');
+                await cluster.execute(func2);
+                await cluster.execute('6', func3);
+
+                await cluster.idle();
+                await cluster.close();
+            });
+
         });
     });
     // end of tests for all concurrency options

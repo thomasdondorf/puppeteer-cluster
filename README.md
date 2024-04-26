@@ -165,6 +165,12 @@ In case the task was queued via [Cluster.execute] there will be no event fired.
 
 Emitted when a task is queued via [Cluster.queue] or [Cluster.execute]. The first argument is the object containing the data (if any data is provided). The second argument is the queued function (if any). In case only a function is provided via [Cluster.queue] or [Cluster.execute], the first argument will be undefined. If only data is provided, the second argument will be undefined.
 
+#### event: 'taskinprogress'
+- <\?[Object]>
+- <\?[boolean]>
+
+Emitted when a task that was queued starts execution. This event is emitted when a job is shifted from the queue. The first argument is the object containing the data (if any is provided). The second argument indicates whether the execution is a callback or not.
+
 #### Cluster.launch(options)
 - `options` <[Object]> Set of configurable options for the cluster. Can have the following fields:
   - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*|ConcurrencyImplementation> The chosen concurrency model. See [Concurreny models](#concurreny-models) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`. Alternatively you can provide a class implementing `ConcurrencyImplementation`.
