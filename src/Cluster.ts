@@ -19,6 +19,7 @@ interface ClusterOptions {
     concurrency: number | ConcurrencyImplementationClassType;
     maxConcurrency: number;
     workerCreationDelay: number;
+    domainConcurrency?: Record<string, number>;
     puppeteerOptions: PuppeteerNodeLaunchOptions;
     perBrowserOptions: PuppeteerNodeLaunchOptions[] | undefined;
     monitor: boolean;
@@ -100,6 +101,8 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
 
     private duplicateCheckUrls: Set<string> = new Set();
     private lastDomainAccesses: Map<string, number> = new Map();
+    private domainConcurrencyLimits: Map<string, number> = new Map();
+    private currentDomainConcurrency: Map<string, number> = new Map();
 
     private systemMonitor: SystemMonitor = new SystemMonitor();
 
@@ -120,7 +123,12 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             ...DEFAULT_OPTIONS,
             ...options,
         };
-
+        if (this.options.domainConcurrency) {
+            for (const [domain, limit] of Object.entries(this.options.domainConcurrency)) {
+                this.domainConcurrencyLimits.set(domain, limit);
+            }
+        }
+          
         if (this.options.monitor) {
             this.monitoringInterval = setInterval(
                 () => this.monitor(),
@@ -271,6 +279,16 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         const url = job.getUrl();
         const domain = job.getDomain();
 
+        const domainLimit = this.domainConcurrencyLimits.get(domain!);
+        const currentConcurrency = this.currentDomainConcurrency.get(domain!) || 0;
+
+        if (domainLimit !== undefined && currentConcurrency >= domainLimit) {
+            this.jobQueue.push(job); // try again later
+            return;
+        }
+
+        this.currentDomainConcurrency.set(domain!, currentConcurrency + 1);
+
         // Check if URL was already crawled (on skipDuplicateUrls)
         if (this.options.skipDuplicateUrls
             && url !== undefined && this.duplicateCheckUrls.has(url)) {
@@ -333,13 +351,9 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
                 const jobWillRetry = job.tries <= this.options.retryLimit;
                 this.emit('taskerror', result.error, job.data, jobWillRetry);
                 if (jobWillRetry) {
-                    let delayUntil = undefined;
-                    if (this.options.retryDelay !== 0) {
-                        delayUntil = Date.now() + this.options.retryDelay;
-                    }
-                    this.jobQueue.push(job, {
-                        delayUntil,
-                    });
+                    const backoff = this.options.retryDelay * Math.pow(2, job.tries - 1);
+                    const delayUntil = Date.now() + backoff;
+                    this.jobQueue.push(job, { delayUntil });
                 } else {
                     this.errorCount += 1;
                 }
@@ -358,6 +372,13 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         this.workersBusy.splice(workerIndex, 1);
 
         this.workersAvail.push(worker);
+
+        if (domain !== undefined && this.currentDomainConcurrency.has(domain)) {
+            this.currentDomainConcurrency.set(
+              domain,
+              this.currentDomainConcurrency.get(domain)! - 1
+            );
+        }          
 
         this.work();
     }
@@ -443,12 +464,25 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         return new Promise(resolve  => this.waitForOneResolvers.push(resolve));
     }
 
+    public getStats() {
+        return {
+            totalJobs: this.allTargetCount,
+            errors: this.errorCount,
+            queueSize: this.jobQueue.size(),
+            workersBusy: this.workersBusy.length,
+            workersAvailable: this.workersAvail.length,
+            memoryUsage: this.systemMonitor.getMemoryUsage(),
+            cpuUsage: this.systemMonitor.getCpuUsage(),
+        };
+    }      
+
     public async close(): Promise<void> {
         this.isClosed = true;
 
         clearInterval(this.checkForWorkInterval as NodeJS.Timeout);
         clearTimeout(this.workCallTimeout as NodeJS.Timeout);
 
+        await this.idle();
         // close workers
         await Promise.all(this.workers.map(worker => worker.close()));
 
