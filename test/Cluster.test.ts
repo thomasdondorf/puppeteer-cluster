@@ -827,7 +827,8 @@ describe('Repair', () => {
                         // error message of puppeteer disconnect
                         // before 1.9 -> error said "Protocol error"
                         // since 1.9 -> "Navigation failed because browser has disconnected!"
-                        message: expect.stringMatching(/Protocol error|disconnected/),
+                        // since 2? -> "frame was detached"
+                        message: expect.stringMatching(/Protocol error|disconnected|detached/),
                     });
                 });
 
