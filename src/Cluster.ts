@@ -136,7 +136,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         if (this.options.puppeteer == null) { // check for null or undefined
             puppeteer = require('puppeteer');
         } else {
-            debug('Using provided (custom) puppteer object.');
+            debug('Using provided (custom) puppeteer object.');
         }
 
         if (this.options.concurrency === Cluster.CONCURRENCY_PAGE) {

@@ -118,7 +118,7 @@ To allow proper type checks with TypeScript you can provide generics. In case no
 
 ## Debugging
 
-Try to checkout the [puppeteer debugging tips](https://github.com/GoogleChrome/puppeteer#debugging-tips) first. Your problem might not be related to `puppeteer-cluster`, but `puppteer` itself. Additionally, you can enable verbose logging to see which data is consumed by which worker and some other cluster information. Set the DEBUG environment variable to `puppeteer-cluster:*`. See an example below or checkout the [debug docs](https://github.com/visionmedia/debug#windows-command-prompt-notes) for more information.
+Try to checkout the [puppeteer debugging tips](https://github.com/GoogleChrome/puppeteer#debugging-tips) first. Your problem might not be related to `puppeteer-cluster`, but `puppeteer` itself. Additionally, you can enable verbose logging to see which data is consumed by which worker and some other cluster information. Set the DEBUG environment variable to `puppeteer-cluster:*`. See an example below or checkout the [debug docs](https://github.com/visionmedia/debug#windows-command-prompt-notes) for more information.
 
 ```bash
 # Linux
