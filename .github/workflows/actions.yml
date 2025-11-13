@@ -23,10 +23,11 @@ jobs:
     strategy:
       matrix:
         node:
+          - 22
           - 20
-          - 18 # Support for <= 16 was dropped in puppeteer version 22.0.0
         puppeteer_version:
-          - 22.5.0 # 2024-03-15 - Breaking context change
+          - 24.30.0
+          # - 22.5.0 # 2024-03-15 - Breaking context change
           # - 13.1.0 # 2022-01-17 - Chromium 98.0.4758.0
           # - 10.0.0 # 2021-05-31 - Chromium 92.0.4512.0
           # - 9.1.1  # (2021-02-04) - Types: PuppeteerNodeLaunchOptions introduced
