@@ -15,7 +15,7 @@ import ConcurrencyImplementation, { WorkerInstance, ConcurrencyImplementationCla
 
 const debug = util.debugGenerator('Cluster');
 
-interface ClusterOptions {
+export interface ClusterOptions {
     concurrency: number | ConcurrencyImplementationClassType;
     maxConcurrency: number;
     workerCreationDelay: number;
@@ -34,7 +34,7 @@ type Partial<T> = {
     [P in keyof T]?: T[P];
 };
 
-type ClusterOptionsArgument = Partial<ClusterOptions>;
+export type ClusterOptionsArgument = Partial<ClusterOptions>;
 
 const DEFAULT_OPTIONS: ClusterOptions = {
     concurrency: 2, // CONTEXT
