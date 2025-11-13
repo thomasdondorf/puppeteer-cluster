@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.25.0] - 2025-11-13
+Note: Use a version older than `0.25.0` if you want to use a puppeteer version older than 24.0.0.
+### Changed
+- Updated puppeteer types to version 24
+- Updated dependencies to their latest versions
+- Exported more types for improved TypeScript use
+### Fixed
+- Cluster retrying in error cases when it was already closed
+
 ## [0.24.0] - 2024-03-17
 Note: Use a version older than `0.24.0` if you want to use a puppeteer version older than 22.0.0.
 ### Changed
