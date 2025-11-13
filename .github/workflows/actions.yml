@@ -36,7 +36,7 @@ jobs:
           # - 1.6.2 #  2018-08-01 - Chromium 69.0.3494.0
 
         os:
-          - ubuntu-latest
+          - ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -57,7 +57,7 @@ jobs:
 
   report-coverage:
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Report coverage
       uses: coverallsapp/github-action@v2
@@ -68,7 +68,7 @@ jobs:
   publish:
     if: github.event_name == 'release' && github.event.action == 'created'
     needs: report-coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
