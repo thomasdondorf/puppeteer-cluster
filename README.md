@@ -118,7 +118,7 @@ To allow proper type checks with TypeScript you can provide generics. In case no
 
 ## Debugging
 
-Try to checkout the [puppeteer debugging tips](https://github.com/GoogleChrome/puppeteer#debugging-tips) first. Your problem might not be related to `puppeteer-cluster`, but `puppteer` itself. Additionally, you can enable verbose logging to see which data is consumed by which worker and some other cluster information. Set the DEBUG environment variable to `puppeteer-cluster:*`. See an example below or checkout the [debug docs](https://github.com/visionmedia/debug#windows-command-prompt-notes) for more information.
+Try to checkout the [puppeteer debugging tips](https://github.com/GoogleChrome/puppeteer#debugging-tips) first. Your problem might not be related to `puppeteer-cluster`, but `puppeteer` itself. Additionally, you can enable verbose logging to see which data is consumed by which worker and some other cluster information. Set the DEBUG environment variable to `puppeteer-cluster:*`. See an example below or checkout the [debug docs](https://github.com/visionmedia/debug#windows-command-prompt-notes) for more information.
 
 ```bash
 # Linux
@@ -167,7 +167,7 @@ Emitted when a task is queued via [Cluster.queue] or [Cluster.execute]. The firs
 
 #### Cluster.launch(options)
 - `options` <[Object]> Set of configurable options for the cluster. Can have the following fields:
-  - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*|ConcurrencyImplementation> The chosen concurrency model. See [Concurreny models](#concurreny-models) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`. Alternatively you can provide a class implementing `ConcurrencyImplementation`.
+  - `concurrency` <*Cluster.CONCURRENCY_PAGE*|*Cluster.CONCURRENCY_CONTEXT*|*Cluster.CONCURRENCY_BROWSER*|ConcurrencyImplementation> The chosen concurrency model. See [Concurreny implementations](#concurrency-implementations) for more information. Defaults to `Cluster.CONCURRENCY_CONTEXT`. Alternatively you can provide a class implementing `ConcurrencyImplementation`.
   - `maxConcurrency` <[number]> Maximal number of parallel workers. Defaults to `1`.
   - `puppeteerOptions` <[Object]> Object passed to [puppeteer.launch]. See puppeteer documentation for more information. Defaults to `{}`.
   - `perBrowserOptions` <[Array]<[Object]>> Object passed to [puppeteer.launch] for each individual browser. If set, `puppeteerOptions` will be ignored. Defaults to `undefined` (meaning that `puppeteerOptions` will be used).

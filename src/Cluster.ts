@@ -6,7 +6,7 @@ import Worker, { WorkResult } from './Worker';
 
 import * as builtInConcurrency from './concurrency/builtInConcurrency';
 
-import type { Page, PuppeteerNodeLaunchOptions } from 'puppeteer';
+import type { Page, LaunchOptions } from 'puppeteer';
 import Queue from './Queue';
 import SystemMonitor from './SystemMonitor';
 import { EventEmitter } from 'events';
@@ -15,12 +15,12 @@ import ConcurrencyImplementation, { WorkerInstance, ConcurrencyImplementationCla
 
 const debug = util.debugGenerator('Cluster');
 
-interface ClusterOptions {
+export interface ClusterOptions {
     concurrency: number | ConcurrencyImplementationClassType;
     maxConcurrency: number;
     workerCreationDelay: number;
-    puppeteerOptions: PuppeteerNodeLaunchOptions;
-    perBrowserOptions: PuppeteerNodeLaunchOptions[] | undefined;
+    puppeteerOptions: LaunchOptions;
+    perBrowserOptions: LaunchOptions[] | undefined;
     monitor: boolean;
     timeout: number;
     retryLimit: number;
@@ -34,7 +34,7 @@ type Partial<T> = {
     [P in keyof T]?: T[P];
 };
 
-type ClusterOptionsArgument = Partial<ClusterOptions>;
+export type ClusterOptionsArgument = Partial<ClusterOptions>;
 
 const DEFAULT_OPTIONS: ClusterOptions = {
     concurrency: 2, // CONTEXT
@@ -76,7 +76,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
     static CONCURRENCY_BROWSER = 3; // no cookie sharing and individual processes (uses contexts)
 
     private options: ClusterOptions;
-    private perBrowserOptions: PuppeteerNodeLaunchOptions[] | null = null;
+    private perBrowserOptions: LaunchOptions[] | null = null;
     private workers: Worker<JobData, ReturnData>[] = [];
     private workersAvail: Worker<JobData, ReturnData>[] = [];
     private workersBusy: Worker<JobData, ReturnData>[] = [];
@@ -136,7 +136,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
         if (this.options.puppeteer == null) { // check for null or undefined
             puppeteer = require('puppeteer');
         } else {
-            debug('Using provided (custom) puppteer object.');
+            debug('Using provided (custom) puppeteer object.');
         }
 
         if (this.options.concurrency === Cluster.CONCURRENCY_PAGE) {
@@ -330,7 +330,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
                 this.errorCount += 1;
             } else { // ignore retryLimits in case of executeCallbacks
                 job.addError(result.error);
-                const jobWillRetry = job.tries <= this.options.retryLimit;
+                const jobWillRetry = (job.tries <= this.options.retryLimit) && (this.isClosed === false);
                 this.emit('taskerror', result.error, job.data, jobWillRetry);
                 if (jobWillRetry) {
                     let delayUntil = undefined;
