@@ -33,7 +33,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
     "coveralls": "^3.1.1",
-    "express": "^4.18.3",
+    "express": "^5.2.1",
     "jest": "^30.2.0",
     "puppeteer": "^24.30.0",
     "puppeteer-core": "^24.30.0",
