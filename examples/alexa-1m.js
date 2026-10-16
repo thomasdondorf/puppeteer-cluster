@@ -1,5 +1,7 @@
-// You need to download the Alexa 1M from http://s3.amazonaws.com/alexa-static/top-1m.csv.zip
-// and unzip it into this directory
+// You need a Top 1M list in this directory as top-1m.csv (rank,domain per line).
+// The Alexa list this example was written for is gone; the NetAPI Top 1M is a
+// free replacement in the same format (drop its header line):
+//   curl -s https://netapi.com/netapi_top1mln.csv | tail -n +2 > top-1m.csv
 
 const { Cluster } = require('../dist');
 
